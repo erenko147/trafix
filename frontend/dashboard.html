@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trafix</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:    #141414; --s1: #1e1e1e; --s2: #252525; --s3: #2c2c2c;
+      --b1:    #303030; --b2: #3d3d3d;
+      --text:  #f0f0f0; --t2: #808080; --t3: #424242;
+      --green: #22c55e; --glow: #22c55e33; --amber: #f59e0b; --red: #ef4444;
+      --r: 9px;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Inter', sans-serif; font-size: 13px;
+      display: flex; flex-direction: column; padding: 18px 24px; gap: 12px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0; padding-bottom: 14px; border-bottom: 1px solid var(--b1);
+    }
+    .h-left    { display: flex; flex-direction: column; gap: 2px; }
+    .h-wordmark { font-size: 26px; font-weight: 800; letter-spacing: -.8px; }
+    .h-slogan  { font-size: 10px; color: var(--t3); letter-spacing: .2px; font-style: italic; }
+    .h-right { display: flex; align-items: center; gap: 10px; }
+    .timestamp { font-size: 11px; color: var(--t3); }
+    .status-pill {
+      display: flex; align-items: center; gap: 6px; padding: 4px 10px;
+      border: 1px solid var(--b1); border-radius: 6px;
+      font-size: 11px; color: var(--t2); background: var(--s1);
+    }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 2s infinite; }
+    .live-dot.off { background: var(--red); animation: none; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* ── SUMMARY BAR ── */
+    .summary-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; flex-shrink: 0; }
+    .sum-card {
+      background: var(--s1); border: 1px solid var(--b1);
+      border-radius: var(--r); padding: 13px 16px;
+      display: flex; flex-direction: column; gap: 6px;
+      box-shadow: 0 4px 12px #00000033;
+    }
+    .sum-top   { display: flex; align-items: baseline; gap: 8px; }
+    .sum-label { font-size: 10px; color: var(--t3); text-transform: uppercase; letter-spacing: .8px; font-weight: 500; }
+    .sum-val   { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -1px; font-variant-numeric: tabular-nums; line-height: 1; }
+    @keyframes num-in { from { opacity: .3; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    .sum-val.num-flash { animation: num-in .25s ease-out; }
+    .sum-trend { font-size: 11px; font-weight: 600; }
+    .trend-up { color: var(--red); } .trend-down { color: var(--green); } .trend-flat { color: var(--t3); }
+    .sum-sub   { font-size: 10px; color: var(--t3); }
+
+    /* ── LAYOUT ── */
+    .content { display: grid; grid-template-columns: minmax(300px,40%) 1fr; gap: 12px; flex: 1; min-height: 0; }
+
+    /* ── MAP ── */
+    .left-panel {
+      background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
+      padding: 16px; display: flex; flex-direction: column; gap: 10px; overflow: hidden;
+    }
+    .panel-label { font-size: 10px; font-weight: 600; color: var(--t3); text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0; }
+    #map-svg { width: 100%; flex: 1; }
+
+    .node-group { cursor: pointer; }
+    .edge       { stroke: var(--b2); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 8 5; animation: edge-flow 1.4s linear infinite; }
+    @keyframes edge-flow { to { stroke-dashoffset: -13; } }
+    .node-bg    { transition: fill .6s, r .6s; }
+    .node-ring  { fill: none; stroke-width: 2; transition: stroke .6s, stroke-width .2s, r .6s; }
+    .node-lbl   { font-family:'Inter',sans-serif; font-size:11px; font-weight:700; fill:#f0f0f0; pointer-events:none; }
+    .node-sub   { font-family:'Inter',sans-serif; font-size:8px; fill:#555; pointer-events:none; }
+    .node-group.selected .node-ring { stroke: #fff !important; stroke-width: 2.5; }
+    .node-group.connected .node-ring { stroke: #888 !important; stroke-width: 2; }
+
+    .pulse-ring {
+      fill: none; stroke-width: 2;
+      transform-box: fill-box; transform-origin: center;
+      animation: pulse-anim 2s ease-out infinite; pointer-events: none;
+    }
+    @keyframes pulse-anim { 0%{transform:scale(1);opacity:.8} 100%{transform:scale(2.4);opacity:0} }
+
+    .map-legend { display: flex; gap: 12px; flex-shrink: 0; padding-top: 10px; border-top: 1px solid var(--b1); flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--t2); }
+    .legend-pip  { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── CARDS PANEL ── */
+    .right-panel { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding: 8px 8px 8px 4px; }
+    .right-panel::-webkit-scrollbar { width: 3px; }
+    .right-panel::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 99px; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
+      overflow: hidden; flex-shrink: 0; border-left-width: 3px; transition: border-color .4s, box-shadow .3s;
+      cursor: pointer;
+    }
+    .card.low { border-left-color: var(--green); }
+    .card.medium { border-left-color: var(--amber); }
+    .card.high { border-left-color: var(--red); }
+    .card.selected { box-shadow: 0 0 0 1px #ffffff22; border-color: #fff; border-left-color: inherit; }
+    .card { transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease; position: relative; }
+    .card:hover:not(.selected) {
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: 0 14px 28px #000000bb, 0 4px 10px #00000077, inset 0 1px 0 #ffffff14;
+      z-index: 5;
+    }
+
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; border-bottom: 1px solid var(--b1);
+    }
+    .card-head-left { display: flex; align-items: baseline; gap: 8px; }
+    .card-num  { font-size: 18px; font-weight: 800; letter-spacing: -.5px; }
+    .card-name { font-size: 11px; color: var(--t2); font-weight: 500; }
+    .status-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+    .tag-low  { background: #0d2318; color: var(--green); }
+    .tag-mid  { background: #271d05; color: var(--amber); }
+    .tag-high { background: #250d0d; color: var(--red); }
+
+    .card-body { display: flex; align-items: center; padding: 12px 14px; gap: 12px; border-bottom: 1px solid var(--b1); }
+    .dir-bars { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .dir-row  { display: flex; align-items: center; gap: 8px; }
+    .dir-name { font-size: 10px; font-weight: 600; color: var(--t3); width: 32px; flex-shrink: 0; text-transform: uppercase; letter-spacing: .3px; }
+    .dir-row.active .dir-name { color: var(--green); }
+    .dir-track { flex: 1; height: 8px; background: var(--s3); border-radius: 99px; overflow: hidden; }
+    .dir-fill  { height: 100%; border-radius: 99px; background: var(--b2); transition: width .5s, background .5s; }
+    .dir-row.active .dir-fill { background: var(--green); box-shadow: 0 0 6px var(--glow); }
+    .dir-count { font-size: 11px; font-weight: 700; color: var(--t2); width: 22px; text-align: right; font-variant-numeric: tabular-nums; }
+    .dir-row.active .dir-count { color: var(--text); }
+
+
+    .card-stats { display: flex; flex-direction: column; gap: 7px; flex-shrink: 0; width: 90px; }
+    .cs-item  { display: flex; flex-direction: column; gap: 2px; }
+    .cs-label { font-size: 10px; color: var(--t2); text-transform: uppercase; letter-spacing: .4px; font-weight: 500; line-height: 1.3; }
+    .cs-val   { font-size: 15px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+    .card-foot { padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+    .queue-label { font-size: 10px; color: var(--t3); flex-shrink: 0; width: 40px; }
+    .queue-track { flex: 1; height: 6px; background: var(--s3); border-radius: 99px; overflow: hidden; }
+    .queue-fill  { height: 100%; border-radius: 99px; transition: width .5s, background .5s; }
+    .queue-val   { font-size: 10px; color: var(--t2); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+    .queue-lvl   { font-size: 10px; font-weight: 700; flex-shrink: 0; min-width: 36px; text-align: right; }
+    .ql-low { color: var(--green); } .ql-mid { color: var(--amber); } .ql-high { color: var(--red); }
+
+    /* ── FOCUSED VIEW ── */
+    .focused {
+      background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
+      overflow: hidden; display: flex; flex-direction: column;
+      border-left-width: 3px; flex: 1;
+    }
+
+    .focused-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid var(--b1); flex-shrink: 0;
+    }
+    .focused-head-left { display: flex; align-items: center; gap: 12px; }
+    .back-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--s2); border: 1px solid var(--b1); border-radius: 6px;
+      padding: 5px 10px; font-size: 11px; color: var(--t2);
+      cursor: pointer; transition: background .2s, color .2s;
+    }
+    .back-btn:hover { background: var(--b1); color: var(--text); }
+    .focused-title { display: flex; align-items: baseline; gap: 8px; }
+    .focused-num  { font-size: 22px; font-weight: 800; letter-spacing: -.5px; }
+    .focused-name { font-size: 12px; color: var(--t2); }
+
+    /* Büyük kavşak diyagramı */
+    .focus-cross {
+      display: grid;
+      grid-template-areas: ". north ." "west center east" ". south .";
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
+      flex: 1; padding: 16px; gap: 8px; min-height: 0;
+    }
+
+    .focus-arm {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; padding: 10px; border-radius: 8px;
+      background: var(--s2); position: relative; overflow: hidden;
+    }
+    .focus-arm::before {
+      content: ''; position: absolute; inset: 0; border-radius: 8px;
+      background: #0d2318; opacity: 0; transition: opacity .3s; pointer-events: none;
+    }
+    .focus-arm.active::before { opacity: 1; }
+    .focus-arm > * { position: relative; z-index: 1; }
+
+    .focus-arm-n { grid-area: north; }
+    .focus-arm-s { grid-area: south; }
+    .focus-arm-w { grid-area: west;  }
+    .focus-arm-e { grid-area: east;  }
+
+    .focus-center {
+      grid-area: center; background: var(--b2); border-radius: 6px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    }
+    .focus-center-arrow { font-size: 22px; line-height: 1; color: var(--green); }
+    .focus-center-phase { font-size: 9px; color: var(--t3); font-variant-numeric: tabular-nums; }
+
+    .arm-dir   { font-size: 9px; font-weight: 700; color: var(--t3); text-transform: uppercase; letter-spacing: .5px; }
+    .arm-count { font-size: 28px; font-weight: 800; color: var(--t2); font-variant-numeric: tabular-nums; line-height: 1; }
+    .arm-bar   { width: 80%; max-width: 120px; height: 8px; background: var(--s3); border-radius: 99px; overflow: hidden; flex-shrink: 0; }
+    .arm-bar-fill { height: 100%; border-radius: 99px; background: var(--b2); transition: width .5s; }
+    .focus-arm.active .arm-dir   { color: var(--green); }
+    .focus-arm.active .arm-count { color: var(--green); }
+    .focus-arm.active .arm-bar-fill { background: var(--green); }
+
+    .empty { padding: 32px; text-align: center; color: var(--t3); font-size: 12px; }
+
+    @keyframes panel-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .is-animating { animation: panel-in .22s ease-out; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <span class="h-wordmark">Trafix</span>
+    <span class="h-slogan">Smarter flow was always an option.</span>
+  </div>
+  <div class="h-right">
+    <span class="timestamp" id="timestamp">—</span>
+    <div class="status-pill">
+      <div class="live-dot" id="dot"></div>
+      <span id="status-text">Bağlanıyor</span>
+    </div>
+  </div>
+</header>
+
+<div class="summary-bar">
+  <div class="sum-card">
+    <span class="sum-label">Toplam Araç</span>
+    <div class="sum-top">
+      <span class="sum-val" id="s-total">—</span>
+      <span class="sum-trend" id="s-total-trend"></span>
+    </div>
+  </div>
+  <div class="sum-card">
+    <span class="sum-label">En Kalabalık Nokta</span>
+    <div class="sum-top"><span class="sum-val" id="s-busiest">—</span></div>
+  </div>
+  <div class="sum-card">
+    <span class="sum-label">Ort. Bekleme Kuyruğu</span>
+    <div class="sum-top">
+      <span class="sum-val" id="s-avgqueue">—</span>
+      <span class="sum-trend" id="s-queue-trend"></span>
+    </div>
+  </div>
+  <div class="sum-card">
+    <span class="sum-label">YZ Karar Sayısı</span>
+    <div class="sum-top"><span class="sum-val" id="s-phase">0</span></div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="left-panel">
+    <div class="panel-label" id="map-label">Kavşak Haritası</div>
+    <svg id="map-svg" viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <rect x="4" y="4" width="512" height="292" rx="10" fill="#181818" stroke="#252525" stroke-width="1"/>
+      <line class="edge" data-from="0" data-to="1" x1="188" y1="42"  x2="52"  y2="150"/>
+      <line class="edge" data-from="0" data-to="2" x1="188" y1="42"  x2="324" y2="150"/>
+      <line class="edge" data-from="1" data-to="3" x1="52"  y1="150" x2="188" y2="258"/>
+      <line class="edge" data-from="2" data-to="3" x1="324" y1="150" x2="188" y2="258"/>
+      <line class="edge" data-from="2" data-to="4" x1="324" y1="150" x2="460" y2="258"/>
+
+      <circle id="pulse-0" class="pulse-ring" cx="188" cy="42"  r="27" stroke="#ef4444" style="display:none"/>
+      <circle id="pulse-1" class="pulse-ring" cx="52"  cy="150" r="27" stroke="#ef4444" style="display:none"/>
+      <circle id="pulse-2" class="pulse-ring" cx="324" cy="150" r="27" stroke="#ef4444" style="display:none"/>
+      <circle id="pulse-3" class="pulse-ring" cx="188" cy="258" r="27" stroke="#ef4444" style="display:none"/>
+      <circle id="pulse-4" class="pulse-ring" cx="460" cy="258" r="27" stroke="#ef4444" style="display:none"/>
+
+      <line x1="188" y1="32" x2="188" y2="52" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="178" y1="42" x2="198" y2="42" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <g class="node-group" data-node-id="0">
+        <circle class="node-bg" id="nbg-0" cx="188" cy="42" r="25" fill="#1e1e1e"/>
+        <circle class="node-ring" id="nrg-0" cx="188" cy="42" r="25" stroke="#3d3d3d"/>
+        <text class="node-lbl" x="188" y="39" text-anchor="middle">K1</text>
+        <text class="node-sub" x="188" y="51" text-anchor="middle" id="ni-0">—</text>
+      </g>
+
+      <line x1="52" y1="140" x2="52" y2="160" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="42" y1="150" x2="62" y2="150" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <g class="node-group" data-node-id="1">
+        <circle class="node-bg" id="nbg-1" cx="52" cy="150" r="25" fill="#1e1e1e"/>
+        <circle class="node-ring" id="nrg-1" cx="52" cy="150" r="25" stroke="#3d3d3d"/>
+        <text class="node-lbl" x="52" y="147" text-anchor="middle">K2</text>
+        <text class="node-sub" x="52" y="159" text-anchor="middle" id="ni-1">—</text>
+      </g>
+
+      <line x1="324" y1="140" x2="324" y2="160" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="314" y1="150" x2="334" y2="150" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <g class="node-group" data-node-id="2">
+        <circle class="node-bg" id="nbg-2" cx="324" cy="150" r="25" fill="#1e1e1e"/>
+        <circle class="node-ring" id="nrg-2" cx="324" cy="150" r="25" stroke="#3d3d3d"/>
+        <text class="node-lbl" x="324" y="147" text-anchor="middle">K3</text>
+        <text class="node-sub" x="324" y="159" text-anchor="middle" id="ni-2">—</text>
+      </g>
+
+      <line x1="188" y1="248" x2="188" y2="268" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="178" y1="258" x2="198" y2="258" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <g class="node-group" data-node-id="3">
+        <circle class="node-bg" id="nbg-3" cx="188" cy="258" r="25" fill="#1e1e1e"/>
+        <circle class="node-ring" id="nrg-3" cx="188" cy="258" r="25" stroke="#3d3d3d"/>
+        <text class="node-lbl" x="188" y="255" text-anchor="middle">K4</text>
+        <text class="node-sub" x="188" y="267" text-anchor="middle" id="ni-3">—</text>
+      </g>
+
+      <line x1="460" y1="248" x2="460" y2="268" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="450" y1="258" x2="470" y2="258" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <g class="node-group" data-node-id="4">
+        <circle class="node-bg" id="nbg-4" cx="460" cy="258" r="25" fill="#1e1e1e"/>
+        <circle class="node-ring" id="nrg-4" cx="460" cy="258" r="25" stroke="#3d3d3d"/>
+        <text class="node-lbl" x="460" y="255" text-anchor="middle">K5</text>
+        <text class="node-sub" x="460" y="267" text-anchor="middle" id="ni-4">—</text>
+      </g>
+    </svg>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-pip" style="background:var(--green)"></div>Hafif</div>
+      <div class="legend-item"><div class="legend-pip" style="background:var(--amber)"></div>Orta</div>
+      <div class="legend-item"><div class="legend-pip" style="background:var(--red)"></div>Yoğun</div>
+      <div class="legend-item" style="margin-left:auto">
+        <div class="legend-pip" style="background:var(--red);animation:blink 2s infinite"></div>En yoğun
+      </div>
+    </div>
+  </div>
+
+  <div class="right-panel" id="cards">
+    <div class="empty">Veriler bekleniyor...</div>
+  </div>
+</div>
+
+<script>
+  // ── Sabitler ──────────────────────────────────────────────────────────────
+  // ⚠️  DOKUNMA — tümü ortak veri sözleşmesinden geliyor (Görev Dağılımı.pdf)
+
+  const API  = '/state'; // Üye 5'in yazdığı GET /state endpoint'i (relative path — hangi portta çalışırsa çalışsın)
+  const QMAX = 200.0; // Kuyruk uzunluğu maksimumu (metre) — sözleşme: 0.0–200.0
+  const DMAX = 50;    // Yön başına maksimum araç sayısı — sözleşme: 0–50
+
+  // Faz tablosu — hangi faz numarası hangi yönü yeşil yapar
+  // 0=Kuzey yeşil, 1=Güney yeşil, 2=Doğu yeşil, 3=Batı yeşil
+  const GREEN_OF    = { 0:'north', 1:'south', 2:'east', 3:'west' };
+  const DIR_ARROWS  = { north:'↑', south:'↓', west:'←', east:'→' };
+
+  // Yön metadata — API'den gelen alan adları ve Türkçe karşılıkları
+  const DIR_META = [
+    { key:'north', label:'Kuzey', cnt:'north_count' },
+    { key:'south', label:'Güney', cnt:'south_count' },
+    { key:'east',  label:'Doğu',  cnt:'east_count'  },
+    { key:'west',  label:'Batı',  cnt:'west_count'  },
+  ];
+
+  // Kavşak topolojisi — hangi kavşaklar birbirine bağlı
+  // ⚠️  DOKUNMA — PDF'teki harita yapısından, 3↔4 arası bağlantı YOK
+  const CONNECTIONS = { '0':['1','2'], '1':['0','3'], '2':['0','3','4'], '3':['1','2'], '4':['2'] };
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /* ── Display helper ── */
+  const DISPLAY = id => 'K' + (Number(id) + 1);
+
+
+  /* ── State ── */
+  let selectedId   = null;
+  let phaseChanges = 0;
+  let prevPhases   = {};
+  let prevTotal    = null;
+  let prevAvgQ     = null;
+  let lastUpdate   = null;
+  let latestData   = {};
+
+  /* ── Yardımcılar ── */
+  const totalVehicles = d => DIR_META.reduce((s, m) => s + (d[m.cnt] || 0), 0);
+
+  function computeState(d) {
+    const greenKey = GREEN_OF[d.current_phase] ?? '';
+    const info     = qlInfo(d.queue_length);
+    const total    = totalVehicles(d);
+    const qPct     = Math.min(d.queue_length / QMAX * 100, 100).toFixed(1);
+    return { greenKey, info, total, qPct };
+  }
+
+  function qlInfo(q) {
+    const p = q / QMAX;
+    if (p < 0.35) return { label:'Hafif', bar:'#22c55e', tagCls:'tag-low',  lvlCls:'ql-low',  cardCls:'low'    };
+    if (p < 0.65) return { label:'Orta',  bar:'#f59e0b', tagCls:'tag-mid',  lvlCls:'ql-mid',  cardCls:'medium' };
+    return             { label:'Yoğun', bar:'#ef4444', tagCls:'tag-high', lvlCls:'ql-high', cardCls:'high'   };
+  }
+
+  function nodeColors(q) {
+    const p = q / QMAX;
+    if (p < 0.35) return { bg:'#0d2318', ring:'#22c55e', edge:'#22c55e66' };
+    if (p < 0.65) return { bg:'#271d05', ring:'#f59e0b', edge:'#f59e0b66' };
+    return               { bg:'#250d0d', ring:'#ef4444', edge:'#ef444466' };
+  }
+
+  /* ── Trend ── */
+  function setTrend(elId, curr, prev) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (prev === null) { el.textContent = ''; el.className = 'sum-trend'; return; }
+    const diff = curr - prev;
+    if (Math.abs(diff) < 1) { el.textContent = '—'; el.className = 'sum-trend trend-flat'; return; }
+    el.textContent = (diff > 0 ? '↑ ' : '↓ ') + Math.abs(Math.round(diff));
+    el.className   = 'sum-trend ' + (diff > 0 ? 'trend-up' : 'trend-down');
+  }
+
+  /* ── Timestamp ── */
+  setInterval(() => {
+    if (!lastUpdate) return;
+    const s = Math.round((Date.now() - lastUpdate) / 1000);
+    document.getElementById('timestamp').textContent = s < 2 ? 'Az önce güncellendi' : s + 's önce';
+  }, 1000);
+
+  /* ── Seçim yönetimi ── */
+  function selectNode(id) {
+    selectedId = id;
+
+    // Map node görsel durumları
+    document.querySelectorAll('.node-group').forEach(g => {
+      const nid = g.dataset.nodeId;
+      g.classList.toggle('selected',  nid === id);
+      g.classList.toggle('connected', id !== null && nid !== id && CONNECTIONS[id]?.includes(nid));
+    });
+
+    // Sağ paneli yeniden render et
+    renderPanel(latestData);
+    const first = document.getElementById('cards').firstElementChild;
+    if (first) { first.classList.add('is-animating'); setTimeout(() => first.classList.remove('is-animating'), 250); }
+  }
+
+  /* Map tıklama — event delegation */
+  document.getElementById('map-svg').addEventListener('click', e => {
+    const group = e.target.closest('[data-node-id]');
+    const clicked = group?.dataset.nodeId ?? null;
+    selectNode(clicked === selectedId ? null : clicked);
+  });
+
+  /* Kart tıklama — event delegation */
+  document.getElementById('cards').addEventListener('click', e => {
+    const card = e.target.closest('[data-id]');
+    if (!card) return;
+    const clicked = card.dataset.id;
+    selectNode(clicked === selectedId ? null : clicked);
+  });
+
+  /* ── Smooth sayı geçişi ── */
+  function animVal(id, newText) {
+    const el = document.getElementById(id);
+    if (!el || el.textContent === newText) return;
+    el.textContent = newText;
+    el.classList.remove('num-flash');
+    void el.offsetWidth;
+    el.classList.add('num-flash');
+  }
+
+  /* ── Summary ── */
+  function updateSummary(data) {
+    const ids = Object.keys(data).filter(id => Object.keys(data[id]).length > 0);
+    if (!ids.length) return null;
+
+    let total = 0, qSum = 0, busiestId = null, busiestTotal = 0;
+    ids.forEach(id => {
+      const d = data[id], t = totalVehicles(d);
+      total += t; qSum += d.queue_length || 0;
+      if (prevPhases[id] !== undefined && prevPhases[id] !== d.current_phase) phaseChanges++;
+      prevPhases[id] = d.current_phase;
+      if (t > busiestTotal) { busiestTotal = t; busiestId = id; }
+    });
+
+    const avgQ = qSum / ids.length;
+    animVal('s-total',   String(total));
+    setTrend('s-total-trend', total, prevTotal);
+    animVal('s-busiest', busiestId !== null ? DISPLAY(busiestId) : '—');
+    animVal('s-avgqueue', avgQ.toFixed(0) + 'm');
+    setTrend('s-queue-trend', avgQ, prevAvgQ);
+    animVal('s-phase',   String(phaseChanges));
+    prevTotal = total; prevAvgQ = avgQ;
+    return busiestId;
+  }
+
+  /* ── Map güncelle ── */
+  const nodeFilterCache = {};
+  function updateMap(data, busiestId) {
+    for (let i = 0; i < 5; i++) document.getElementById('pulse-' + i).style.display = 'none';
+    for (let i = 0; i < 5; i++) {
+      const d = data[String(i)];
+      const bg = document.getElementById('nbg-' + i);
+      const rg = document.getElementById('nrg-' + i);
+      const lb = document.getElementById('ni-'  + i);
+      const grp = document.querySelector(`[data-node-id="${i}"]`);
+      if (!d || !Object.keys(d).length) {
+        bg.setAttribute('fill', '#1e1e1e'); bg.setAttribute('r', '25');
+        rg.setAttribute('stroke', '#3d3d3d'); rg.setAttribute('r', '25');
+        lb.textContent = '—'; if (grp) grp.style.filter = 'none'; continue;
+      }
+      const c = nodeColors(d.queue_length);
+      const r = Math.round(22 + Math.min(totalVehicles(d) / 80, 1) * 8);
+      bg.setAttribute('fill', c.bg); bg.setAttribute('r', r);
+      rg.setAttribute('stroke', c.ring); rg.setAttribute('r', r);
+      lb.textContent = totalVehicles(d) + ' araç';
+      if (grp) {
+        const f = `drop-shadow(0 0 7px ${c.ring}99)`;
+        if (nodeFilterCache[i] !== f) { nodeFilterCache[i] = f; grp.style.filter = f; }
+      }
+    }
+    if (busiestId !== null) document.getElementById('pulse-' + busiestId).style.display = 'block';
+
+    document.querySelectorAll('.edge[data-from][data-to]').forEach(edge => {
+      const a = data[edge.dataset.from], b = data[edge.dataset.to];
+      if (!a || !b || !Object.keys(a).length || !Object.keys(b).length) return;
+      const avgQ = ((a.queue_length || 0) + (b.queue_length || 0)) / 2;
+      edge.setAttribute('stroke', nodeColors(avgQ).edge);
+    });
+  }
+
+  /* ── Focused view ── */
+  function buildFocused(id, d) {
+    const { greenKey, info, total, qPct } = computeState(d);
+
+    const arm = (key, label, cnt, areaClass) => {
+      const active = key === greenKey;
+      const count  = d[cnt] ?? 0;
+      const pct    = Math.min(count / DMAX * 100, 100).toFixed(0);
+      return `
+        <div class="focus-arm ${areaClass} ${active ? 'active' : ''}" data-dir="${key}">
+          <span class="arm-dir">${label}</span>
+          <span class="arm-count">${count}</span>
+          <div class="arm-bar"><div class="arm-bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+    };
+
+    return `
+      <div class="focused ${info.cardCls}">
+        <div class="focused-head">
+          <div class="focused-head-left">
+            <button class="back-btn" onclick="selectNode(null)">← Geri</button>
+            <div class="focused-title">
+              <span class="focused-num">${DISPLAY(id)}</span>
+            </div>
+          </div>
+          <span class="status-tag ${info.tagCls}">${info.label} Trafik</span>
+        </div>
+
+        <div class="focus-cross">
+          ${arm('north','Kuzey','north_count','focus-arm-n')}
+          ${arm('west', 'Batı', 'west_count', 'focus-arm-w')}
+          <div class="focus-center">
+            <span class="focus-center-arrow">${DIR_ARROWS[greenKey] ?? '·'}</span>
+            <span class="focus-center-phase" data-stat="phase">${(d.phase_duration ?? 0).toFixed(0)}s</span>
+          </div>
+          ${arm('east', 'Doğu', 'east_count', 'focus-arm-e')}
+          ${arm('south','Güney','south_count','focus-arm-s')}
+        </div>
+
+      </div>`;
+  }
+
+  /* ── Normal kart ── */
+  function buildCard(id, d) {
+    const { greenKey, info, total, qPct } = computeState(d);
+
+    const bars = DIR_META.map(({ key, label, cnt }) => {
+      const active = key === greenKey;
+      const pct    = Math.min((d[cnt] ?? 0) / DMAX * 100, 100).toFixed(0);
+      return `
+        <div class="dir-row ${active ? 'active' : ''}" data-dir="${key}">
+          <span class="dir-name">${label}</span>
+          <div class="dir-track"><div class="dir-fill" style="width:${pct}%"></div></div>
+          <span class="dir-count">${d[cnt] ?? 0}</span>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="card ${info.cardCls} ${id === selectedId ? 'selected' : ''}" data-id="${id}">
+        <div class="card-head">
+          <div class="card-head-left">
+            <span class="card-num">${DISPLAY(id)}</span>
+          </div>
+          <span class="status-tag ${info.tagCls}">${info.label} Trafik</span>
+        </div>
+        <div class="card-body">
+          <div class="dir-bars">${bars}</div>
+          <div class="card-stats">
+            <div class="cs-item"><span class="cs-label">Kavşaktaki Araç Sayısı</span><span class="cs-val" data-stat="total">${total}</span></div>
+            <div class="cs-item"><span class="cs-label">Aktif Faz Süresi</span><span class="cs-val" data-stat="phase">${(d.phase_duration ?? 0).toFixed(0)}sn</span></div>
+          </div>
+        </div>
+        <div class="card-foot">
+          <span class="queue-label">Kuyruk</span>
+          <div class="queue-track"><div class="queue-fill" style="width:${qPct}%;background:${info.bar}"></div></div>
+          <span class="queue-val">${(d.queue_length ?? 0).toFixed(0)}m</span>
+          <span class="queue-lvl ${info.lvlCls}">${info.label}</span>
+        </div>
+      </div>`;
+  }
+
+  /* ── Focused view yerinde güncelle ── */
+  let focusedViewId = null;
+
+  function updateFocused(id, d) {
+    const focused = document.querySelector('.focused');
+    if (!focused) return;
+    const { greenKey, info, total, qPct } = computeState(d);
+
+    focused.className = `focused ${info.cardCls}`;
+    const tag = focused.querySelector('.status-tag');
+    if (tag) { tag.className = `status-tag ${info.tagCls}`; tag.textContent = info.label + ' Trafik'; }
+
+    DIR_META.forEach(({ key, cnt }) => {
+      const arm = focused.querySelector(`.focus-arm[data-dir="${key}"]`);
+      if (!arm) return;
+      const active    = key === greenKey;
+      const areaClass = [...arm.classList].find(c => /^focus-arm-[nsew]$/.test(c)) ?? '';
+      arm.className   = `focus-arm ${areaClass}${active ? ' active' : ''}`;
+      const count = arm.querySelector('.arm-count');
+      if (count) count.textContent = d[cnt] ?? 0;
+      const fill = arm.querySelector('.arm-bar-fill');
+      if (fill) fill.style.width = Math.min((d[cnt] ?? 0) / DMAX * 100, 100).toFixed(0) + '%';
+    });
+
+    const totalEl = focused.querySelector('[data-stat="total"]');
+    if (totalEl) totalEl.textContent = total;
+    const centerArrow = focused.querySelector('.focus-center-arrow');
+    if (centerArrow) centerArrow.textContent = DIR_ARROWS[greenKey] ?? '·';
+    const centerPhase = focused.querySelector('[data-stat="phase"]');
+    if (centerPhase) centerPhase.textContent = (d.phase_duration ?? 0).toFixed(0) + 's';
+  }
+
+  /* ── Kart yerinde güncelle (DOM yeniden yazılmaz) ── */
+  let cardViewRendered = false;
+
+  function updateCard(id, d) {
+    const card = document.querySelector(`.card[data-id="${id}"]`);
+    if (!card) return;
+    const { greenKey, info, total, qPct } = computeState(d);
+
+    card.className = `card ${info.cardCls}${id === selectedId ? ' selected' : ''}`;
+    const tag = card.querySelector('.status-tag');
+    if (tag) { tag.className = `status-tag ${info.tagCls}`; tag.textContent = info.label + ' Trafik'; }
+
+    DIR_META.forEach(({ key, cnt }) => {
+      const row = card.querySelector(`.dir-row[data-dir="${key}"]`);
+      if (!row) return;
+      row.className = `dir-row${key === greenKey ? ' active' : ''}`;
+      const fill = row.querySelector('.dir-fill');
+      if (fill) fill.style.width = Math.min((d[cnt] ?? 0) / DMAX * 100, 100).toFixed(0) + '%';
+      const count = row.querySelector('.dir-count');
+      if (count) count.textContent = d[cnt] ?? 0;
+    });
+
+    const totalEl = card.querySelector('[data-stat="total"]');
+    if (totalEl) totalEl.textContent = total;
+    const phaseEl = card.querySelector('[data-stat="phase"]');
+    if (phaseEl) phaseEl.textContent = (d.phase_duration ?? 0).toFixed(0) + 'sn';
+
+    const qFill = card.querySelector('.queue-fill');
+    if (qFill) { qFill.style.width = qPct + '%'; qFill.style.background = info.bar; }
+    const qVal = card.querySelector('.queue-val');
+    if (qVal) qVal.textContent = (d.queue_length ?? 0).toFixed(0) + 'm';
+    const qLvl = card.querySelector('.queue-lvl');
+    if (qLvl) { qLvl.className = `queue-lvl ${info.lvlCls}`; qLvl.textContent = info.label; }
+  }
+
+  /* ── Panel render (seçime göre focused veya all-cards) ── */
+  function renderPanel(data) {
+    const panel = document.getElementById('cards');
+    const ids   = Object.keys(data).sort();
+    const hasData = ids.some(id => Object.keys(data[id]).length > 0);
+
+    if (!hasData) { panel.innerHTML = '<div class="empty">Henüz veri gelmedi.</div>'; cardViewRendered = false; focusedViewId = null; return; }
+
+    if (selectedId !== null && data[selectedId] && Object.keys(data[selectedId]).length > 0) {
+      if (focusedViewId === selectedId) {
+        updateFocused(selectedId, data[selectedId]);
+      } else {
+        panel.innerHTML = buildFocused(selectedId, data[selectedId]);
+        focusedViewId = selectedId;
+      }
+      cardViewRendered = false;
+    } else if (cardViewRendered) {
+      focusedViewId = null;
+      ids.forEach(id => { const d = data[id]; if (d && Object.keys(d).length) updateCard(id, d); });
+    } else {
+      focusedViewId = null;
+      panel.innerHTML = ids.map(id => {
+        const d = data[id];
+        return (!d || !Object.keys(d).length)
+          ? `<div class="card low" data-id="${id}"><div class="empty">${DISPLAY(id)} — bekleniyor</div></div>`
+          : buildCard(id, d);
+      }).join('');
+      cardViewRendered = true;
+    }
+  }
+
+  /* ── Online/offline ── */
+  function setOnline(on) {
+    document.getElementById('dot').className           = 'live-dot' + (on ? '' : ' off');
+    document.getElementById('status-text').textContent = on ? 'Canlı' : 'Bağlantı yok';
+  }
+
+  /* ── Poll ── */
+  let activeController = null;
+
+  async function poll() {
+    if (activeController) activeController.abort();
+    activeController = new AbortController();
+    try {
+      const r = await fetch(API, { signal: activeController.signal });
+      if (!r.ok) throw 0;
+      latestData = await r.json();
+      lastUpdate = Date.now();
+      const busiestId = updateSummary(latestData);
+      updateMap(latestData, busiestId);
+      renderPanel(latestData);
+      setOnline(true);
+    } catch (e) { if (e?.name !== 'AbortError') setOnline(false); }
+  }
+
+  poll();
+  setInterval(poll, 1000);
+</script>
+</body>
+</html>
