@@ -1,0 +1,323 @@
+2026-03-26 15:09:17,059 [INFO] ============================================================
+2026-03-26 15:09:17,059 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-03-26 15:09:17,060 [INFO] ============================================================
+2026-03-26 15:09:17,060 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "training.sumocfg",
+  "net_file": "map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-03-26 15:09:17,067 [INFO]   Cihaz: cpu
+2026-03-26 15:13:34,761 [INFO] ============================================================
+2026-03-26 15:13:34,762 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-03-26 15:13:34,762 [INFO] ============================================================
+2026-03-26 15:13:34,762 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "training.sumocfg",
+  "net_file": "map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-03-26 15:13:34,765 [INFO]   Cihaz: cpu
+2026-03-26 15:14:44,996 [INFO] ============================================================
+2026-03-26 15:14:44,997 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-03-26 15:14:44,997 [INFO] ============================================================
+2026-03-26 15:14:44,997 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "training.sumocfg",
+  "net_file": "map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-03-26 15:14:44,999 [INFO]   Cihaz: cpu
+2026-03-26 15:17:44,984 [INFO] ============================================================
+2026-03-26 15:17:44,984 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-03-26 15:17:44,984 [INFO] ============================================================
+2026-03-26 15:17:44,984 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "training.sumocfg",
+  "net_file": "map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-03-26 15:17:44,986 [INFO]   Cihaz: cpu
+2026-03-26 15:22:11,244 [INFO] ============================================================
+2026-03-26 15:22:11,244 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-03-26 15:22:11,244 [INFO] ============================================================
+2026-03-26 15:22:11,244 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "training.sumocfg",
+  "net_file": "map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-03-26 15:22:11,246 [INFO]   Cihaz: cpu
+2026-04-01 15:04:41,461 [INFO] ============================================================
+2026-04-01 15:04:41,462 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-04-01 15:04:41,462 [INFO] ============================================================
+2026-04-01 15:04:41,462 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "sumo/training.sumocfg",
+  "net_file": "sumo/map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 50,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-04-01 15:04:41,470 [INFO]   Cihaz: cpu
+2026-04-01 15:04:41,470 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:04:42,582 [INFO]   Kavşak sayısı: 5
+2026-04-01 15:04:42,590 [INFO] Graf topolojisi net dosyasından çıkarıldı: 5 kavşak, 10 kenar
+2026-04-01 15:04:42,636 [INFO]   Başlangıç episode: 0
+2026-04-01 15:04:42,636 [INFO]   Toplam episode: 50
+2026-04-01 15:04:42,636 [INFO]   Parametre sayısı: 266,181
+2026-04-01 15:04:42,636 [INFO] ============================================================
+2026-04-01 15:04:42,637 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:05:56,560 [INFO] EP    0/50 | R=-1.5743 (avg50=-1.5743) | π=-0.0043 V=267.2490 H=1.3134 | spd=0.2 wait=126.9 | LR=6.00e-05 ε_H=0.0200 | 73.9s
+2026-04-01 15:05:56,572 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:06:38,347 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:07:39,077 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:08:56,462 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:09:51,867 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:11:19,696 [INFO] EP    5/50 | R=-1.5547 (avg50=-1.5737) | π=0.0006 V=5.7121 H=1.2008 | spd=0.2 wait=125.6 | LR=3.00e-04 ε_H=0.0200 | 87.8s
+2026-04-01 15:11:19,707 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:12:15,042 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:13:25,155 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:14:23,561 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:15:43,030 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:17:07,579 [INFO] EP   10/50 | R=-1.5390 (avg50=-1.5687) | π=-0.0043 V=3.5043 H=1.3023 | spd=0.4 wait=121.2 | LR=2.91e-04 ε_H=0.0199 | 84.5s
+2026-04-01 15:17:07,579 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:18:03,050 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:19:15,389 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:20:14,800 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:21:13,529 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:22:20,085 [INFO] EP   15/50 | R=-1.5657 (avg50=-1.5684) | π=-0.0023 V=1.3919 H=1.0831 | spd=0.3 wait=131.3 | LR=2.66e-04 ε_H=0.0199 | 66.6s
+2026-04-01 15:22:20,085 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:23:28,438 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:24:12,825 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:24:57,961 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:26:07,369 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:27:00,535 [INFO] EP   20/50 | R=-1.5871 (avg50=-1.5753) | π=-0.0016 V=1.1719 H=1.3380 | spd=0.3 wait=130.0 | LR=2.27e-04 ε_H=0.0198 | 53.2s
+2026-04-01 15:27:00,535 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:27:45,587 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:28:51,608 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:29:56,151 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:33:16,757 [INFO]   → Checkpoint kaydedildi: episode 25
+2026-04-01 15:33:16,758 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:34:17,261 [INFO] EP   25/50 | R=-1.5587 (avg50=-1.5737) | π=-0.0001 V=0.9524 H=1.3824 | spd=0.2 wait=118.0 | LR=1.80e-04 ε_H=0.0198 | 60.5s
+2026-04-01 15:34:17,261 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:35:16,789 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:36:32,730 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:37:13,486 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:38:06,478 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:39:10,779 [INFO] EP   30/50 | R=-1.5229 (avg50=-1.5688) | π=-0.0001 V=0.7751 H=1.3824 | spd=0.3 wait=125.2 | LR=1.30e-04 ε_H=0.0197 | 64.3s
+2026-04-01 15:39:10,780 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:40:20,914 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:41:34,032 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:42:55,785 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:44:07,713 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:45:18,082 [INFO] EP   35/50 | R=-1.5347 (avg50=-1.5680) | π=0.0002 V=0.9246 H=1.3825 | spd=0.4 wait=129.9 | LR=8.25e-05 ε_H=0.0197 | 70.4s
+2026-04-01 15:45:18,083 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
