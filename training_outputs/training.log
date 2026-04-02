@@ -1,0 +1,1002 @@
+2026-03-26 15:09:17,059 [INFO] ============================================================
+2026-03-26 15:09:17,059 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-03-26 15:09:17,060 [INFO] ============================================================
+2026-03-26 15:09:17,060 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "training.sumocfg",
+  "net_file": "map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-03-26 15:09:17,067 [INFO]   Cihaz: cpu
+2026-03-26 15:13:34,761 [INFO] ============================================================
+2026-03-26 15:13:34,762 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-03-26 15:13:34,762 [INFO] ============================================================
+2026-03-26 15:13:34,762 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "training.sumocfg",
+  "net_file": "map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-03-26 15:13:34,765 [INFO]   Cihaz: cpu
+2026-03-26 15:14:44,996 [INFO] ============================================================
+2026-03-26 15:14:44,997 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-03-26 15:14:44,997 [INFO] ============================================================
+2026-03-26 15:14:44,997 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "training.sumocfg",
+  "net_file": "map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-03-26 15:14:44,999 [INFO]   Cihaz: cpu
+2026-03-26 15:17:44,984 [INFO] ============================================================
+2026-03-26 15:17:44,984 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-03-26 15:17:44,984 [INFO] ============================================================
+2026-03-26 15:17:44,984 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "training.sumocfg",
+  "net_file": "map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-03-26 15:17:44,986 [INFO]   Cihaz: cpu
+2026-03-26 15:22:11,244 [INFO] ============================================================
+2026-03-26 15:22:11,244 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-03-26 15:22:11,244 [INFO] ============================================================
+2026-03-26 15:22:11,244 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "training.sumocfg",
+  "net_file": "map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-03-26 15:22:11,246 [INFO]   Cihaz: cpu
+2026-04-01 15:04:41,461 [INFO] ============================================================
+2026-04-01 15:04:41,462 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-04-01 15:04:41,462 [INFO] ============================================================
+2026-04-01 15:04:41,462 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "sumo/training.sumocfg",
+  "net_file": "sumo/map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 50,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-04-01 15:04:41,470 [INFO]   Cihaz: cpu
+2026-04-01 15:04:41,470 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:04:42,582 [INFO]   Kavşak sayısı: 5
+2026-04-01 15:04:42,590 [INFO] Graf topolojisi net dosyasından çıkarıldı: 5 kavşak, 10 kenar
+2026-04-01 15:04:42,636 [INFO]   Başlangıç episode: 0
+2026-04-01 15:04:42,636 [INFO]   Toplam episode: 50
+2026-04-01 15:04:42,636 [INFO]   Parametre sayısı: 266,181
+2026-04-01 15:04:42,636 [INFO] ============================================================
+2026-04-01 15:04:42,637 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:05:56,560 [INFO] EP    0/50 | R=-1.5743 (avg50=-1.5743) | π=-0.0043 V=267.2490 H=1.3134 | spd=0.2 wait=126.9 | LR=6.00e-05 ε_H=0.0200 | 73.9s
+2026-04-01 15:05:56,572 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:06:38,347 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:07:39,077 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:08:56,462 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:09:51,867 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:11:19,696 [INFO] EP    5/50 | R=-1.5547 (avg50=-1.5737) | π=0.0006 V=5.7121 H=1.2008 | spd=0.2 wait=125.6 | LR=3.00e-04 ε_H=0.0200 | 87.8s
+2026-04-01 15:11:19,707 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:12:15,042 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:13:25,155 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:14:23,561 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:15:43,030 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:17:07,579 [INFO] EP   10/50 | R=-1.5390 (avg50=-1.5687) | π=-0.0043 V=3.5043 H=1.3023 | spd=0.4 wait=121.2 | LR=2.91e-04 ε_H=0.0199 | 84.5s
+2026-04-01 15:17:07,579 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:18:03,050 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:19:15,389 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:20:14,800 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:21:13,529 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:22:20,085 [INFO] EP   15/50 | R=-1.5657 (avg50=-1.5684) | π=-0.0023 V=1.3919 H=1.0831 | spd=0.3 wait=131.3 | LR=2.66e-04 ε_H=0.0199 | 66.6s
+2026-04-01 15:22:20,085 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:23:28,438 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:24:12,825 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:24:57,961 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:26:07,369 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:27:00,535 [INFO] EP   20/50 | R=-1.5871 (avg50=-1.5753) | π=-0.0016 V=1.1719 H=1.3380 | spd=0.3 wait=130.0 | LR=2.27e-04 ε_H=0.0198 | 53.2s
+2026-04-01 15:27:00,535 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:27:45,587 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:28:51,608 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:29:56,151 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:33:16,757 [INFO]   → Checkpoint kaydedildi: episode 25
+2026-04-01 15:33:16,758 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:34:17,261 [INFO] EP   25/50 | R=-1.5587 (avg50=-1.5737) | π=-0.0001 V=0.9524 H=1.3824 | spd=0.2 wait=118.0 | LR=1.80e-04 ε_H=0.0198 | 60.5s
+2026-04-01 15:34:17,261 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:35:16,789 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:36:32,730 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:37:13,486 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:38:06,478 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:39:10,779 [INFO] EP   30/50 | R=-1.5229 (avg50=-1.5688) | π=-0.0001 V=0.7751 H=1.3824 | spd=0.3 wait=125.2 | LR=1.30e-04 ε_H=0.0197 | 64.3s
+2026-04-01 15:39:10,780 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:40:20,914 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:41:34,032 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:42:55,785 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:44:07,713 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-01 15:45:18,082 [INFO] EP   35/50 | R=-1.5347 (avg50=-1.5680) | π=0.0002 V=0.9246 H=1.3825 | spd=0.4 wait=129.9 | LR=8.25e-05 ε_H=0.0197 | 70.4s
+2026-04-01 15:45:18,083 [INFO]   SUMO başlatılıyor: /home/ekene/Projects/Trafix/sumo/training.sumocfg
+2026-04-02 00:36:29,444 [INFO] ============================================================
+2026-04-02 00:36:29,444 [INFO]   TraFix v2 — Eğitim Başlıyor
+2026-04-02 00:36:29,446 [INFO] ============================================================
+2026-04-02 00:36:29,447 [INFO]   Konfigürasyon: {
+  "sumo_cfg": "sumo/training.sumocfg",
+  "net_file": "sumo/map.net.xml",
+  "output_dir": "training_outputs",
+  "checkpoint_path": "coordinated_agent_weights.pth",
+  "episodes": 500,
+  "max_steps_per_episode": 3600,
+  "decision_interval": 10,
+  "warmup_steps": 50,
+  "ppo_epochs": 4,
+  "rollout_length": 64,
+  "hidden_dim": 128,
+  "num_actions": 4,
+  "num_heads": 4,
+  "lr": 0.0003,
+  "lr_min": 1e-05,
+  "eps": 1e-05,
+  "max_grad_norm": 0.5,
+  "gamma": 0.99,
+  "gae_lambda": 0.95,
+  "clip_eps": 0.2,
+  "entropy_coef": 0.02,
+  "entropy_coef_min": 0.005,
+  "entropy_decay": 0.9995,
+  "value_coef": 0.5,
+  "reward_weights": {
+    "pressure": -0.4,
+    "queue": -0.3,
+    "throughput": 0.3,
+    "fairness": -0.15,
+    "phase_penalty": -0.1,
+    "wait_penalty": -0.05
+  },
+  "save_interval": 25,
+  "log_interval": 5,
+  "eval_interval": 50,
+  "gui": false,
+  "sumo_step_length": 1.0,
+  "seed": 42,
+  "resume": false
+}
+2026-04-02 00:36:29,452 [INFO]   Cihaz: cpu
+2026-04-02 00:36:29,452 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:36:31,960 [INFO]   Kavşak sayısı: 5
+2026-04-02 00:36:31,986 [INFO] Graf topolojisi net dosyasından çıkarıldı: 5 kavşak, 10 kenar
+2026-04-02 00:36:32,076 [INFO]   Başlangıç episode: 0
+2026-04-02 00:36:32,076 [INFO]   Toplam episode: 500
+2026-04-02 00:36:32,076 [INFO]   Parametre sayısı: 266,181
+2026-04-02 00:36:32,076 [INFO] ============================================================
+2026-04-02 00:36:32,076 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:37:03,201 [INFO] EP    0/500 | R=-1.5339 (avg50=-1.5339) | π=-0.0044 V=368.1661 H=1.3621 | spd=0.3 wait=129.6 | LR=1.50e-05 ε_H=0.0200 | 31.1s
+2026-04-02 00:37:03,232 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:37:34,758 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:38:06,518 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:38:38,357 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:39:10,612 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:39:42,776 [INFO] EP    5/500 | R=-1.5464 (avg50=-1.5668) | π=0.0019 V=4.1097 H=1.2496 | spd=0.3 wait=125.0 | LR=9.00e-05 ε_H=0.0200 | 32.2s
+2026-04-02 00:39:42,776 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:40:15,107 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:40:46,717 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:41:18,373 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:41:50,539 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:42:23,449 [INFO] EP   10/500 | R=-1.5623 (avg50=-1.5597) | π=0.0018 V=1.5716 H=0.3284 | spd=0.2 wait=135.4 | LR=1.65e-04 ε_H=0.0199 | 32.9s
+2026-04-02 00:42:23,449 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:42:55,210 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:43:27,083 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:43:59,091 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:44:30,749 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:45:02,703 [INFO] EP   15/500 | R=-1.5297 (avg50=-1.5516) | π=-0.0007 V=1.5413 H=0.1905 | spd=0.2 wait=125.0 | LR=2.40e-04 ε_H=0.0199 | 32.0s
+2026-04-02 00:45:02,703 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:45:34,893 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:46:07,155 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:46:39,378 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:47:11,363 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:47:43,465 [INFO] EP   20/500 | R=-1.5069 (avg50=-1.5443) | π=0.0001 V=0.8002 H=0.0150 | spd=0.2 wait=119.8 | LR=3.00e-04 ε_H=0.0198 | 32.1s
+2026-04-02 00:47:43,466 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:48:15,247 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:48:47,485 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:49:19,554 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:49:52,084 [INFO]   → Checkpoint kaydedildi: episode 25
+2026-04-02 00:49:52,084 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:50:26,407 [INFO] EP   25/500 | R=-1.5271 (avg50=-1.5405) | π=0.0000 V=1.0188 H=0.0009 | spd=0.2 wait=128.9 | LR=3.00e-04 ε_H=0.0198 | 34.3s
+2026-04-02 00:50:26,407 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:51:00,415 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:51:32,404 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:52:04,732 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:52:36,780 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:53:08,607 [INFO] EP   30/500 | R=-1.5106 (avg50=-1.5373) | π=0.0000 V=1.0490 H=0.0000 | spd=0.2 wait=117.7 | LR=3.00e-04 ε_H=0.0197 | 31.8s
+2026-04-02 00:53:08,607 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:53:41,206 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:54:13,341 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:54:45,758 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:55:18,139 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:55:50,108 [INFO] EP   35/500 | R=-1.5296 (avg50=-1.5340) | π=0.0000 V=0.8852 H=0.0002 | spd=0.2 wait=121.5 | LR=2.99e-04 ε_H=0.0197 | 32.0s
+2026-04-02 00:55:50,108 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:56:21,768 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:56:54,294 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:57:26,655 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:57:58,789 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:58:31,014 [INFO] EP   40/500 | R=-1.5943 (avg50=-1.5336) | π=0.0076 V=2.1223 H=0.8559 | spd=0.2 wait=135.9 | LR=2.99e-04 ε_H=0.0196 | 32.2s
+2026-04-02 00:58:31,014 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:59:03,827 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 00:59:35,638 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:00:08,157 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:00:42,389 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:01:14,514 [INFO] EP   45/500 | R=-1.5496 (avg50=-1.5379) | π=-0.0020 V=1.1477 H=0.7014 | spd=0.3 wait=120.6 | LR=2.98e-04 ε_H=0.0196 | 32.1s
+2026-04-02 01:01:14,514 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:01:46,827 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:02:18,951 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:02:51,233 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:03:23,687 [INFO]   → Checkpoint kaydedildi: episode 50
+2026-04-02 01:03:23,687 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:03:56,154 [INFO] EP   50/500 | R=-1.5216 (avg50=-1.5393) | π=0.0003 V=1.0619 H=0.1238 | spd=0.2 wait=127.2 | LR=2.97e-04 ε_H=0.0195 | 32.5s
+2026-04-02 01:03:56,154 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:04:29,095 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:05:05,544 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:05:41,063 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:06:15,030 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:06:47,277 [INFO] EP   55/500 | R=-1.5182 (avg50=-1.5345) | π=0.0010 V=0.5714 H=0.0532 | spd=0.2 wait=122.9 | LR=2.96e-04 ε_H=0.0195 | 32.2s
+2026-04-02 01:06:47,277 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:07:19,673 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:07:52,004 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:08:24,401 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:08:56,525 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:09:28,995 [INFO] EP   60/500 | R=-1.5143 (avg50=-1.5311) | π=0.0000 V=1.0616 H=0.0018 | spd=0.2 wait=136.3 | LR=2.95e-04 ε_H=0.0194 | 32.5s
+2026-04-02 01:09:28,995 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:10:01,684 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:10:33,858 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:11:06,201 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:11:38,624 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:12:11,393 [INFO] EP   65/500 | R=-1.5878 (avg50=-1.5321) | π=0.0056 V=9.9206 H=0.8631 | spd=0.2 wait=126.4 | LR=2.94e-04 ε_H=0.0194 | 32.8s
+2026-04-02 01:12:11,393 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:12:43,874 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:13:16,140 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:13:48,172 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:14:19,951 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:14:52,015 [INFO] EP   70/500 | R=-1.5103 (avg50=-1.5330) | π=0.0022 V=1.2641 H=0.1731 | spd=0.2 wait=134.7 | LR=2.92e-04 ε_H=0.0193 | 32.1s
+2026-04-02 01:14:52,015 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:15:24,219 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:15:56,562 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:16:28,847 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:17:01,188 [INFO]   → Checkpoint kaydedildi: episode 75
+2026-04-02 01:17:01,188 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:17:33,513 [INFO] EP   75/500 | R=-1.5317 (avg50=-1.5343) | π=0.0015 V=1.2184 H=0.2657 | spd=0.2 wait=126.7 | LR=2.91e-04 ε_H=0.0193 | 32.3s
+2026-04-02 01:17:33,513 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:18:06,507 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:18:39,310 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:19:11,889 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:19:44,201 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:20:16,289 [INFO] EP   80/500 | R=-1.5530 (avg50=-1.5360) | π=0.0041 V=0.9657 H=0.6524 | spd=0.2 wait=127.0 | LR=2.89e-04 ε_H=0.0192 | 32.1s
+2026-04-02 01:20:16,290 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:20:48,523 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:21:21,143 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:21:53,278 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:22:25,417 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:22:57,639 [INFO] EP   85/500 | R=-1.5601 (avg50=-1.5405) | π=-0.0017 V=1.7584 H=0.7539 | spd=0.2 wait=135.8 | LR=2.87e-04 ε_H=0.0192 | 32.2s
+2026-04-02 01:22:57,639 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:23:30,388 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:24:02,592 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:24:34,888 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:25:07,123 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:25:39,513 [INFO] EP   90/500 | R=-1.5196 (avg50=-1.5411) | π=0.0009 V=0.2317 H=0.1523 | spd=0.2 wait=124.4 | LR=2.85e-04 ε_H=0.0191 | 32.4s
+2026-04-02 01:25:39,513 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:26:11,561 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:26:43,713 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:27:15,824 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:27:48,188 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:28:20,066 [INFO] EP   95/500 | R=-1.5865 (avg50=-1.5397) | π=-0.0001 V=3.2578 H=1.3265 | spd=0.2 wait=122.9 | LR=2.83e-04 ε_H=0.0191 | 31.9s
+2026-04-02 01:28:20,066 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:28:52,045 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:29:24,420 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:29:56,889 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:30:28,594 [INFO]   → Checkpoint kaydedildi: episode 100
+2026-04-02 01:30:28,594 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:31:00,511 [INFO] EP  100/500 | R=-1.6028 (avg50=-1.5396) | π=-0.0023 V=1.3631 H=1.2756 | spd=0.3 wait=141.8 | LR=2.81e-04 ε_H=0.0190 | 31.9s
+2026-04-02 01:31:00,511 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:31:32,535 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:32:05,164 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:32:37,769 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:33:09,781 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:33:42,117 [INFO] EP  105/500 | R=-1.5602 (avg50=-1.5425) | π=-0.0014 V=0.8150 H=1.1922 | spd=0.2 wait=129.9 | LR=2.78e-04 ε_H=0.0190 | 32.3s
+2026-04-02 01:33:42,117 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:34:14,373 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:34:46,577 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:35:19,031 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:35:51,706 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:36:24,623 [INFO] EP  110/500 | R=-1.5934 (avg50=-1.5461) | π=-0.0046 V=2.3297 H=1.3007 | spd=0.2 wait=138.7 | LR=2.76e-04 ε_H=0.0189 | 32.9s
+2026-04-02 01:36:24,623 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:36:57,235 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:37:29,935 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:38:02,341 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:38:34,529 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:39:07,398 [INFO] EP  115/500 | R=-1.6175 (avg50=-1.5504) | π=-0.0026 V=2.0183 H=1.1530 | spd=0.2 wait=130.4 | LR=2.73e-04 ε_H=0.0189 | 32.9s
+2026-04-02 01:39:07,398 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:39:40,478 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:40:13,201 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:40:46,006 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:41:18,742 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:41:51,111 [INFO] EP  120/500 | R=-1.4795 (avg50=-1.5536) | π=-0.0029 V=1.5306 H=0.9481 | spd=0.3 wait=120.5 | LR=2.70e-04 ε_H=0.0188 | 32.4s
+2026-04-02 01:41:51,111 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:42:23,248 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:42:56,004 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:43:28,265 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:44:00,485 [INFO]   → Checkpoint kaydedildi: episode 125
+2026-04-02 01:44:00,485 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:44:32,997 [INFO] EP  125/500 | R=-1.5511 (avg50=-1.5540) | π=-0.0022 V=1.5311 H=0.9287 | spd=0.2 wait=150.6 | LR=2.67e-04 ε_H=0.0188 | 32.5s
+2026-04-02 01:44:32,997 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:45:05,911 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:45:38,107 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:46:10,465 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:46:43,029 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:47:15,169 [INFO] EP  130/500 | R=-1.5161 (avg50=-1.5577) | π=-0.0011 V=1.0683 H=0.8263 | spd=0.3 wait=135.6 | LR=2.64e-04 ε_H=0.0187 | 32.1s
+2026-04-02 01:47:15,169 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:47:47,119 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:48:19,029 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:48:51,631 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:49:23,547 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:49:56,317 [INFO] EP  135/500 | R=-1.5819 (avg50=-1.5578) | π=-0.0024 V=0.5383 H=0.6965 | spd=0.2 wait=136.1 | LR=2.61e-04 ε_H=0.0187 | 32.8s
+2026-04-02 01:49:56,317 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:50:28,592 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:51:01,244 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:51:33,932 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:52:06,796 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:52:39,397 [INFO] EP  140/500 | R=-1.6070 (avg50=-1.5615) | π=-0.0030 V=1.1627 H=0.9674 | spd=0.3 wait=130.0 | LR=2.58e-04 ε_H=0.0186 | 32.6s
+2026-04-02 01:52:39,397 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:53:11,731 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:53:44,310 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:54:16,448 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:54:49,060 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:55:21,516 [INFO] EP  145/500 | R=-1.5549 (avg50=-1.5638) | π=-0.0007 V=1.4560 H=1.1776 | spd=0.3 wait=144.0 | LR=2.54e-04 ε_H=0.0186 | 32.5s
+2026-04-02 01:55:21,516 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:55:53,597 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:56:26,014 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:56:59,234 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:57:31,379 [INFO]   → Checkpoint kaydedildi: episode 150
+2026-04-02 01:57:31,379 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:58:04,302 [INFO] EP  150/500 | R=-1.5920 (avg50=-1.5658) | π=-0.0031 V=0.9584 H=1.3119 | spd=0.2 wait=126.7 | LR=2.51e-04 ε_H=0.0186 | 32.9s
+2026-04-02 01:58:04,302 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:58:36,848 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:59:08,951 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 01:59:41,202 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:00:13,169 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:00:45,774 [INFO] EP  155/500 | R=-1.5863 (avg50=-1.5695) | π=-0.0016 V=1.6003 H=0.8623 | spd=0.3 wait=126.1 | LR=2.47e-04 ε_H=0.0185 | 32.6s
+2026-04-02 02:00:45,774 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:01:18,217 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:01:50,756 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:02:23,036 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:02:55,168 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:03:27,483 [INFO] EP  160/500 | R=-1.5406 (avg50=-1.5698) | π=-0.0011 V=1.2241 H=0.6132 | spd=0.2 wait=135.4 | LR=2.43e-04 ε_H=0.0185 | 32.3s
+2026-04-02 02:03:27,483 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:03:59,841 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:04:32,497 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:05:04,623 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:05:37,066 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:06:09,713 [INFO] EP  165/500 | R=-1.5508 (avg50=-1.5672) | π=-0.0022 V=1.0412 H=1.1073 | spd=0.3 wait=141.1 | LR=2.39e-04 ε_H=0.0184 | 32.6s
+2026-04-02 02:06:09,713 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:06:42,326 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:07:15,092 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:07:47,499 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:08:19,841 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:08:52,514 [INFO] EP  170/500 | R=-1.6085 (avg50=-1.5681) | π=0.0007 V=1.4638 H=1.1004 | spd=0.3 wait=133.0 | LR=2.36e-04 ε_H=0.0184 | 32.7s
+2026-04-02 02:08:52,514 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:09:25,217 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:09:58,183 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:10:30,905 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:11:03,440 [INFO]   → Checkpoint kaydedildi: episode 175
+2026-04-02 02:11:03,440 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:11:36,025 [INFO] EP  175/500 | R=-1.5507 (avg50=-1.5695) | π=-0.0019 V=0.8003 H=1.0825 | spd=0.3 wait=122.2 | LR=2.32e-04 ε_H=0.0183 | 32.6s
+2026-04-02 02:11:36,025 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:12:08,951 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:12:42,154 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:13:15,457 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:13:48,232 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:14:20,607 [INFO] EP  180/500 | R=-1.5387 (avg50=-1.5667) | π=0.0007 V=5.4452 H=0.2817 | spd=0.2 wait=140.3 | LR=2.27e-04 ε_H=0.0183 | 32.4s
+2026-04-02 02:14:20,607 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:14:53,509 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:15:26,044 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:15:59,116 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:16:32,108 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:17:04,326 [INFO] EP  185/500 | R=-1.5309 (avg50=-1.5646) | π=-0.0000 V=0.1557 H=0.2995 | spd=0.2 wait=141.9 | LR=2.23e-04 ε_H=0.0182 | 32.2s
+2026-04-02 02:17:04,326 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:17:36,635 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:18:08,607 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:18:40,676 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:19:13,641 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:19:45,743 [INFO] EP  190/500 | R=-1.5613 (avg50=-1.5617) | π=-0.0005 V=2.7559 H=0.5706 | spd=0.2 wait=141.5 | LR=2.19e-04 ε_H=0.0182 | 32.1s
+2026-04-02 02:19:45,743 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:20:18,591 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:20:51,104 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:21:23,326 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:21:55,837 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:22:28,467 [INFO] EP  195/500 | R=-1.5208 (avg50=-1.5569) | π=0.0002 V=1.8302 H=0.4300 | spd=0.2 wait=146.8 | LR=2.15e-04 ε_H=0.0181 | 32.6s
+2026-04-02 02:22:28,467 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:23:01,218 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:23:34,139 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:24:06,859 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:24:39,530 [INFO]   → Checkpoint kaydedildi: episode 200
+2026-04-02 02:24:39,531 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:25:12,052 [INFO] EP  200/500 | R=-1.5644 (avg50=-1.5556) | π=-0.0011 V=2.3384 H=0.8553 | spd=0.2 wait=133.4 | LR=2.10e-04 ε_H=0.0181 | 32.5s
+2026-04-02 02:25:12,052 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:25:44,044 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:26:17,092 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:26:50,076 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:27:22,616 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:27:54,877 [INFO] EP  205/500 | R=-1.5771 (avg50=-1.5536) | π=-0.0020 V=2.3917 H=0.9325 | spd=0.2 wait=130.6 | LR=2.06e-04 ε_H=0.0181 | 32.3s
+2026-04-02 02:27:54,878 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:28:27,304 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:28:59,908 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:29:32,123 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:30:03,931 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:30:35,822 [INFO] EP  210/500 | R=-1.5872 (avg50=-1.5553) | π=-0.0018 V=3.6838 H=1.1418 | spd=0.2 wait=129.8 | LR=2.02e-04 ε_H=0.0180 | 31.9s
+2026-04-02 02:30:35,822 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:31:08,756 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:31:41,442 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:32:13,358 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:32:45,322 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:33:17,202 [INFO] EP  215/500 | R=-1.5797 (avg50=-1.5554) | π=-0.0035 V=2.6589 H=1.0192 | spd=0.2 wait=134.6 | LR=1.97e-04 ε_H=0.0180 | 31.9s
+2026-04-02 02:33:17,202 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:33:49,308 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:34:21,772 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:34:54,477 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:35:26,981 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:35:58,888 [INFO] EP  220/500 | R=-1.5291 (avg50=-1.5537) | π=-0.0019 V=4.3559 H=1.3693 | spd=0.3 wait=138.7 | LR=1.93e-04 ε_H=0.0179 | 31.9s
+2026-04-02 02:35:58,888 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:36:31,302 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:37:03,919 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:37:36,285 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:38:08,232 [INFO]   → Checkpoint kaydedildi: episode 225
+2026-04-02 02:38:08,232 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:38:40,201 [INFO] EP  225/500 | R=-1.5852 (avg50=-1.5541) | π=-0.0014 V=2.9935 H=1.3749 | spd=0.2 wait=136.5 | LR=1.88e-04 ε_H=0.0179 | 32.0s
+2026-04-02 02:38:40,201 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:39:12,185 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:39:44,779 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:40:17,629 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:40:49,862 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:41:22,388 [INFO] EP  230/500 | R=-1.5751 (avg50=-1.5563) | π=-0.0002 V=4.2404 H=1.3721 | spd=0.3 wait=126.9 | LR=1.83e-04 ε_H=0.0178 | 32.5s
+2026-04-02 02:41:22,388 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:41:54,633 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:42:26,811 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:42:59,243 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:43:31,531 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:44:03,425 [INFO] EP  235/500 | R=-1.5027 (avg50=-1.5559) | π=-0.0001 V=2.8227 H=1.3772 | spd=0.3 wait=123.2 | LR=1.79e-04 ε_H=0.0178 | 31.9s
+2026-04-02 02:44:03,425 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:44:35,690 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:45:08,296 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:45:40,526 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:46:12,659 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:46:44,857 [INFO] EP  240/500 | R=-1.6298 (avg50=-1.5604) | π=0.0001 V=3.0482 H=1.3658 | spd=0.2 wait=133.5 | LR=1.74e-04 ε_H=0.0177 | 32.2s
+2026-04-02 02:46:44,857 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:47:17,005 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:47:49,715 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:48:22,076 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:48:54,451 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:49:26,508 [INFO] EP  245/500 | R=-1.5977 (avg50=-1.5625) | π=-0.0006 V=2.6244 H=1.3771 | spd=0.3 wait=127.5 | LR=1.69e-04 ε_H=0.0177 | 32.1s
+2026-04-02 02:49:26,508 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:49:59,217 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:50:31,370 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:51:03,502 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:51:36,436 [INFO]   → Checkpoint kaydedildi: episode 250
+2026-04-02 02:51:36,436 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:52:08,771 [INFO] EP  250/500 | R=-1.5769 (avg50=-1.5630) | π=-0.0005 V=3.2220 H=1.3691 | spd=0.3 wait=128.7 | LR=1.64e-04 ε_H=0.0176 | 32.3s
+2026-04-02 02:52:08,771 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:52:40,798 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:53:12,660 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:53:44,983 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:54:17,124 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:54:49,478 [INFO] EP  255/500 | R=-1.5551 (avg50=-1.5599) | π=-0.0001 V=3.0966 H=1.3692 | spd=0.3 wait=126.9 | LR=1.60e-04 ε_H=0.0176 | 32.4s
+2026-04-02 02:54:49,478 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:55:22,309 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:55:54,801 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:56:26,909 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:56:59,612 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:57:32,078 [INFO] EP  260/500 | R=-1.5019 (avg50=-1.5583) | π=-0.0001 V=4.1497 H=1.3553 | spd=0.4 wait=127.3 | LR=1.55e-04 ε_H=0.0176 | 32.5s
+2026-04-02 02:57:32,079 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:58:04,686 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:58:36,582 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:59:09,528 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 02:59:41,902 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:00:14,607 [INFO] EP  265/500 | R=-1.6116 (avg50=-1.5597) | π=0.0000 V=3.3085 H=1.3734 | spd=0.2 wait=119.5 | LR=1.50e-04 ε_H=0.0175 | 32.7s
+2026-04-02 03:00:14,607 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:00:46,919 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:01:19,107 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:01:52,043 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:02:24,404 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:02:56,671 [INFO] EP  270/500 | R=-1.5060 (avg50=-1.5594) | π=-0.0000 V=4.2068 H=1.3733 | spd=0.4 wait=135.9 | LR=1.46e-04 ε_H=0.0175 | 32.3s
+2026-04-02 03:02:56,671 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:03:28,908 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:04:01,453 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:04:34,326 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:05:07,092 [INFO]   → Checkpoint kaydedildi: episode 275
+2026-04-02 03:05:07,092 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:05:39,324 [INFO] EP  275/500 | R=-1.5118 (avg50=-1.5602) | π=0.0000 V=3.5718 H=1.3727 | spd=0.3 wait=125.3 | LR=1.41e-04 ε_H=0.0174 | 32.2s
+2026-04-02 03:05:39,324 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:06:12,076 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:06:44,388 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:07:16,301 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:07:48,560 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:08:21,390 [INFO] EP  280/500 | R=-1.5975 (avg50=-1.5593) | π=-0.0000 V=2.5140 H=1.3728 | spd=0.3 wait=132.8 | LR=1.36e-04 ε_H=0.0174 | 32.8s
+2026-04-02 03:08:21,390 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:08:54,013 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:09:26,170 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:09:58,169 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:10:30,344 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:11:03,072 [INFO] EP  285/500 | R=-1.6174 (avg50=-1.5626) | π=-0.0001 V=2.9872 H=1.3715 | spd=0.2 wait=123.7 | LR=1.31e-04 ε_H=0.0173 | 32.7s
+2026-04-02 03:11:03,072 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:11:36,092 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:12:08,278 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:12:40,291 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:13:12,170 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:13:44,482 [INFO] EP  290/500 | R=-1.5302 (avg50=-1.5559) | π=-0.0000 V=2.8611 H=1.3732 | spd=0.3 wait=131.9 | LR=1.27e-04 ε_H=0.0173 | 32.3s
+2026-04-02 03:13:44,482 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:14:16,499 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:14:48,754 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:15:21,119 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:15:53,453 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:16:26,110 [INFO] EP  295/500 | R=-1.5291 (avg50=-1.5576) | π=-0.0001 V=4.1079 H=1.3738 | spd=0.4 wait=123.6 | LR=1.22e-04 ε_H=0.0173 | 32.7s
+2026-04-02 03:16:26,110 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:16:58,675 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:17:31,142 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:18:03,664 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:18:35,874 [INFO]   → Checkpoint kaydedildi: episode 300
+2026-04-02 03:18:35,874 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:19:08,309 [INFO] EP  300/500 | R=-1.5578 (avg50=-1.5571) | π=-0.0001 V=2.9004 H=1.3724 | spd=0.4 wait=125.5 | LR=1.17e-04 ε_H=0.0172 | 32.4s
+2026-04-02 03:19:08,310 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:19:40,986 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:20:13,980 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:20:46,141 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:21:18,754 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:21:51,533 [INFO] EP  305/500 | R=-1.6104 (avg50=-1.5613) | π=-0.0001 V=3.0422 H=1.3730 | spd=0.3 wait=126.2 | LR=1.13e-04 ε_H=0.0172 | 32.8s
+2026-04-02 03:21:51,533 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:22:23,467 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:22:55,749 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:23:27,671 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:24:00,434 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:24:32,857 [INFO] EP  310/500 | R=-1.5724 (avg50=-1.5621) | π=-0.0000 V=2.7809 H=1.3737 | spd=0.3 wait=133.9 | LR=1.08e-04 ε_H=0.0171 | 32.4s
+2026-04-02 03:24:32,857 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:25:04,779 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:25:37,639 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:26:10,009 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:26:42,749 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:27:15,548 [INFO] EP  315/500 | R=-1.5808 (avg50=-1.5621) | π=-0.0001 V=2.2447 H=1.3733 | spd=0.2 wait=131.4 | LR=1.04e-04 ε_H=0.0171 | 32.8s
+2026-04-02 03:27:15,548 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:27:47,718 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:28:20,772 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:28:53,154 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:29:25,179 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:29:58,054 [INFO] EP  320/500 | R=-1.5238 (avg50=-1.5632) | π=-0.0000 V=4.3843 H=1.3732 | spd=0.3 wait=129.7 | LR=9.95e-05 ε_H=0.0170 | 32.9s
+2026-04-02 03:29:58,054 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:30:30,263 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:31:03,465 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:31:36,076 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:32:08,935 [INFO]   → Checkpoint kaydedildi: episode 325
+2026-04-02 03:32:08,935 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:32:41,303 [INFO] EP  325/500 | R=-1.5381 (avg50=-1.5629) | π=-0.0001 V=2.9446 H=1.3735 | spd=0.3 wait=128.7 | LR=9.52e-05 ε_H=0.0170 | 32.4s
+2026-04-02 03:32:41,303 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:33:13,140 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:33:45,205 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:34:18,157 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:34:50,894 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:35:23,796 [INFO] EP  330/500 | R=-1.5857 (avg50=-1.5656) | π=-0.0000 V=2.8933 H=1.3745 | spd=0.3 wait=130.8 | LR=9.09e-05 ε_H=0.0170 | 32.9s
+2026-04-02 03:35:23,796 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:35:56,217 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:36:28,681 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:37:01,091 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:37:33,491 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:38:05,509 [INFO] EP  335/500 | R=-1.5020 (avg50=-1.5644) | π=-0.0000 V=4.9088 H=1.3745 | spd=0.4 wait=121.5 | LR=8.66e-05 ε_H=0.0169 | 32.0s
+2026-04-02 03:38:05,510 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:38:38,496 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:39:11,045 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:39:43,123 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:40:15,946 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:40:48,764 [INFO] EP  340/500 | R=-1.5539 (avg50=-1.5674) | π=-0.0000 V=3.7186 H=1.3740 | spd=0.3 wait=128.8 | LR=8.25e-05 ε_H=0.0169 | 32.8s
+2026-04-02 03:40:48,764 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:41:21,457 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:41:54,097 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:42:26,358 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:42:58,803 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:43:31,072 [INFO] EP  345/500 | R=-1.6334 (avg50=-1.5655) | π=-0.0000 V=2.8694 H=1.3751 | spd=0.2 wait=132.0 | LR=7.84e-05 ε_H=0.0168 | 32.3s
+2026-04-02 03:43:31,072 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:44:03,372 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:44:36,071 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:45:08,080 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:45:40,367 [INFO]   → Checkpoint kaydedildi: episode 350
+2026-04-02 03:45:40,367 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:46:12,530 [INFO] EP  350/500 | R=-1.5842 (avg50=-1.5674) | π=-0.0000 V=3.4725 H=1.3748 | spd=0.3 wait=133.6 | LR=7.44e-05 ε_H=0.0168 | 32.2s
+2026-04-02 03:46:12,530 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:46:45,446 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:47:17,607 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:47:49,627 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:48:21,899 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:48:54,138 [INFO] EP  355/500 | R=-1.5416 (avg50=-1.5658) | π=-0.0000 V=3.3466 H=1.3751 | spd=0.3 wait=124.1 | LR=7.05e-05 ε_H=0.0167 | 32.2s
+2026-04-02 03:48:54,138 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:49:26,733 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:49:58,770 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:50:31,354 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:51:04,204 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:51:36,582 [INFO] EP  360/500 | R=-1.6022 (avg50=-1.5654) | π=-0.0000 V=2.2509 H=1.3747 | spd=0.3 wait=135.3 | LR=6.67e-05 ε_H=0.0167 | 32.4s
+2026-04-02 03:51:36,582 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:52:09,081 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:52:41,347 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:53:13,845 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:53:46,248 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:54:18,704 [INFO] EP  365/500 | R=-1.4849 (avg50=-1.5651) | π=-0.0000 V=3.6082 H=1.3748 | spd=0.4 wait=120.4 | LR=6.30e-05 ε_H=0.0167 | 32.5s
+2026-04-02 03:54:18,704 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:54:51,511 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:55:23,732 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:55:55,837 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:56:28,356 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:57:00,809 [INFO] EP  370/500 | R=-1.5260 (avg50=-1.5661) | π=0.0000 V=2.7460 H=1.3753 | spd=0.3 wait=132.8 | LR=5.94e-05 ε_H=0.0166 | 32.5s
+2026-04-02 03:57:00,809 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:57:33,392 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:58:06,123 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:58:37,921 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:59:09,901 [INFO]   → Checkpoint kaydedildi: episode 375
+2026-04-02 03:59:09,902 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 03:59:42,549 [INFO] EP  375/500 | R=-1.5631 (avg50=-1.5636) | π=-0.0000 V=3.2458 H=1.3754 | spd=0.4 wait=124.3 | LR=5.59e-05 ε_H=0.0166 | 32.6s
+2026-04-02 03:59:42,550 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:00:14,826 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:00:47,543 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:01:19,672 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:01:52,101 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:02:24,685 [INFO] EP  380/500 | R=-1.5923 (avg50=-1.5629) | π=-0.0000 V=1.9764 H=1.3751 | spd=0.2 wait=127.5 | LR=5.25e-05 ε_H=0.0165 | 32.6s
+2026-04-02 04:02:24,685 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:02:57,379 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:03:29,755 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:04:02,326 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:04:34,857 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:05:07,467 [INFO] EP  385/500 | R=-1.5652 (avg50=-1.5653) | π=-0.0000 V=2.7687 H=1.3751 | spd=0.3 wait=133.4 | LR=4.92e-05 ε_H=0.0165 | 32.6s
+2026-04-02 04:05:07,467 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:05:40,111 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:06:12,907 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:06:45,301 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:07:17,873 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:07:49,924 [INFO] EP  390/500 | R=-1.4966 (avg50=-1.5635) | π=-0.0000 V=3.7944 H=1.3753 | spd=0.4 wait=126.4 | LR=4.60e-05 ε_H=0.0165 | 32.1s
+2026-04-02 04:07:49,925 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:08:22,279 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:08:54,988 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:09:27,418 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:09:59,508 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:10:32,035 [INFO] EP  395/500 | R=-1.5735 (avg50=-1.5634) | π=-0.0000 V=2.8464 H=1.3750 | spd=0.3 wait=128.7 | LR=4.29e-05 ε_H=0.0164 | 32.5s
+2026-04-02 04:10:32,035 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:11:04,438 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:11:36,546 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:12:08,794 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:12:41,782 [INFO]   → Checkpoint kaydedildi: episode 400
+2026-04-02 04:12:41,782 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:13:14,609 [INFO] EP  400/500 | R=-1.6450 (avg50=-1.5642) | π=-0.0000 V=2.5287 H=1.3746 | spd=0.2 wait=125.0 | LR=4.00e-05 ε_H=0.0164 | 32.8s
+2026-04-02 04:13:14,609 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:13:47,046 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:14:19,677 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:14:51,890 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:15:24,136 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:15:56,905 [INFO] EP  405/500 | R=-1.5065 (avg50=-1.5645) | π=-0.0000 V=4.6151 H=1.3742 | spd=0.4 wait=125.4 | LR=3.71e-05 ε_H=0.0163 | 32.8s
+2026-04-02 04:15:56,905 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:16:29,812 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:17:02,060 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:17:34,076 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:18:06,358 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:18:38,787 [INFO] EP  410/500 | R=-1.5385 (avg50=-1.5632) | π=-0.0000 V=3.1523 H=1.3741 | spd=0.3 wait=127.6 | LR=3.44e-05 ε_H=0.0163 | 32.4s
+2026-04-02 04:18:38,787 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:19:10,546 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:19:43,758 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:20:16,201 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:20:48,629 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:21:21,239 [INFO] EP  415/500 | R=-1.5804 (avg50=-1.5637) | π=-0.0000 V=2.9329 H=1.3744 | spd=0.2 wait=132.5 | LR=3.19e-05 ε_H=0.0163 | 32.6s
+2026-04-02 04:21:21,239 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:21:53,907 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:22:25,996 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:22:58,325 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:23:30,663 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:24:03,145 [INFO] EP  420/500 | R=-1.5726 (avg50=-1.5643) | π=-0.0000 V=2.1955 H=1.3746 | spd=0.2 wait=139.6 | LR=2.94e-05 ε_H=0.0162 | 32.5s
+2026-04-02 04:24:03,145 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:24:35,649 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:25:08,112 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:25:40,692 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:26:12,980 [INFO]   → Checkpoint kaydedildi: episode 425
+2026-04-02 04:26:12,981 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:26:45,263 [INFO] EP  425/500 | R=-1.5451 (avg50=-1.5681) | π=-0.0000 V=3.4117 H=1.3744 | spd=0.3 wait=121.8 | LR=2.71e-05 ε_H=0.0162 | 32.3s
+2026-04-02 04:26:45,263 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:27:18,061 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:27:50,090 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:28:22,545 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:28:54,826 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:29:26,662 [INFO] EP  430/500 | R=-1.5264 (avg50=-1.5663) | π=-0.0000 V=3.9707 H=1.3743 | spd=0.3 wait=122.1 | LR=2.50e-05 ε_H=0.0161 | 31.8s
+2026-04-02 04:29:26,662 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:29:58,775 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:30:30,802 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:31:03,495 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:31:36,617 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:32:10,170 [INFO] EP  435/500 | R=-1.5915 (avg50=-1.5658) | π=-0.0000 V=2.9134 H=1.3740 | spd=0.3 wait=129.1 | LR=2.29e-05 ε_H=0.0161 | 33.6s
+2026-04-02 04:32:10,170 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:32:42,326 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:33:15,060 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:33:47,405 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:34:20,139 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:34:52,310 [INFO] EP  440/500 | R=-1.6004 (avg50=-1.5700) | π=-0.0000 V=3.0728 H=1.3739 | spd=0.3 wait=130.7 | LR=2.10e-05 ε_H=0.0160 | 32.2s
+2026-04-02 04:34:52,310 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:35:25,136 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:35:57,671 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:36:30,203 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:37:02,908 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:37:35,180 [INFO] EP  445/500 | R=-1.5908 (avg50=-1.5734) | π=-0.0000 V=2.7687 H=1.3737 | spd=0.2 wait=130.6 | LR=1.93e-05 ε_H=0.0160 | 32.3s
+2026-04-02 04:37:35,180 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:38:07,671 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:38:40,003 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:39:12,973 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:39:45,222 [INFO]   → Checkpoint kaydedildi: episode 450
+2026-04-02 04:39:45,222 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:40:18,108 [INFO] EP  450/500 | R=-1.5634 (avg50=-1.5702) | π=-0.0000 V=2.0811 H=1.3735 | spd=0.2 wait=134.5 | LR=1.77e-05 ε_H=0.0160 | 32.9s
+2026-04-02 04:40:18,108 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:40:50,733 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:41:23,085 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:41:56,999 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:42:34,181 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:43:11,252 [INFO] EP  455/500 | R=-1.5610 (avg50=-1.5671) | π=-0.0000 V=3.5412 H=1.3735 | spd=0.3 wait=154.9 | LR=1.62e-05 ε_H=0.0159 | 37.1s
+2026-04-02 04:43:11,252 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:43:47,592 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:44:22,015 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:44:57,237 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:45:34,382 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:46:10,754 [INFO] EP  460/500 | R=-1.4765 (avg50=-1.5659) | π=-0.0000 V=3.8393 H=1.3736 | spd=0.3 wait=128.4 | LR=1.49e-05 ε_H=0.0159 | 36.4s
+2026-04-02 04:46:10,755 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:46:47,979 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:47:24,013 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:48:00,736 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:48:34,632 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:49:06,874 [INFO] EP  465/500 | R=-1.5316 (avg50=-1.5640) | π=-0.0000 V=4.9221 H=1.3736 | spd=0.3 wait=130.4 | LR=1.38e-05 ε_H=0.0159 | 32.2s
+2026-04-02 04:49:06,874 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:49:39,604 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:50:12,607 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:50:45,481 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:51:18,234 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:51:50,662 [INFO] EP  470/500 | R=-1.5684 (avg50=-1.5646) | π=-0.0000 V=5.4551 H=1.3738 | spd=0.3 wait=119.3 | LR=1.28e-05 ε_H=0.0158 | 32.4s
+2026-04-02 04:51:50,662 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:52:23,107 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:52:55,805 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:53:28,541 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:54:00,903 [INFO]   → Checkpoint kaydedildi: episode 475
+2026-04-02 04:54:00,903 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:54:33,357 [INFO] EP  475/500 | R=-1.4740 (avg50=-1.5630) | π=-0.0000 V=5.1621 H=1.3738 | spd=0.3 wait=134.2 | LR=1.19e-05 ε_H=0.0158 | 32.5s
+2026-04-02 04:54:33,357 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:55:05,730 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:55:37,885 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:56:10,448 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:56:42,841 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:57:15,587 [INFO] EP  480/500 | R=-1.5568 (avg50=-1.5627) | π=-0.0000 V=2.7479 H=1.3737 | spd=0.3 wait=133.6 | LR=1.12e-05 ε_H=0.0157 | 32.7s
+2026-04-02 04:57:15,587 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:57:47,749 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:58:20,460 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:58:52,562 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:59:24,771 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 04:59:57,250 [INFO] EP  485/500 | R=-1.5116 (avg50=-1.5605) | π=-0.0000 V=5.4258 H=1.3739 | spd=0.3 wait=134.0 | LR=1.07e-05 ε_H=0.0157 | 32.5s
+2026-04-02 04:59:57,250 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:00:29,305 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:01:02,233 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:01:34,544 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:02:06,593 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:02:38,989 [INFO] EP  490/500 | R=-1.5327 (avg50=-1.5564) | π=-0.0000 V=3.7723 H=1.3739 | spd=0.3 wait=121.0 | LR=1.03e-05 ε_H=0.0157 | 32.4s
+2026-04-02 05:02:38,990 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:03:11,595 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:03:43,943 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:04:16,452 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:04:49,373 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:05:22,248 [INFO] EP  495/500 | R=-1.5801 (avg50=-1.5553) | π=-0.0000 V=3.4749 H=1.3740 | spd=0.3 wait=128.7 | LR=1.01e-05 ε_H=0.0156 | 32.9s
+2026-04-02 05:05:22,248 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:05:54,286 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:06:26,139 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:06:58,819 [INFO]   SUMO başlatılıyor: X:\atlas\trafix-main\sumo\training.sumocfg
+2026-04-02 05:07:31,165 [INFO]   → Checkpoint kaydedildi: episode 500
+2026-04-02 05:07:31,197 [INFO] ============================================================
+2026-04-02 05:07:31,197 [INFO]   EĞİTİM TAMAMLANDI
+2026-04-02 05:07:31,197 [INFO]   En iyi ödül     : -1.467278
+2026-04-02 05:07:31,197 [INFO]   Son 50 ortalama : -1.554922
+2026-04-02 05:07:31,197 [INFO]   Checkpoint      : coordinated_agent_weights.pth
+2026-04-02 05:07:31,197 [INFO]   Log dizini      : training_outputs
+2026-04-02 05:07:31,197 [INFO] ============================================================
