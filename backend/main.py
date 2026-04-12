@@ -13,7 +13,16 @@ import os
 import logging
 
 # AI model import
-from backend.ai.trafix_v2 import CoordinatedPPOAgent, parse_sumo_observations
+# TRAFIX_MODEL_VERSION=v2 (default) → trafix_v2 + coordinated_agent_weights.pth
+# TRAFIX_MODEL_VERSION=v3           → trafix_v3 + coordinated_agent_weights_v3.pth
+_MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v2").strip().lower()
+
+if _MODEL_VERSION == "v3":
+    from backend.ai.trafix_v3 import CoordinatedPPOAgent, parse_sumo_observations
+    _WEIGHT_FILENAME = "coordinated_agent_weights_v3.pth"
+else:
+    from backend.ai.trafix_v2 import CoordinatedPPOAgent, parse_sumo_observations
+    _WEIGHT_FILENAME = "coordinated_agent_weights.pth"
 
 logger = logging.getLogger("trafix")
 
@@ -105,13 +114,15 @@ def load_model():
     # Olası weight dosya yolları (öncelik sırasıyla)
     base_dir = os.path.dirname(__file__)
     weight_paths = [
-        os.path.join(base_dir, "ai", "coordinated_agent_weights.pth"),
-        os.path.join(base_dir, "..", "coordinated_agent_weights.pth"),
+        os.path.join(base_dir, "ai", _WEIGHT_FILENAME),
+        os.path.join(base_dir, "..", _WEIGHT_FILENAME),
+        _WEIGHT_FILENAME,
+        # fallback to legacy names
         os.path.join(base_dir, "ai", "core_agent_weights.pth"),
         os.path.join(base_dir, "..", "core_agent_weights.pth"),
-        "coordinated_agent_weights.pth",
         "core_agent_weights.pth",
     ]
+    print(f"[INFO] Model versiyonu: {_MODEL_VERSION.upper()} | Aranan ağırlık: {_WEIGHT_FILENAME}")
 
     for path in weight_paths:
         abs_path = os.path.abspath(path)

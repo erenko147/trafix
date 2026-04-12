@@ -95,14 +95,20 @@ def main():
     intersections = build_intersection_map()
     tls_ids = sorted(list(intersections.keys()))
     
+    DECISION_INTERVAL = 10      # Eğitimle aynı: her 10 sn'de bir karar (train_v2.py decision_interval)
+    MIN_GREEN_TIME    = 10      # Bir green fazı en az 10 sn aktif kalmalı (araç geçişi için)
+
     step = 0
+    # Her kavşak için son faz değişim zamanını takip et
+    last_phase_change_step = {tls_id: -MIN_GREEN_TIME for tls_id in traci.trafficlight.getIDList()}
+
     try:
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.simulationStep()
             step += 1
-            
-            # Sadece her 5 adımda bir API'ye veri gönder (Performans için)
-            if step % 5 != 0:
+
+            # Eğitimle aynı karar aralığı: her 10 adımda bir (1 adım = 1 sn)
+            if step % DECISION_INTERVAL != 0:
                 continue
                 
             batch_payload = {"step": step, "intersections": []}
@@ -171,14 +177,25 @@ def main():
                                 current_p = int(traci.trafficlight.getPhase(tls_id))
                                 if target_sumo_phase == current_p:
                                     continue
-                                    
+
+                                # MİNİMUM YEŞİL SÜRE KONTROLÜ
+                                # Green fazları (0=NS Green, 2=EW Green) en az MIN_GREEN_TIME
+                                # saniye aktif kalmadan değiştirilemez. Yellow fazları (1, 3)
+                                # bu kısıttan muaf — zaten kısa sürelidir.
+                                green_phases = {0, 2}
+                                if current_p in green_phases:
+                                    time_in_phase = step - last_phase_change_step.get(tls_id, 0)
+                                    if time_in_phase < MIN_GREEN_TIME:
+                                        continue  # Henüz erken, bu adımı geç
+
                                 # GÜVENLİK YAMASI: Aniden Green -> Green geçişi kazalara sebep olur.
                                 if current_p == 0 and target_sumo_phase in [2, 3]:
                                     target_sumo_phase = 1 # NS Yellow
                                 elif current_p == 2 and target_sumo_phase in [0, 1]:
                                     target_sumo_phase = 3 # EW Yellow
-                                    
+
                                 traci.trafficlight.setPhase(tls_id, target_sumo_phase)
+                                last_phase_change_step[tls_id] = step
                             except:
                                 pass
             except Exception as e:
