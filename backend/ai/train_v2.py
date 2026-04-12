@@ -64,6 +64,20 @@ except ImportError:
         "  set SUMO_HOME=C:\\Program Files (x86)\\Eclipse\\Sumo"
     )
 
+# ── Dinamik Trafik Talebi ──
+# sumo/generate_demand.py her episode'da farklı yoğunlukta trafik üretir.
+# Gridlock eğitimini önlemek için import edilir; bulunamazsa static dosya kullanılır.
+try:
+    from sumo.generate_demand import generate_dynamic_demand as _gen_demand
+    _HAS_DYNAMIC_DEMAND = True
+except ImportError:
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "sumo"))
+        from generate_demand import generate_dynamic_demand as _gen_demand
+        _HAS_DYNAMIC_DEMAND = True
+    except ImportError:
+        _HAS_DYNAMIC_DEMAND = False
+
 # ── Model import ──
 try:
     from backend.ai.trafix_v2 import (
@@ -125,9 +139,9 @@ class TrainConfig:
 
     # ── PPO ──
     clip_eps: float = 0.2
-    entropy_coef: float = 0.02
-    entropy_coef_min: float = 0.005
-    entropy_decay: float = 0.9995          # episode başına çarpan
+    entropy_coef: float = 0.05            # 0.02 → 0.05: erken entropi çöküşünü önler
+    entropy_coef_min: float = 0.01        # 0.005 → 0.01: daha yavaş bozunma
+    entropy_decay: float = 0.9998         # 0.9995 → 0.9998: daha yavaş azalma
     value_coef: float = 0.5
 
     # ── Ödül ──
@@ -319,7 +333,7 @@ class SumoEnvironment:
 
     def apply_actions(self, actions: torch.Tensor):
         """
-        Her kavşağa seçilen fazı uygular.
+        Her kavşağa seçilen fazı uygular. Güvenli geçişler (Sarı ışık) zorunludur.
 
         Args:
             actions: (num_nodes,) — her kavşak için faz indeksi
@@ -332,10 +346,22 @@ class SumoEnvironment:
             logic = traci.trafficlight.getAllProgramLogics(tls_id)
             if logic:
                 num_phases = len(logic[0].phases)
-                desired_phase = desired_phase % num_phases
+                desired_phase = int(desired_phase % num_phases)
 
-            if desired_phase != current_phase:
-                traci.trafficlight.setPhase(tls_id, int(desired_phase))
+            if desired_phase == current_phase:
+                continue
+                
+            # GÜVENLİK YAMASI: Green -> Green atlamasını engelle (Sarı işığı atlama)
+            # AI modeli sarı ışığı atlayarak araçların crash/teleport olmasına yol açıp,
+            # haksız ödül kazanıyordu (Kuyruklar aniden sıfırlanıyordu).
+            if current_phase == 0 and desired_phase in [2, 3]:
+                # North-South Green'den dönüyorsa, önce North-South Yellow (1) yap
+                desired_phase = 1
+            elif current_phase == 2 and desired_phase in [0, 1]:
+                # East-West Green'den dönüyorsa, önce East-West Yellow (3) yap
+                desired_phase = 3
+
+            traci.trafficlight.setPhase(tls_id, desired_phase)
 
     # ── Simülasyon Adımı ──────────────────────────
 
@@ -705,6 +731,13 @@ def train(cfg: TrainConfig):
 
         # ── LR güncelle ──
         current_lr = scheduler.step(episode)
+
+        # ── Dinamik trafik talebi üret (her episode farklı yoğunluk) ──
+        if _HAS_DYNAMIC_DEMAND:
+            try:
+                _gen_demand()
+            except Exception as _e:
+                logging.warning(f"  Dinamik talep üretilemedi, önceki dosya kullanılıyor: {_e}")
 
         # ── SUMO başlat ──
         try:

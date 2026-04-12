@@ -16,20 +16,20 @@ import random
 import requests
 import json
 
-URL = "http://127.0.0.1:8001/telemetry"
+URL = "http://127.0.0.1:8000/telemetry"
 
 def generate_random_telemetry(intersection_id, current_phase):
     """Bir kavsak icin mantikli sinirlarda rastgele veri uretir."""
-    # Arac sayilari (0-50 arasinda)
-    n = random.randint(0, 30)
-    s = random.randint(0, 30)
-    e = random.randint(0, 30)
-    w = random.randint(0, 30)
-    
+    # Arac sayilari
+    n = random.randint(0, 1)
+    s = random.randint(0, 1)
+    e = random.randint(0, 1)
+    w = random.randint(0, 1)
+
     # Bekleme kuyrugu
     # Cok arac varsa kuyruk da uzundur mantigi
     total = n + s + e + w
-    queue = min(200.0, total * random.uniform(1.2, 3.5))
+    queue = min(50.0, total * random.uniform(0.5, 1.5))
     
     # 0-3 arasi rastgele yeni bir faz, ya da onceki faz devam eder
     if random.random() < 0.2:
@@ -62,24 +62,29 @@ def main():
         while True:
             print(f"--- Adim {step} ---")
             
+            batch_payload = {"step": step, "intersections": []}
             for i in range(5):
                 # Her kavsak icin veri uret
                 payload = generate_random_telemetry(i, phases[i])
+                batch_payload["intersections"].append(payload)
                 
-                try:
-                    # API'ye gonder
-                    response = requests.post(URL, json=payload, timeout=2)
-                    
-                    if response.status_code == 200:
-                        decision = response.json()
-                        next_phase = decision.get("next_phase", phases[i])
-                        phases[i] = next_phase # Yeni fazi kaydet
+            try:
+                # API'ye gonder (Toplu endpoint)
+                batch_url = URL.replace("/telemetry", "/telemetry_batch")
+                response = requests.post(batch_url, json=batch_payload, timeout=2)
+                
+                if response.status_code == 200:
+                    decisions = response.json().get("decisions", [])
+                    for decision in decisions:
+                        tls_idx = decision["intersection_id"]
+                        next_phase = decision["next_phase"]
+                        phases[tls_idx] = next_phase # Yeni fazi kaydet
                         
-                        print(f" Kavsak K{i+1}: Gonderildi OK -> Karar: Faz {next_phase}")
-                    else:
-                        print(f" Kavsak K{i+1}: HATA! Durum kodu {response.status_code}")
-                except Exception as e:
-                    print(f" Kavsak K{i+1}: BAGLANTI HATASI! (Backend acik mi?)")
+                        print(f" Kavsak K{tls_idx+1}: Gonderildi OK -> Karar: Faz {next_phase}")
+                else:
+                    print(f" HATA! Durum kodu {response.status_code}")
+            except Exception as e:
+                print(" BAGLANTI HATASI! (Backend acik mi?)")
                     
             print("2 saniye bekleniyor...\n")
             time.sleep(2)

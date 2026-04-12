@@ -477,7 +477,9 @@ def compute_gae(
     returns = advantages + torch.stack(values)
 
     # Advantage normalizasyonu — eğitim stabilitesi
-    if advantages.numel() > 1:
+    # Threshold: std çok küçükse (tüm ödüller aynı) normalize etme.
+    # Aksi hâlde sıfıra yakın avantajlar N(0,1)'e şişirilir ve sahte gradyanlar oluşur.
+    if advantages.numel() > 1 and advantages.std() > 0.01:
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
     return advantages, returns

@@ -24,17 +24,19 @@ def generate_dynamic_demand():
     # - "Asiri Yogun": Saniyede 3-4 arac (period=0.2 - 0.4)
     # - "Dalgalı": Bazen cok durgun, bazen aniden patlayan trafik
     
+    # Normal trafik baskın olmalı: model ancak gridlock olmayan koşullarda öğrenebilir.
+    # Rush_hour (period=0.2-0.35) ağı tamamen doldurur → ışık kararları ödülü etkilemez.
     profile = random.choices(
         ["normal", "rush_hour", "chaotic"],
-        weights=[0.4, 0.4, 0.2]
+        weights=[0.6, 0.25, 0.15]      # eski: [0.4, 0.4, 0.2]
     )[0]
 
     if profile == "normal":
-        period = round(random.uniform(0.7, 1.2), 2)
+        period = round(random.uniform(0.8, 1.8), 2)   # eski: 0.7–1.2
     elif profile == "rush_hour":
-        period = round(random.uniform(0.2, 0.4), 2)
+        period = round(random.uniform(0.35, 0.55), 2) # eski: 0.2–0.4 (çok ağır!)
     else: # chaotic
-        period = round(random.uniform(0.15, 0.8), 2)
+        period = round(random.uniform(0.5, 1.4), 2)   # eski: 0.15–0.8
 
     # randomTrips.py komutunu hazirla
     # --binomial n : N=Fringe edges sayisi. Trafik agin disindan gelip disina gitsin.

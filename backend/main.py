@@ -13,7 +13,7 @@ import os
 import logging
 
 # AI model import
-from backend.ai.model import Core_PPO_Agent
+from backend.ai.trafix_v2 import CoordinatedPPOAgent, parse_sumo_observations
 
 logger = logging.getLogger("trafix")
 
@@ -59,9 +59,10 @@ class Telemetry(BaseModel):
 # MODEL KONFİGÜRASYONU
 # ==========================================
 NUM_FEATURES = 7
-HIDDEN_DIM = 64
+HIDDEN_DIM = 128
 NUM_ACTIONS = 4
 NUM_NODES = 5
+NUM_HEADS = 4
 
 FEATURE_ORDER = [
     "north_count",
@@ -73,10 +74,14 @@ FEATURE_ORDER = [
     "phase_duration",
 ]
 
-# Kavşaklar arası bağlantı (asimetrik 5-kavşak topolojisi)
+# Kavşaklar arası bağlantı — map.net.xml'den çıkarılan 5-kavşak topolojisi
+#   0 — 1 — 2
+#       |   |
+#       3 — 4
+# Eğitimle (train_v2.py build_edge_index) aynı grafı kullanmalı
 edge_index = torch.tensor([
-    [0, 1, 0, 2, 1, 3, 2, 3, 2, 4, 1, 0, 2, 0, 3, 1, 3, 2, 4, 2],
-    [1, 0, 2, 0, 3, 1, 3, 2, 4, 2, 0, 1, 0, 2, 1, 3, 2, 3, 2, 4],
+    [0, 1, 1, 2, 1, 3, 2, 4, 3, 4],
+    [1, 0, 2, 1, 3, 1, 4, 2, 4, 3],
 ], dtype=torch.long)
 
 # ==========================================
@@ -90,25 +95,43 @@ def load_model():
     """Eğitilmiş model ağırlıklarını diskten yükler."""
     global ai_agent, hidden_state
 
-    agent = Core_PPO_Agent(NUM_FEATURES, HIDDEN_DIM, NUM_ACTIONS)
+    agent = CoordinatedPPOAgent(
+        num_node_features=NUM_FEATURES,
+        hidden_dim=HIDDEN_DIM,
+        num_actions=NUM_ACTIONS,
+        num_heads=NUM_HEADS,
+    )
 
     # Olası weight dosya yolları (öncelik sırasıyla)
+    base_dir = os.path.dirname(__file__)
     weight_paths = [
-        os.path.join(os.path.dirname(__file__), "ai", "core_agent_weights.pth"),
-        os.path.join(os.path.dirname(__file__), "..", "core_agent_weights.pth"),
+        os.path.join(base_dir, "ai", "coordinated_agent_weights.pth"),
+        os.path.join(base_dir, "..", "coordinated_agent_weights.pth"),
+        os.path.join(base_dir, "ai", "core_agent_weights.pth"),
+        os.path.join(base_dir, "..", "core_agent_weights.pth"),
+        "coordinated_agent_weights.pth",
         "core_agent_weights.pth",
     ]
 
     for path in weight_paths:
         abs_path = os.path.abspath(path)
         if os.path.exists(abs_path):
-            agent.load_state_dict(torch.load(abs_path, map_location="cpu"))
-            agent.eval()
-            ai_agent = agent
-            hidden_state = agent.init_hidden(NUM_NODES)
-            logger.info(f"AI modeli yüklendi: {abs_path}")
-            print(f"[OK] AI modeli yuklendi: {abs_path}")
-            return True
+            try:
+                state_dict = torch.load(abs_path, map_location="cpu", weights_only=True)
+                # Handle checkpoint format (dict with 'model_state_dict' key)
+                if isinstance(state_dict, dict) and "model_state_dict" in state_dict:
+                    state_dict = state_dict["model_state_dict"]
+                agent.load_state_dict(state_dict)
+                agent.eval()
+                ai_agent = agent
+                hidden_state = agent.init_hidden(NUM_NODES)
+                logger.info(f"AI modeli yüklendi: {abs_path}")
+                print(f"[OK] AI modeli yuklendi: {abs_path}")
+                return True
+            except RuntimeError as e:
+                logger.warning(f"Agirlik dosyasi uyumsuz: {abs_path} — {e}")
+                print(f"[WARN] Agirlik dosyasi uyumsuz (eski model?): {abs_path}")
+                continue
 
     logger.warning("AI model agirlik dosyasi bulunamadi. Heuristic fallback aktif.")
     print("[WARN] AI model agirlik dosyasi bulunamadi. Heuristic fallback aktif olacak.")
@@ -134,19 +157,45 @@ def graph_builder() -> torch.Tensor:
     return torch.tensor(rows, dtype=torch.float32)
 
 
+from typing import List
+
+class TelemetryBatch(BaseModel):
+    step: int
+    intersections: List[Telemetry]
+
 # ==========================================
-# POST /telemetry — Telemetri Al, Karar Dön
+# POST /telemetry_batch — Toplu Telemetri Al, Toplu Karar Dön
 # ==========================================
-@app.post("/telemetry")
-async def receive_telemetry(data: Telemetry):
+@app.post("/telemetry_batch")
+async def receive_telemetry_batch(batch: TelemetryBatch):
     global hidden_state
 
     # 1. Gelen veriyi state_dict'e kaydet
-    state_dict[str(data.intersection_id)] = data.dict()
+    for data in batch.intersections:
+        state_dict[str(data.intersection_id)] = data.dict()
+
+    decisions = []
 
     # ─── AI MODEL AKTİF ─────────────────────────────────
     if ai_agent is not None:
-        node_features = graph_builder()
+        # Build observation list from all known intersections
+        obs_list = []
+        for i in range(NUM_NODES):
+            node = state_dict.get(str(i), {})
+            if node:
+                obs_list.append(node)
+            else:
+                # Default empty observation for missing intersections
+                obs_list.append({
+                    "intersection_id": i,
+                    "north_count": 0, "south_count": 0,
+                    "east_count": 0, "west_count": 0,
+                    "queue_length": 0.0,
+                    "current_phase": 0, "phase_duration": 0.0,
+                })
+
+        # Normalize data exactly as during training
+        node_features = parse_sumo_observations(obs_list)
 
         with torch.no_grad():
             action_probs, _, new_hidden = ai_agent(
@@ -154,42 +203,46 @@ async def receive_telemetry(data: Telemetry):
             )
             hidden_state = new_hidden
 
-            # Bu kavşak için en yüksek olasılıklı fazı seç
-            idx = data.intersection_id
-            if 0 <= idx < action_probs.shape[0]:
-                next_phase = int(torch.argmax(action_probs[idx]).item())
-            else:
-                next_phase = data.current_phase
+            for data in batch.intersections:
+                idx = data.intersection_id
+                if 0 <= idx < action_probs.shape[0]:
+                    next_phase = int(torch.argmax(action_probs[idx]).item())
+                else:
+                    next_phase = data.current_phase
+                decisions.append({
+                    "intersection_id": idx,
+                    "next_phase": next_phase,
+                })
 
-        return {
-            "intersection_id": data.intersection_id,
-            "next_phase": next_phase,
-        }
+        return {"decisions": decisions}
 
     # ─── HEURİSTİC FALLBACK ─────────────────────────────
     # AI modeli yoksa matematiksel kural tabanlı karar
-    directions = {
-        0: data.north_count,
-        1: data.south_count,
-        2: data.east_count,
-        3: data.west_count,
-    }
+    for data in batch.intersections:
+        directions = {
+            0: data.north_count,
+            1: data.south_count,
+            2: data.east_count,
+            3: data.west_count,
+        }
 
-    best_phase = max(directions, key=directions.get)
-    max_cars = directions[best_phase]
+        best_dir = max(directions, key=directions.get)
+        max_cars = directions[best_dir]
 
-    # Minimum 10 saniye yanma kuralı
-    if data.phase_duration < 10.0:
-        next_phase = data.current_phase
-    elif max_cars == 0:
-        next_phase = data.current_phase
-    else:
-        next_phase = best_phase
+        # Minimum 10 saniye yanma kuralı
+        if data.phase_duration < 10.0 or max_cars == 0:
+            next_phase = data.current_phase
+        else:
+            # 0=North, 1=South -> Phase 0 (NS Green)
+            # 2=East, 3=West -> Phase 2 (EW Green)
+            next_phase = 0 if best_dir in [0, 1] else 2
 
-    return {
-        "intersection_id": data.intersection_id,
-        "next_phase": next_phase,
-    }
+        decisions.append({
+            "intersection_id": data.intersection_id,
+            "next_phase": next_phase,
+        })
+
+    return {"decisions": decisions}
 
 
 # ==========================================
