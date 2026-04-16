@@ -48,6 +48,8 @@ NUM_NODE_FEATURES = len(FEATURE_ORDER)  # 7
 def parse_sumo_observations(
     raw_obs: List[Dict],
     device: torch.device = torch.device("cpu"),
+    count_max: Optional[float] = None,
+    duration_max: float = 180.0,
 ) -> torch.Tensor:
     """
     SUMO'dan gelen kavşak JSON listesini model girdisine çevirir.
@@ -61,6 +63,10 @@ def parse_sumo_observations(
                 "queue_length": 34.5,
                 "current_phase": 2, "phase_duration": 18.0
             }
+        count_max: Araç sayısı normalizasyonu için tarihsel global maksimum.
+            None ise anlık batch maksimumu kullanılır (legacy davranış).
+        duration_max: Faz süresi normalizasyonu için üst limit (saniye).
+            Varsayılan 180s — 120s'yi aşan fazları kırpmaz.
     Returns:
         (num_nodes, 7) — normalize edilmiş özellik tensörü
     """
@@ -75,14 +81,17 @@ def parse_sumo_observations(
     x = torch.tensor(rows, dtype=torch.float32, device=device)
 
     # ── Normalizasyon ──
-    # Araç sayıları ve kuyruk: max-norm (sıfıra bölme koruması)
     vehicle_cols = slice(0, 4)          # north/south/east/west
     queue_col = 4
     phase_col = 5
     duration_col = 6
 
-    v_max = x[:, vehicle_cols].max().clamp(min=1.0)
-    x[:, vehicle_cols] = x[:, vehicle_cols] / v_max
+    # Araç sayıları: rolling global max yoksa anlık batch max'ı kullan
+    if count_max is not None:
+        v_max = max(count_max, 1.0)
+    else:
+        v_max = x[:, vehicle_cols].max().clamp(min=1.0).item()
+    x[:, vehicle_cols] = (x[:, vehicle_cols] / v_max).clamp(max=1.0)
 
     q_max = x[:, queue_col].max().clamp(min=1.0)
     x[:, queue_col] = x[:, queue_col] / q_max
@@ -90,8 +99,8 @@ def parse_sumo_observations(
     # Faz: one-hot yerine basit normalize (0-1 arasına)
     x[:, phase_col] = x[:, phase_col] / max(4.0, x[:, phase_col].max().item())
 
-    # Süre: 120 sn üst limitle normalize
-    x[:, duration_col] = x[:, duration_col] / 120.0
+    # Süre: adaptif üst limitle normalize, >1.0 değerler kırpılır
+    x[:, duration_col] = (x[:, duration_col] / duration_max).clamp(max=1.0)
 
     return x
 
@@ -348,15 +357,23 @@ class CoordinatedPPOAgent(nn.Module):
 #  Ödül Fonksiyonu  (SUMO Verisi ile)
 # ══════════════════════════════════════════════════
 
+# Ağ topolojisi kenarları — map.net.xml'deki 5-kavşak yapısına göre:
+#   0 — 1 — 2
+#       |   |
+#       3 — 4
+_GREEN_WAVE_EDGES: List[Tuple[int, int]] = [(0, 1), (1, 2), (1, 3), (3, 4)]
+
+
 @dataclass
 class RewardWeights:
     """Ödül bileşeni ağırlıkları — hiperparametre olarak ayarlanabilir."""
-    pressure:       float = -0.4    # yüksek basınç → ceza
-    queue:          float = -0.3    # uzun kuyruk → ceza
-    throughput:     float =  0.3    # geçiş artışı → ödül
-    fairness:       float = -0.15   # yön dengesizliği → ceza
-    phase_penalty:  float = -0.10   # gereksiz faz değişimi → ceza
+    pressure:       float = -0.35   # yüksek basınç → ceza
+    queue:          float = -0.25   # uzun kuyruk → ceza
+    throughput:     float =  0.25   # geçiş artışı → ödül
+    fairness:       float = -0.12   # yön dengesizliği → ceza
+    phase_penalty:  float = -0.08   # gereksiz faz değişimi → ceza
     wait_penalty:   float = -0.05   # çok uzun aynı fazda kalma → ceza
+    green_wave:     float =  0.15   # komşu kavşak koordinasyonu → ödül
 
 
 def compute_reward(
@@ -365,6 +382,7 @@ def compute_reward(
     previous_actions: Optional[torch.Tensor],
     current_actions: torch.Tensor,
     weights: RewardWeights = RewardWeights(),
+    current_phases: Optional[List[int]] = None,
 ) -> torch.Tensor:
     """
     Çok bileşenli ödül fonksiyonu.
@@ -376,6 +394,7 @@ def compute_reward(
         4. Adillik (Fairness):   Yön varyansı → minimize
         5. Faz Stabilitesi:      Gereksiz değişim → ceza
         6. Bekleme Cezası:       Aynı fazda >60sn → ceza
+        7. Yeşil Dalga:          Komşu kavşak senkronizasyonu → ödül
 
     Args:
         current_obs     : Şu anki SUMO gözlemleri (5 kavşak)
@@ -383,6 +402,8 @@ def compute_reward(
         previous_actions: Önceki aksiyonlar (faz değişim tespiti için)
         current_actions : Bu adımda seçilen aksiyonlar
         weights         : Ödül ağırlıkları
+        current_phases  : Her kavşağın mevcut fazı [0-3], sıralı intersection_id'ye göre.
+                          None ise yeşil dalga bileşeni hesaplanmaz.
     Returns:
         reward : skaler tensor
     """
@@ -432,6 +453,17 @@ def compute_reward(
             wait_penalty += (o["phase_duration"] - 60.0) / 60.0
     wait_penalty /= len(cur)
 
+    # ── 7. Yeşil Dalga: komşu kavşaklar aynı eksende yeşil → bonus ──
+    green_wave_score = 0.0
+    if current_phases is not None:
+        for (a, b) in _GREEN_WAVE_EDGES:
+            phase_a = current_phases[a]
+            phase_b = current_phases[b]
+            # Her ikisi de NS yeşil (0) veya EW yeşil (2) ise senkronize sayılır
+            if phase_a % 2 == phase_b % 2 and phase_a in (0, 2):
+                green_wave_score += 1.0
+        green_wave_score /= len(_GREEN_WAVE_EDGES)
+
     # ── Toplam Ödül ──
     reward = (
         weights.pressure      * pressure
@@ -440,6 +472,7 @@ def compute_reward(
         + weights.fairness     * fairness
         + weights.phase_penalty * phase_changes
         + weights.wait_penalty  * wait_penalty
+        + weights.green_wave   * green_wave_score
     )
 
     return torch.tensor(reward, dtype=torch.float32)

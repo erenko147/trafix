@@ -60,7 +60,15 @@ NUM_NODE_FEATURES = len(FEATURE_ORDER)  # 7
 def parse_sumo_observations(
     raw_obs: List[Dict],
     device: torch.device = torch.device("cpu"),
+    count_max: Optional[float] = None,
+    duration_max: float = 180.0,
 ) -> torch.Tensor:
+    """
+    Args:
+        count_max   : Araç sayısı normalizasyonu için tarihsel global maksimum.
+                      None ise anlık batch maksimumu kullanılır (legacy davranış).
+        duration_max: Faz süresi normalizasyonu için üst limit (saniye).
+    """
     sorted_obs = sorted(raw_obs, key=lambda d: d["intersection_id"])
     rows = []
     for obs in sorted_obs:
@@ -74,14 +82,18 @@ def parse_sumo_observations(
     phase_col    = 5
     duration_col = 6
 
-    v_max = x[:, vehicle_cols].max().clamp(min=1.0)
-    x[:, vehicle_cols] = x[:, vehicle_cols] / v_max
+    # Araç sayıları: rolling global max yoksa anlık batch max'ı kullan
+    if count_max is not None:
+        v_max = max(count_max, 1.0)
+    else:
+        v_max = x[:, vehicle_cols].max().clamp(min=1.0).item()
+    x[:, vehicle_cols] = (x[:, vehicle_cols] / v_max).clamp(max=1.0)
 
     q_max = x[:, queue_col].max().clamp(min=1.0)
     x[:, queue_col] = x[:, queue_col] / q_max
 
     x[:, phase_col]    = x[:, phase_col] / max(4.0, x[:, phase_col].max().item())
-    x[:, duration_col] = x[:, duration_col] / 120.0
+    x[:, duration_col] = (x[:, duration_col] / duration_max).clamp(max=1.0)
 
     return x
 
@@ -315,14 +327,22 @@ class CoordinatedPPOAgent(nn.Module):
 #  Ödül, GAE, train_step  (v2 ile birebir aynı)
 # ══════════════════════════════════════════════════
 
+# Ağ topolojisi kenarları — map.net.xml'deki 5-kavşak yapısına göre:
+#   0 — 1 — 2
+#       |   |
+#       3 — 4
+_GREEN_WAVE_EDGES: List[Tuple[int, int]] = [(0, 1), (1, 2), (1, 3), (3, 4)]
+
+
 @dataclass
 class RewardWeights:
-    pressure:      float = -0.4
-    queue:         float = -0.3
-    throughput:    float =  0.3
-    fairness:      float = -0.15
-    phase_penalty: float = -0.10
+    pressure:      float = -0.35
+    queue:         float = -0.25
+    throughput:    float =  0.25
+    fairness:      float = -0.12
+    phase_penalty: float = -0.08
     wait_penalty:  float = -0.05
+    green_wave:    float =  0.15   # komşu kavşak koordinasyonu → ödül
 
 
 def compute_reward(
@@ -331,6 +351,7 @@ def compute_reward(
     previous_actions: Optional[torch.Tensor],
     current_actions: torch.Tensor,
     weights: RewardWeights = RewardWeights(),
+    current_phases: Optional[List[int]] = None,
 ) -> torch.Tensor:
     cur = sorted(current_obs, key=lambda d: d["intersection_id"])
 
@@ -371,6 +392,16 @@ def compute_reward(
             wait_penalty += (o["phase_duration"] - 60.0) / 60.0
     wait_penalty /= len(cur)
 
+    # ── Yeşil Dalga: komşu kavşaklar aynı eksende yeşil → bonus ──
+    green_wave_score = 0.0
+    if current_phases is not None:
+        for (a, b) in _GREEN_WAVE_EDGES:
+            phase_a = current_phases[a]
+            phase_b = current_phases[b]
+            if phase_a % 2 == phase_b % 2 and phase_a in (0, 2):
+                green_wave_score += 1.0
+        green_wave_score /= len(_GREEN_WAVE_EDGES)
+
     reward = (
         weights.pressure      * pressure
         + weights.queue        * queue
@@ -378,6 +409,7 @@ def compute_reward(
         + weights.fairness     * fairness
         + weights.phase_penalty * phase_changes
         + weights.wait_penalty  * wait_penalty
+        + weights.green_wave   * green_wave_score
     )
     return torch.tensor(reward, dtype=torch.float32)
 
