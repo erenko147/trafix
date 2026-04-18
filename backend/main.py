@@ -21,9 +21,15 @@ _MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v2").strip().lower()
 if _MODEL_VERSION == "v3":
     from backend.ai.trafix_v3 import CoordinatedPPOAgent, parse_sumo_observations
     _WEIGHT_FILENAME = "coordinated_agent_weights_v3.pth"
-else:
+    _USE_GRAPH = True
+elif _MODEL_VERSION == "simple":
+    from backend.ai.trafix_simple import SimplePPOAgent as CoordinatedPPOAgent, parse_sumo_observations
+    _WEIGHT_FILENAME = "coordinated_agent_weights_simple.pth"
+    _USE_GRAPH = False
+else:  # v2 default
     from backend.ai.trafix_v2 import CoordinatedPPOAgent, parse_sumo_observations
     _WEIGHT_FILENAME = "coordinated_agent_weights.pth"
+    _USE_GRAPH = True
 
 logger = logging.getLogger("trafix")
 
@@ -220,9 +226,10 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
         node_features = parse_sumo_observations(obs_list, count_max=_count_max)
 
         with torch.no_grad():
-            action_probs, _, new_hidden = ai_agent(
-                node_features, edge_index, hidden_state
-            )
+            if _USE_GRAPH:
+                action_probs, _, new_hidden = ai_agent(node_features, edge_index, hidden_state)
+            else:
+                action_probs, _, new_hidden = ai_agent(node_features, hidden_state)
             hidden_state = new_hidden
 
             for data in batch.intersections:

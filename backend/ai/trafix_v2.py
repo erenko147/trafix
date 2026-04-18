@@ -363,17 +363,24 @@ class CoordinatedPPOAgent(nn.Module):
 #       3 — 4
 _GREEN_WAVE_EDGES: List[Tuple[int, int]] = [(0, 1), (1, 2), (1, 3), (3, 4)]
 
+# Kaç araç birikirse "platooon" sayılır?
+_PLATOON_THRESHOLD: int = 20
+
 
 @dataclass
 class RewardWeights:
     """Ödül bileşeni ağırlıkları — hiperparametre olarak ayarlanabilir."""
-    pressure:       float = -0.35   # yüksek basınç → ceza
+    pressure:       float = -0.30   # yüksek basınç → ceza
     queue:          float = -0.25   # uzun kuyruk → ceza
     throughput:     float =  0.25   # geçiş artışı → ödül
-    fairness:       float = -0.12   # yön dengesizliği → ceza
+    fairness:       float = -0.10   # yön dengesizliği → ceza
     phase_penalty:  float = -0.08   # gereksiz faz değişimi → ceza
     wait_penalty:   float = -0.05   # çok uzun aynı fazda kalma → ceza
-    green_wave:     float =  0.15   # komşu kavşak koordinasyonu → ödül
+    green_wave:     float =  0.20   # dinamik platoon koordinasyonu → ödül
+
+
+def _intersection_total(o: Dict) -> int:
+    return o["north_count"] + o["south_count"] + o["east_count"] + o["west_count"]
 
 
 def compute_reward(
@@ -382,89 +389,101 @@ def compute_reward(
     previous_actions: Optional[torch.Tensor],
     current_actions: torch.Tensor,
     weights: RewardWeights = RewardWeights(),
-    current_phases: Optional[List[int]] = None,
 ) -> torch.Tensor:
     """
     Çok bileşenli ödül fonksiyonu.
 
     Bileşenler:
-        1. Basınç (Pressure):    Σ araç sayısı → minimize
-        2. Kuyruk (Queue):       Σ queue_length → minimize
-        3. Geçiş (Throughput):   Δ araç sayısı azalması → maximize
-        4. Adillik (Fairness):   Yön varyansı → minimize
-        5. Faz Stabilitesi:      Gereksiz değişim → ceza
-        6. Bekleme Cezası:       Aynı fazda >60sn → ceza
-        7. Yeşil Dalga:          Komşu kavşak senkronizasyonu → ödül
+        1. Basınç      Σ araç sayısı → minimize
+        2. Kuyruk      Σ queue_length → minimize
+        3. Throughput  Δ araç azalması → maximize
+        4. Adillik     Yön varyansı → minimize
+        5. Stabilite   Gereksiz faz değişimi → ceza
+        6. Bekleme     Aynı fazda >60sn → ceza
+        7. Yeşil Dalga Platoon tespiti + aşağı kavşak hazırlığı → ödül
 
-    Args:
-        current_obs     : Şu anki SUMO gözlemleri (5 kavşak)
-        previous_obs    : Önceki adımın gözlemleri (ilk adımda None)
-        previous_actions: Önceki aksiyonlar (faz değişim tespiti için)
-        current_actions : Bu adımda seçilen aksiyonlar
-        weights         : Ödül ağırlıkları
-        current_phases  : Her kavşağın mevcut fazı [0-3], sıralı intersection_id'ye göre.
-                          None ise yeşil dalga bileşeni hesaplanmaz.
-    Returns:
-        reward : skaler tensor
+    Yeşil Dalga (7) nasıl çalışır:
+        - Upstream kavşakta ≥ PLATOON_THRESHOLD araç VAR
+        - Upstream yeşil (platoon serbest bırakılıyor)
+        - Downstream AYNI EKSENDE yeşil (platoon durmadan geçecek)
+        → base bonus + eğer downstream kuyruk bu adımda azaldıysa ekstra bonus
     """
     cur = sorted(current_obs, key=lambda d: d["intersection_id"])
+    prev = sorted(previous_obs, key=lambda d: d["intersection_id"]) \
+        if previous_obs is not None else None
 
-    # ── 1. Basınç: toplam araç sayısı ──
-    total_vehicles = sum(
-        o["north_count"] + o["south_count"] + o["east_count"] + o["west_count"]
-        for o in cur
-    )
-    pressure = total_vehicles / max(len(cur) * 40.0, 1.0)  # [0, ~1] normalize
+    # ── 1. Basınç ──
+    total_vehicles = sum(_intersection_total(o) for o in cur)
+    pressure = total_vehicles / max(len(cur) * 40.0, 1.0)
 
-    # ── 2. Kuyruk uzunluğu ──
+    # ── 2. Kuyruk ──
     total_queue = sum(o["queue_length"] for o in cur)
     queue = total_queue / max(len(cur) * 100.0, 1.0)
 
-    # ── 3. Geçiş (throughput) — önceki adıma göre araç azalması ──
+    # ── 3. Throughput ──
     throughput = 0.0
-    if previous_obs is not None:
-        prev = sorted(previous_obs, key=lambda d: d["intersection_id"])
-        prev_vehicles = sum(
-            o["north_count"] + o["south_count"] + o["east_count"] + o["west_count"]
-            for o in prev
-        )
-        # Araç azaldıysa pozitif, arttıysa negatif
+    if prev is not None:
+        prev_vehicles = sum(_intersection_total(o) for o in prev)
         throughput = (prev_vehicles - total_vehicles) / max(prev_vehicles, 1.0)
-        throughput = max(throughput, -1.0)  # alt sınır
+        throughput = max(throughput, -1.0)
 
-    # ── 4. Adillik: yön araç sayılarının varyansı ──
+    # ── 4. Adillik ──
     fairness_scores = []
     for o in cur:
         counts = [o["north_count"], o["south_count"], o["east_count"], o["west_count"]]
         mean_c = sum(counts) / 4.0
-        var_c = sum((c - mean_c) ** 2 for c in counts) / 4.0
-        fairness_scores.append(math.sqrt(var_c) / max(mean_c, 1.0))  # CV
+        var_c  = sum((c - mean_c) ** 2 for c in counts) / 4.0
+        fairness_scores.append(math.sqrt(var_c) / max(mean_c, 1.0))
     fairness = sum(fairness_scores) / len(fairness_scores)
 
-    # ── 5. Faz stabilitesi: gereksiz değişim cezası ──
+    # ── 5. Faz stabilitesi ──
     phase_changes = 0.0
     if previous_actions is not None:
         phase_changes = (current_actions != previous_actions).float().mean().item()
 
-    # ── 6. Bekleme cezası: aynı fazda >60 sn ──
+    # ── 6. Bekleme cezası ──
     wait_penalty = 0.0
     for o in cur:
         if o["phase_duration"] > 60.0:
             wait_penalty += (o["phase_duration"] - 60.0) / 60.0
     wait_penalty /= len(cur)
 
-    # ── 7. Yeşil Dalga: komşu kavşaklar aynı eksende yeşil → bonus ──
+    # ── 7. Dinamik Yeşil Dalga ──
+    # Koşul A — Platoon tespiti + downstream hazırlığı (base bonus):
+    #   upstream toplam araç ≥ eşik VE upstream yeşil (0 veya 2)
+    #   VE downstream aynı eksende yeşil → platoon durmadan geçer
+    #
+    # Koşul B — Geçiş teyidi (ekstra bonus):
+    #   önceki adıma göre downstream kuyruğu azaldıysa gerçek geçiş oldu
     green_wave_score = 0.0
-    if current_phases is not None:
-        for (a, b) in _GREEN_WAVE_EDGES:
-            phase_a = current_phases[a]
-            phase_b = current_phases[b]
-            # Her ikisi de NS yeşil (0) veya EW yeşil (2) ise senkronize sayılır
-            if phase_a % 2 == phase_b % 2 and phase_a in (0, 2):
-                green_wave_score += 1.0
-        green_wave_score /= len(_GREEN_WAVE_EDGES)
+    for (src_id, dst_id) in _GREEN_WAVE_EDGES:
+        src = cur[src_id]
+        dst = cur[dst_id]
 
-    # ── Toplam Ödül ──
+        src_total   = _intersection_total(src)
+        src_phase   = src["current_phase"]
+        dst_phase   = dst["current_phase"]
+
+        src_is_green = src_phase in (0, 2)
+        dst_aligned  = dst_phase in (0, 2) and (dst_phase % 2 == src_phase % 2)
+        has_platoon  = src_total >= _PLATOON_THRESHOLD
+
+        if has_platoon and src_is_green and dst_aligned:
+            # Base: ödül platoon büyüklüğüyle orantılı (1.0 eşikte, üstünde daha fazla)
+            base = min(src_total / _PLATOON_THRESHOLD, 2.0)
+            green_wave_score += base
+
+            # Ekstra: downstream kuyruğu gerçekten azaldıysa
+            if prev is not None:
+                prev_dst_queue = prev[dst_id]["queue_length"]
+                curr_dst_queue = dst["queue_length"]
+                if curr_dst_queue < prev_dst_queue:
+                    reduction = (prev_dst_queue - curr_dst_queue) / max(prev_dst_queue, 1.0)
+                    green_wave_score += reduction
+
+    green_wave_score /= max(len(_GREEN_WAVE_EDGES), 1)
+
+    # ── Toplam ──
     reward = (
         weights.pressure      * pressure
         + weights.queue        * queue
