@@ -13,17 +13,22 @@ import torch
 import os
 import logging
 
-# AI model import
-# TRAFIX_MODEL_VERSION=v2 (default) → trafix_v2 + coordinated_agent_weights.pth
-# TRAFIX_MODEL_VERSION=v3           → trafix_v3 + coordinated_agent_weights_v3.pth
+# Her iki model versiyonunu da import et (otomatik algilama icin)
+from backend.ai.trafix_v2 import (
+    CoordinatedPPOAgent as AgentV2,
+    parse_sumo_observations as parse_v2,
+)
+from backend.ai.trafix_v3 import (
+    CoordinatedPPOAgent as AgentV3,
+    parse_sumo_observations as parse_v3,
+)
+
 _MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v2").strip().lower()
 
-if _MODEL_VERSION == "v3":
-    from backend.ai.trafix_v3 import CoordinatedPPOAgent, parse_sumo_observations
-    _WEIGHT_FILENAME = "coordinated_agent_weights_v3.pth"
-else:
-    from backend.ai.trafix_v2 import CoordinatedPPOAgent, parse_sumo_observations
-    _WEIGHT_FILENAME = "coordinated_agent_weights.pth"
+# Aktif model sinifi ve parser (load_model() tarafindan guncellenir)
+CoordinatedPPOAgent = AgentV2
+parse_sumo_observations = parse_v2
+_WEIGHT_FILENAME = "coordinated_agent_weights.pth"
 
 logger = logging.getLogger("trafix")
 
@@ -103,52 +108,92 @@ obs_history: deque = deque(maxlen=500)  # rolling araç sayısı geçmişi — a
 last_decisions_cache: list = []  # /last_decisions endpoint için önbellek
 
 
-def load_model():
-    """Eğitilmiş model ağırlıklarını diskten yükler."""
-    global ai_agent, hidden_state
+def _detect_arch(keys) -> str:
+    """Agirlik dosyasinin anahtar isimlerinden model mimarisini tespit et."""
+    key_str = " ".join(keys)
+    if "gconv_gru" in key_str:
+        return "v3"
+    if "gcn1" in key_str or "gcn2" in key_str:
+        return "v2"
+    return "unknown"
 
-    agent = CoordinatedPPOAgent(
-        num_node_features=NUM_FEATURES,
-        hidden_dim=HIDDEN_DIM,
-        num_actions=NUM_ACTIONS,
-        num_heads=NUM_HEADS,
+
+def _make_agent(version: str):
+    """Versiyon stringine gore agent + parser ikilisi don."""
+    if version == "v3":
+        return (
+            AgentV3(
+                num_node_features=NUM_FEATURES,
+                hidden_dim=HIDDEN_DIM,
+                num_actions=NUM_ACTIONS,
+                num_heads=NUM_HEADS,
+            ),
+            parse_v3,
+        )
+    return (
+        AgentV2(
+            num_node_features=NUM_FEATURES,
+            hidden_dim=HIDDEN_DIM,
+            num_actions=NUM_ACTIONS,
+            num_heads=NUM_HEADS,
+        ),
+        parse_v2,
     )
 
-    # Olası weight dosya yolları (öncelik sırasıyla)
+
+def load_model():
+    """Egitilmis model agirliklarini diskten yukler. Mimariyi otomatik algilar."""
+    global ai_agent, hidden_state, parse_sumo_observations
+
     base_dir = os.path.dirname(__file__)
-    weight_paths = [
-        os.path.join(base_dir, "ai", _WEIGHT_FILENAME),
-        os.path.join(base_dir, "..", _WEIGHT_FILENAME),
-        _WEIGHT_FILENAME,
-        # fallback to legacy names
+
+    # Tum olasi .pth dosya yollarini topla (tekrarsiz)
+    candidates = [
+        os.path.join(base_dir, "ai", "coordinated_agent_weights.pth"),
+        os.path.join(base_dir, "..", "coordinated_agent_weights.pth"),
+        os.path.join(base_dir, "ai", "coordinated_agent_weights_v3.pth"),
+        os.path.join(base_dir, "..", "coordinated_agent_weights_v3.pth"),
         os.path.join(base_dir, "ai", "core_agent_weights.pth"),
         os.path.join(base_dir, "..", "core_agent_weights.pth"),
-        "core_agent_weights.pth",
     ]
-    print(f"[INFO] Model versiyonu: {_MODEL_VERSION.upper()} | Aranan ağırlık: {_WEIGHT_FILENAME}")
+    # Tekrar eden mutlak yollari kaldir, var olmayanlari at
+    seen = set()
+    weight_paths = []
+    for p in candidates:
+        ap = os.path.abspath(p)
+        if ap not in seen and os.path.exists(ap):
+            seen.add(ap)
+            weight_paths.append(ap)
 
-    for path in weight_paths:
-        abs_path = os.path.abspath(path)
-        if os.path.exists(abs_path):
-            try:
-                state_dict = torch.load(abs_path, map_location="cpu", weights_only=True)
-                # Handle checkpoint format (dict with 'model_state_dict' key)
-                if isinstance(state_dict, dict) and "model_state_dict" in state_dict:
-                    state_dict = state_dict["model_state_dict"]
-                agent.load_state_dict(state_dict)
-                agent.eval()
-                ai_agent = agent
-                hidden_state = agent.init_hidden(NUM_NODES)
-                logger.info(f"AI modeli yüklendi: {abs_path}")
-                print(f"[OK] AI modeli yuklendi: {abs_path}")
-                return True
-            except RuntimeError as e:
-                logger.warning(f"Agirlik dosyasi uyumsuz: {abs_path} — {e}")
-                print(f"[WARN] Agirlik dosyasi uyumsuz (eski model?): {abs_path}")
-                continue
+    if not weight_paths:
+        print("[WARN] Hicbir agirlik dosyasi bulunamadi. Heuristic fallback aktif.")
+        return False
 
-    logger.warning("AI model agirlik dosyasi bulunamadi. Heuristic fallback aktif.")
-    print("[WARN] AI model agirlik dosyasi bulunamadi. Heuristic fallback aktif olacak.")
+    for abs_path in weight_paths:
+        try:
+            sd = torch.load(abs_path, map_location="cpu", weights_only=True)
+            if isinstance(sd, dict) and "model_state_dict" in sd:
+                sd = sd["model_state_dict"]
+
+            detected = _detect_arch(list(sd.keys()))
+            agent, parser = _make_agent(detected)
+
+            agent.load_state_dict(sd)
+            agent.eval()
+            ai_agent = agent
+            hidden_state = agent.init_hidden(NUM_NODES)
+            parse_sumo_observations = parser
+
+            print(f"[OK] Model yuklendi: {abs_path}")
+            print(f"[OK] Algilanan mimari: {detected.upper()} "
+                  f"(istenen: {_MODEL_VERSION.upper()})")
+            return True
+
+        except Exception as e:
+            print(f"[WARN] {os.path.basename(abs_path)} yuklenemedi: {e}")
+            continue
+
+    print("[WARN] Agirlik dosyalari yuklenemedii. Heuristic fallback aktif.")
     return False
 
 
