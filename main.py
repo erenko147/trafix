@@ -16,6 +16,13 @@ async def dashboard():
     return FileResponse(os.path.join(BASE_DIR, "frontend", "dashboard.html"))
 
 
+# Architecture sayfası.
+# Ziyaret: http://localhost:8000/architecture
+@app.get("/architecture")
+async def architecture():
+    return FileResponse(os.path.join(BASE_DIR, "frontend", "index.html"))
+
+
 # Calıstırma kodu
 # cd /Users/bora/Desktop/trafix_4
 # uvicorn main:app --reload
