@@ -20,9 +20,9 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument(
     "--model",
-    choices=["v2", "v3"],
+    choices=["v2", "v3", "simple"],
     default="v2",
-    help="AI model versiyonu: v2 (GCN+GRU) veya v3 (GConvGRU)",
+    help="AI model versiyonu: simple (demo), v2 (GCN+GRU), v3 (GConvGRU)",
 )
 parser.add_argument("--host", default="127.0.0.1", help="Sunucu adresi")
 parser.add_argument("--port", type=int, default=8000, help="Port numarası")

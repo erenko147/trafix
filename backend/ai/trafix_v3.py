@@ -327,22 +327,23 @@ class CoordinatedPPOAgent(nn.Module):
 #  Ödül, GAE, train_step  (v2 ile birebir aynı)
 # ══════════════════════════════════════════════════
 
-# Ağ topolojisi kenarları — map.net.xml'deki 5-kavşak yapısına göre:
-#   0 — 1 — 2
-#       |   |
-#       3 — 4
 _GREEN_WAVE_EDGES: List[Tuple[int, int]] = [(0, 1), (1, 2), (1, 3), (3, 4)]
+_PLATOON_THRESHOLD: int = 20
 
 
 @dataclass
 class RewardWeights:
-    pressure:      float = -0.35
+    pressure:      float = -0.30
     queue:         float = -0.25
     throughput:    float =  0.25
-    fairness:      float = -0.12
+    fairness:      float = -0.10
     phase_penalty: float = -0.08
     wait_penalty:  float = -0.05
-    green_wave:    float =  0.15   # komşu kavşak koordinasyonu → ödül
+    green_wave:    float =  0.20
+
+
+def _intersection_total(o: Dict) -> int:
+    return o["north_count"] + o["south_count"] + o["east_count"] + o["west_count"]
 
 
 def compute_reward(
@@ -351,26 +352,20 @@ def compute_reward(
     previous_actions: Optional[torch.Tensor],
     current_actions: torch.Tensor,
     weights: RewardWeights = RewardWeights(),
-    current_phases: Optional[List[int]] = None,
 ) -> torch.Tensor:
-    cur = sorted(current_obs, key=lambda d: d["intersection_id"])
+    cur  = sorted(current_obs,  key=lambda d: d["intersection_id"])
+    prev = sorted(previous_obs, key=lambda d: d["intersection_id"]) \
+        if previous_obs is not None else None
 
-    total_vehicles = sum(
-        o["north_count"] + o["south_count"] + o["east_count"] + o["west_count"]
-        for o in cur
-    )
+    total_vehicles = sum(_intersection_total(o) for o in cur)
     pressure = total_vehicles / max(len(cur) * 40.0, 1.0)
 
     total_queue = sum(o["queue_length"] for o in cur)
     queue = total_queue / max(len(cur) * 100.0, 1.0)
 
     throughput = 0.0
-    if previous_obs is not None:
-        prev = sorted(previous_obs, key=lambda d: d["intersection_id"])
-        prev_vehicles = sum(
-            o["north_count"] + o["south_count"] + o["east_count"] + o["west_count"]
-            for o in prev
-        )
+    if prev is not None:
+        prev_vehicles = sum(_intersection_total(o) for o in prev)
         throughput = (prev_vehicles - total_vehicles) / max(prev_vehicles, 1.0)
         throughput = max(throughput, -1.0)
 
@@ -392,15 +387,30 @@ def compute_reward(
             wait_penalty += (o["phase_duration"] - 60.0) / 60.0
     wait_penalty /= len(cur)
 
-    # ── Yeşil Dalga: komşu kavşaklar aynı eksende yeşil → bonus ──
+    # ── Dinamik Yeşil Dalga ──
     green_wave_score = 0.0
-    if current_phases is not None:
-        for (a, b) in _GREEN_WAVE_EDGES:
-            phase_a = current_phases[a]
-            phase_b = current_phases[b]
-            if phase_a % 2 == phase_b % 2 and phase_a in (0, 2):
-                green_wave_score += 1.0
-        green_wave_score /= len(_GREEN_WAVE_EDGES)
+    for (src_id, dst_id) in _GREEN_WAVE_EDGES:
+        src = cur[src_id]
+        dst = cur[dst_id]
+
+        src_total    = _intersection_total(src)
+        src_phase    = src["current_phase"]
+        dst_phase    = dst["current_phase"]
+        src_is_green = src_phase in (0, 2)
+        dst_aligned  = dst_phase in (0, 2) and (dst_phase % 2 == src_phase % 2)
+        has_platoon  = src_total >= _PLATOON_THRESHOLD
+
+        if has_platoon and src_is_green and dst_aligned:
+            base = min(src_total / _PLATOON_THRESHOLD, 2.0)
+            green_wave_score += base
+            if prev is not None:
+                prev_dst_queue = prev[dst_id]["queue_length"]
+                curr_dst_queue = dst["queue_length"]
+                if curr_dst_queue < prev_dst_queue:
+                    reduction = (prev_dst_queue - curr_dst_queue) / max(prev_dst_queue, 1.0)
+                    green_wave_score += reduction
+
+    green_wave_score /= max(len(_GREEN_WAVE_EDGES), 1)
 
     reward = (
         weights.pressure      * pressure
