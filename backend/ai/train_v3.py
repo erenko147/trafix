@@ -803,12 +803,6 @@ def train(cfg: TrainConfig):
             # ── Ortama uygula ──
             next_obs, done = env.step(actions)
 
-            # ── Yeşil dalga için mevcut fazları topla ──
-            current_phases = [
-                o["current_phase"]
-                for o in sorted(next_obs, key=lambda d: d["intersection_id"])
-            ]
-
             # ── Ödül hesapla ──
             reward = compute_reward(
                 current_obs=next_obs,
@@ -816,7 +810,6 @@ def train(cfg: TrainConfig):
                 previous_actions=prev_actions,
                 current_actions=actions,
                 weights=cfg.reward_weights,
-                current_phases=current_phases,
             ).to(device)
 
             episode_rewards.append(reward.item())
