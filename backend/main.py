@@ -8,6 +8,7 @@ Dashboard için GET /state endpoint'i sunar.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from collections import deque
 import torch
 import os
 import logging
@@ -98,6 +99,8 @@ edge_index = torch.tensor([
 # ==========================================
 ai_agent = None
 hidden_state = None  # GRU hidden state — istekler arası korunur
+obs_history: deque = deque(maxlen=500)  # rolling araç sayısı geçmişi — adaptif normalizasyon için
+last_decisions_cache: list = []  # /last_decisions endpoint için önbellek
 
 
 def load_model():
@@ -179,7 +182,7 @@ class TelemetryBatch(BaseModel):
 # ==========================================
 @app.post("/telemetry_batch")
 async def receive_telemetry_batch(batch: TelemetryBatch):
-    global hidden_state
+    global hidden_state, obs_history, last_decisions_cache
 
     # 1. Gelen veriyi state_dict'e kaydet
     for data in batch.intersections:
@@ -205,8 +208,16 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
                     "current_phase": 0, "phase_duration": 0.0,
                 })
 
+        # Rolling normalisation: bu batch'teki araç sayılarını geçmişe ekle
+        for node in obs_list:
+            obs_history.append(
+                node["north_count"] + node["south_count"] +
+                node["east_count"]  + node["west_count"]
+            )
+        _count_max = float(max(obs_history)) if obs_history else None
+
         # Normalize data exactly as during training
-        node_features = parse_sumo_observations(obs_list)
+        node_features = parse_sumo_observations(obs_list, count_max=_count_max)
 
         with torch.no_grad():
             action_probs, _, new_hidden = ai_agent(
@@ -218,13 +229,19 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
                 idx = data.intersection_id
                 if 0 <= idx < action_probs.shape[0]:
                     next_phase = int(torch.argmax(action_probs[idx]).item())
+                    confidence = round(float(action_probs[idx].max().item()), 3)
                 else:
                     next_phase = data.current_phase
+                    confidence = 0.0
                 decisions.append({
                     "intersection_id": idx,
                     "next_phase": next_phase,
+                    "confidence": confidence,
+                    "total_vehicles": data.north_count + data.south_count + data.east_count + data.west_count,
+                    "queue_length": round(data.queue_length, 1),
                 })
 
+        last_decisions_cache = decisions
         return {"decisions": decisions}
 
     # ─── HEURİSTİC FALLBACK ─────────────────────────────
@@ -251,9 +268,21 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
         decisions.append({
             "intersection_id": data.intersection_id,
             "next_phase": next_phase,
+            "confidence": 0.0,
+            "total_vehicles": data.north_count + data.south_count + data.east_count + data.west_count,
+            "queue_length": round(data.queue_length, 1),
         })
 
+    last_decisions_cache = decisions
     return {"decisions": decisions}
+
+
+# ==========================================
+# GET /last_decisions — Architecture Sayfası İçin Son Kararlar
+# ==========================================
+@app.get("/last_decisions")
+async def get_last_decisions():
+    return {"decisions": last_decisions_cache}
 
 
 # ==========================================

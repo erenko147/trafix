@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trafix — System Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#141414; --s1:#1e1e1e; --s2:#252525; --s3:#2c2c2c;
+      --b1:#303030; --b2:#3d3d3d;
+      --text:#f0f0f0; --t2:#808080; --t3:#424242;
+      --green:#22c55e; --glow:#22c55e33; --amber:#f59e0b; --red:#ef4444;
+      --r:9px;
+    }
+    html, body { height:100%; overflow:hidden; }
+    body {
+      background:var(--bg); color:var(--text);
+      font-family:'Inter',sans-serif; font-size:13px;
+      display:flex; flex-direction:column; padding:18px 24px; gap:14px;
+    }
+
+    /* HEADER */
+    header {
+      display:flex; align-items:center; justify-content:space-between;
+      flex-shrink:0; padding-bottom:14px; border-bottom:1px solid var(--b1);
+    }
+    .h-left { display:flex; align-items:center; gap:14px; }
+    .back-link {
+      display:flex; align-items:center; gap:5px;
+      background:var(--s2); border:1px solid var(--b1); border-radius:6px;
+      padding:5px 11px; font-size:11px; color:var(--t2);
+      text-decoration:none; transition:background .2s,color .2s; flex-shrink:0;
+    }
+    .back-link:hover { background:var(--b1); color:var(--text); }
+    .h-title { font-size:19px; font-weight:800; letter-spacing:-.55px; }
+    .h-sub { font-size:10px; color:var(--t3); margin-top:1px; }
+    .wordmark { font-size:18px; font-weight:800; letter-spacing:-.5px; }
+
+    /* SECTION */
+    .section {
+      flex:1; min-height:0;
+      background:var(--s1); border:1px solid var(--b1); border-radius:var(--r);
+      display:flex; flex-direction:column; overflow:hidden;
+    }
+    .section-head {
+      padding:10px 16px; border-bottom:1px solid var(--b1);
+      display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+    }
+    .sec-label { font-size:10px; font-weight:600; color:var(--t3); text-transform:uppercase; letter-spacing:1px; }
+    .sec-right { display:flex; align-items:center; gap:10px; }
+    .sec-badge {
+      font-size:10px; padding:2px 8px; border-radius:4px;
+      background:var(--s2); border:1px solid var(--b1); color:var(--t2);
+    }
+    .live-chip {
+      display:flex; align-items:center; gap:5px;
+      font-size:10px; color:var(--t3);
+    }
+    .live-dot {
+      width:6px; height:6px; border-radius:50%; background:var(--b2);
+      transition:background .4s;
+    }
+    .live-dot.on { background:var(--green); animation:blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* PIPELINE */
+    .pipeline-wrap { position:relative; padding:44px 48px 28px; flex-shrink:0; }
+    #conn-svg {
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      pointer-events:none; z-index:1; overflow:visible;
+    }
+    .nodes-row {
+      display:flex; align-items:flex-start; justify-content:space-between;
+      position:relative; z-index:2;
+    }
+
+    /* NODE */
+    .node {
+      display:flex; flex-direction:column; align-items:center; gap:7px;
+      cursor:pointer; flex:0 0 auto; width:136px;
+      transition:transform .25s cubic-bezier(.2,.8,.2,1);
+    }
+    .node:hover { transform:translateY(-5px); }
+    .node-card {
+      width:136px; height:154px; background:var(--s2); border:1px solid var(--b1); border-radius:14px;
+      padding:16px 11px 14px;
+      display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+      position:relative; overflow:hidden;
+      transition:border-color .35s, box-shadow .35s;
+    }
+    .node-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background:var(--nc); border-radius:14px 14px 0 0;
+    }
+    @keyframes node-glow {
+      0%,100% { box-shadow:0 0 0 1px var(--nc-dim), 0 8px 28px #00000077; }
+      50%      { box-shadow:0 0 22px var(--nc-dim), 0 8px 28px #00000077; }
+    }
+    .node.selected .node-card {
+      border-color:var(--nc);
+      animation:node-glow 2.4s ease-in-out infinite;
+    }
+    .node-icon {
+      width:44px; height:44px; border-radius:11px;
+      background:var(--s3); border:1px solid var(--b1);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .node-title { font-size:11px; font-weight:700; text-align:center; line-height:1.35; }
+    .node-sub   { font-size:9px; color:var(--t2); text-align:center; }
+    .node-tech  { display:flex; flex-wrap:wrap; gap:3px; justify-content:center; margin-top:1px; }
+    .tech-pill  {
+      font-size:8px; font-weight:600; padding:2px 5px; border-radius:3px;
+      background:var(--s3); border:1px solid var(--b1); color:var(--t3);
+    }
+
+    /* LIVE METRIC BADGE */
+    .node-live {
+      height:18px; display:flex; align-items:center; justify-content:center;
+      font-size:9px; font-weight:600; color:var(--t3);
+      background:var(--s3); border:1px solid var(--b1); border-radius:4px;
+      padding:0 7px; width:136px; overflow:hidden; white-space:nowrap;
+      transition:color .4s, border-color .4s;
+    }
+    .node-live.green { color:var(--green); border-color:#0d2318; }
+    .node-live.amber { color:var(--amber); border-color:#271d05; }
+    .node-live.red   { color:var(--red);   border-color:#250d0d; }
+
+    .node-step {
+      font-size:9px; font-weight:700; color:var(--t3);
+      text-transform:uppercase; letter-spacing:.7px;
+    }
+
+    /* LOOP NOTE */
+    .loop-note {
+      display:flex; align-items:center; gap:10px;
+      padding:5px 16px; flex-shrink:0;
+    }
+    .loop-line { flex:1; height:1px; background:var(--b1); }
+    .loop-txt { font-size:10px; color:var(--t3); display:flex; align-items:center; gap:6px; white-space:nowrap; }
+
+    /* DETAIL PANEL */
+    .detail-section {
+      border-top:1px solid var(--b1); flex:1; min-height:0;
+      overflow:hidden; position:relative;
+    }
+    .detail-empty {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; gap:8px; color:var(--t3);
+      transition:opacity .25s;
+    }
+    .detail-empty.hidden { opacity:0; pointer-events:none; }
+    .d-empty-arrows { display:flex; gap:8px; opacity:.3; }
+    .d-empty-hint { font-size:11px; }
+    .detail-content {
+      position:absolute; inset:0;
+      display:flex; gap:28px; padding:20px 24px;
+      opacity:0; pointer-events:none; overflow-y:auto;
+      transition:opacity .25s;
+    }
+    .detail-content.visible { opacity:1; pointer-events:auto; }
+    .detail-content::-webkit-scrollbar { width:3px; }
+    .detail-content::-webkit-scrollbar-thumb { background:var(--b2); border-radius:99px; }
+
+    .dc-left  { flex:1.4; display:flex; flex-direction:column; gap:14px; min-width:0; }
+    .dc-right { flex:1;   display:flex; flex-direction:column; gap:14px; min-width:0; }
+    .dl { font-size:9px; font-weight:600; color:var(--t3); text-transform:uppercase; letter-spacing:.7px; margin-bottom:7px; }
+    .detail-hdr { display:flex; align-items:center; gap:10px; }
+    .d-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .d-h  { font-size:15px; font-weight:800; letter-spacing:-.4px; }
+    .d-hs { font-size:11px; color:var(--t2); margin-top:2px; }
+    .desc-text { font-size:12px; color:var(--t2); line-height:1.78; }
+    .tech-list { display:flex; flex-wrap:wrap; gap:6px; }
+    .tl-badge {
+      font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px;
+      background:var(--s3); border:1px solid transparent;
+    }
+    .io-list { display:flex; flex-direction:column; gap:5px; }
+    .io-item { display:flex; align-items:flex-start; gap:7px; font-size:11px; color:var(--t2); }
+    .io-tag {
+      font-size:8px; font-weight:700; padding:2px 5px; border-radius:3px;
+      flex-shrink:0; margin-top:1px; letter-spacing:.4px;
+    }
+    .io-in  { background:#1d3461; color:#60a5fa; }
+    .io-out { background:#0d2318; color:var(--green); }
+    .metrics-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .met {
+      background:var(--s3); border:1px solid var(--b1); border-radius:8px;
+      padding:10px 12px; display:flex; flex-direction:column; gap:4px;
+    }
+    .met-label { font-size:9px; color:var(--t3); text-transform:uppercase; letter-spacing:.5px; font-weight:600; }
+    .met-val   { font-size:18px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1; }
+
+    /* FEATURE TABLE (State Builder) */
+    .feat-table { width:100%; border-collapse:collapse; font-size:11px; }
+    .feat-table th {
+      text-align:left; padding:5px 8px; font-size:9px; font-weight:600;
+      color:var(--t3); text-transform:uppercase; letter-spacing:.5px;
+      border-bottom:1px solid var(--b1);
+    }
+    .feat-table td { padding:5px 8px; color:var(--t2); border-bottom:1px solid var(--s3); }
+    .feat-table tr:last-child td { border-bottom:none; }
+    .feat-table td:first-child { font-weight:600; color:var(--text); font-variant-numeric:tabular-nums; }
+    .feat-table code { font-family:monospace; font-size:10px; color:var(--amber); }
+
+    /* DECISION PANEL */
+    .decision-section {
+      flex-shrink:0;
+      background:var(--s1); border:1px solid var(--b1); border-radius:var(--r);
+      overflow:hidden;
+    }
+    .decision-section .section-head { padding:10px 16px; border-bottom:1px solid var(--b1); display:flex; align-items:center; justify-content:space-between; }
+    #decision-table-wrap { padding:6px 0; }
+    #decision-table-wrap table { width:100%; border-collapse:collapse; font-size:11px; }
+    #decision-table-wrap .empty-hint {
+      padding:18px; text-align:center; font-size:11px; color:var(--t3);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <a href="/" class="back-link">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1L3 5l4 4"/></svg>
+      Dashboard
+    </a>
+    <div>
+      <div class="h-title">System Architecture</div>
+      <div class="h-sub">From camera to traffic signal — data flow map</div>
+    </div>
+  </div>
+  <span class="wordmark">Trafix</span>
+</header>
+
+<div class="section">
+  <div class="section-head">
+    <span class="sec-label">Data Pipeline</span>
+    <div class="sec-right">
+      <div class="live-chip">
+        <div class="live-dot" id="live-dot"></div>
+        <span id="live-label">Connecting…</span>
+      </div>
+      <span class="sec-badge">5 layers · Input → Output</span>
+    </div>
+  </div>
+
+  <div class="pipeline-wrap" id="pipeline-wrap">
+    <svg id="conn-svg"></svg>
+    <div class="nodes-row" id="nodes-row"></div>
+  </div>
+
+  <div class="loop-note">
+    <div class="loop-line"></div>
+    <div class="loop-txt">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.49"/></svg>
+      Reward / Observation feedback loop — Output generates new observations and re-triggers the system
+    </div>
+    <div class="loop-line"></div>
+  </div>
+
+  <div class="detail-section">
+    <div class="detail-empty" id="d-empty">
+      <div class="d-empty-arrows">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+      <div class="d-empty-hint">Click any layer to see details</div>
+    </div>
+    <div class="detail-content" id="d-content"></div>
+  </div>
+</div>
+
+<div class="decision-section">
+  <div class="section-head">
+    <span class="sec-label">Live Decision Reasoning</span>
+    <div class="sec-right">
+      <span class="sec-badge">5 intersections · per-step</span>
+    </div>
+  </div>
+  <div id="decision-table-wrap">
+    <div class="empty-hint">Waiting for decision data…</div>
+  </div>
+</div>
+
+<script>
+  // ── ICONS ─────────────────────────────────────────────────────────────────
+  const ICONS = {
+    input: c => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.87v6.26a1 1 0 0 1-1.447.94L15 14"/><rect x="1" y="6" width="14" height="12" rx="2"/><circle cx="7" cy="12" r="2" stroke-width="1.4"/></svg>`,
+    perception: c => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="9" x2="12" y2="7" stroke-width="1.4"/><line x1="12" y1="15" x2="12" y2="17" stroke-width="1.4"/></svg>`,
+    processing: c => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2.2" fill="var(--s3)"/><circle cx="15" cy="12" r="2.2" fill="var(--s3)"/><circle cx="9" cy="18" r="2.2" fill="var(--s3)"/></svg>`,
+    decision: c => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="17" r="2.5"/><circle cx="19" cy="17" r="2.5"/><line x1="12" y1="7.5" x2="5.8" y2="14.8"/><line x1="12" y1="7.5" x2="18.2" y2="14.8"/><line x1="7.4" y1="17" x2="16.6" y2="17" stroke-dasharray="2.5 2"/></svg>`,
+    output: c => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><path d="M8.5 8.5a4.95 4.95 0 0 0 0 7"/><path d="M15.5 8.5a4.95 4.95 0 0 1 0 7"/><path d="M5.5 5.5a9.5 9.5 0 0 0 0 13"/><path d="M18.5 5.5a9.5 9.5 0 0 1 0 13"/></svg>`,
+  };
+
+  // ── NODE DATA ─────────────────────────────────────────────────────────────
+  const NODES = [
+    {
+      id: 'input', step: '01 · Input',
+      title: 'Input Layer', subtitle: 'Data Source',
+      color: '#3b82f6', colorDim: 'rgba(59,130,246,.15)',
+      tech: ['SUMO', 'TraCI', 'OpenCV'],
+      desc: 'Entry point of the system. In real deployment, cameras mounted at each of the 5 intersections stream live video. In simulation mode, Python\'s TraCI interface steps through the SUMO traffic simulator. Every 2 seconds, raw vehicle counts (N/S/E/W) and queue lengths are collected and forwarded to the Perception layer.',
+      techFull: ['SUMO Simulator', 'Python TraCI', 'OpenCV', 'Video Stream API'],
+      inputs:  ['Live camera frame (BGR video)', 'SUMO simulation step event'],
+      outputs: ['Per-direction vehicle counts (4 lanes)', 'Queue length estimate (meters)', 'Timestamp + intersection ID'],
+      metrics: [
+        { label: 'Update Rate',   val: '2s' },
+        { label: 'Intersections', val: '5' },
+        { label: 'Directions',    val: '4' },
+        { label: 'Raw Features',  val: '7' },
+      ],
+      liveKey: 'input',
+    },
+    {
+      id: 'perception', step: '02 · Perception',
+      title: 'Perception', subtitle: 'YOLO Detection',
+      color: '#8b5cf6', colorDim: 'rgba(139,92,246,.15)',
+      tech: ['YOLOv8', 'OpenCV', 'CV'],
+      desc: 'Computer vision layer. YOLOv8 processes each video frame in real time to detect and classify vehicles. Each bounding box is filtered through intersection Region-of-Interest (ROI) masks to determine which lane a vehicle belongs to. Counts are aggregated per direction (North / South / East / West) and passed downstream.',
+      techFull: ['YOLOv8 (nano/small)', 'OpenCV', 'Computer Vision', 'Object Detection', 'IoU Filtering', 'ROI Masking'],
+      inputs:  ['Video frame (BGR, 1280×720)', 'Intersection ROI masks'],
+      outputs: ['Vehicle bounding boxes + class labels', 'Per-lane count (N/S/E/W)', 'Density heatmap (optional)'],
+      metrics: [
+        { label: 'mAP Score', val: '>90%' },
+        { label: 'FPS',       val: '30+' },
+        { label: 'Classes',   val: '4' },
+        { label: 'Model',     val: 'v8n' },
+      ],
+      liveKey: 'perception',
+    },
+    {
+      id: 'processing', step: '03 · Processing',
+      title: 'State Builder', subtitle: 'Feature Extraction',
+      color: '#f59e0b', colorDim: 'rgba(245,158,11,.15)',
+      tech: ['Python', 'NumPy', 'FastAPI'],
+      desc: 'The most critical transformation in the pipeline. Raw detection results are converted into a normalized state tensor that the GNN can consume. Each of the 5 intersections becomes a graph node described by a 7-dimensional feature vector. The entire batch arrives at the FastAPI <code style="font-family:monospace;font-size:11px;color:#f59e0b">/telemetry_batch</code> endpoint as a single JSON payload, preventing race conditions between intersection updates.',
+      techFull: ['Python 3.11', 'NumPy', 'FastAPI', 'Pydantic v2', 'Min-Max Normalization', 'PyTorch Tensor (float32)'],
+      inputs:  ['Detection results per intersection', 'current_phase (0–3)', 'phase_duration (seconds elapsed)'],
+      outputs: ['Normalized state tensor (5×7, float32)', 'Graph node feature matrix', 'Edge index for GNN topology'],
+      metrics: [
+        { label: 'Feature Dim',   val: '7' },
+        { label: 'Node Count',    val: '5' },
+        { label: 'Endpoint',      val: '/batch' },
+        { label: 'Norm Method',   val: 'Min-Max' },
+      ],
+      liveKey: 'processing',
+      extraContent: () => `
+        <div>
+          <div class="dl">Feature Vector — 7 Dimensions</div>
+          <table class="feat-table">
+            <thead>
+              <tr><th>#</th><th>Feature</th><th>Normalization</th><th>Range</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>0</td><td>north_count</td><td><code>x / max(all vehicle cols)</code></td><td>[0, 1]</td></tr>
+              <tr><td>1</td><td>south_count</td><td><code>x / max(all vehicle cols)</code></td><td>[0, 1]</td></tr>
+              <tr><td>2</td><td>east_count</td><td><code>x / max(all vehicle cols)</code></td><td>[0, 1]</td></tr>
+              <tr><td>3</td><td>west_count</td><td><code>x / max(all vehicle cols)</code></td><td>[0, 1]</td></tr>
+              <tr><td>4</td><td>queue_length</td><td><code>x / max(queue col)</code></td><td>[0, 1]</td></tr>
+              <tr><td>5</td><td>current_phase</td><td><code>x / max(4.0, phase_max)</code></td><td>[0, 1]</td></tr>
+              <tr><td>6</td><td>phase_duration</td><td><code>x / 120.0</code></td><td>[0, 1]</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px">
+          <div class="dl">Graph Topology (5 Nodes)</div>
+          <div style="font-size:11px;color:var(--t2);line-height:1.9;font-family:monospace">
+            0 — 1 — 2<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;|<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;3 — 4
+          </div>
+        </div>
+      `,
+    },
+    {
+      id: 'decision', step: '04 · Decision',
+      title: 'Decision Engine', subtitle: 'GNN + PPO Agent',
+      color: '#22c55e', colorDim: 'rgba(34,197,94,.18)',
+      tech: ['PyTorch', 'GNN', 'PPO'],
+      desc: 'Core intelligence of the system. The GConvGRU cell fuses Chebyshev graph convolutions into GRU gates — meaning spatial context (neighboring intersections) is injected at every recurrent step, not just as a preprocessing stage. A 4-head Multi-head Attention coordinator then lets every intersection attend to all others before the PPO actor produces per-intersection phase probabilities.',
+      techFull: ['PyTorch', 'torch-geometric', 'GConvGRU', 'ChebConv (K=2)', 'Multi-head Attention (4 heads)', 'PPO Clip (ε=0.2)', 'LayerNorm', 'GELU'],
+      inputs:  ['State tensor (5×7, float32)', 'Edge index — graph adjacency', 'Hidden state (1×5×128) from previous step'],
+      outputs: ['Phase probability vectors (5×4)', 'State value — critic output (scalar)', 'Updated hidden state → carries temporal memory'],
+      metrics: [
+        { label: 'Hidden Dim',  val: '128' },
+        { label: 'Actions',     val: '4' },
+        { label: 'Attn Heads',  val: '4' },
+        { label: 'Cheby K',     val: '2' },
+      ],
+      liveKey: 'decision',
+    },
+    {
+      id: 'output', step: '05 · Output',
+      title: 'Output', subtitle: 'Traffic Control',
+      color: '#06b6d4', colorDim: 'rgba(6,182,212,.15)',
+      tech: ['TraCI', 'SUMO', 'API'],
+      desc: 'Executes the selected phase on physical or simulated traffic lights. In SUMO, a single TraCI call applies the decision immediately. After each control step, a multi-component reward is computed and new observations are collected — closing the RL loop. The reward balances six competing objectives to prevent the agent from over-optimizing a single metric.',
+      techFull: ['SUMO TraCI', 'FastAPI (response)', 'Reward Function (6 components)', 'GAE λ=0.95', 'Rollout Buffer', 'PPO train_step'],
+      inputs:  ['Selected phase index (0–3)', 'Intersection ID (0–4)'],
+      outputs: ['Traffic light command (TraCI setPhase)', 'Reward signal (pressure + queue + throughput + fairness + phase_penalty + wait_penalty)', 'New observation → loops back to Input'],
+      metrics: [
+        { label: 'Phase Count',   val: '4' },
+        { label: 'Min Duration',  val: '10s' },
+        { label: 'Reward Terms',  val: '6' },
+        { label: 'GAE Lambda',    val: '0.95' },
+      ],
+      liveKey: 'output',
+    },
+  ];
+
+  // ── RENDER NODES ──────────────────────────────────────────────────────────
+  const nodesRow = document.getElementById('nodes-row');
+  NODES.forEach((n, i) => {
+    const el = document.createElement('div');
+    el.className = 'node';
+    el.id = `node-${n.id}`;
+    el.style.setProperty('--nc', n.color);
+    el.style.setProperty('--nc-dim', n.colorDim);
+    el.innerHTML = `
+      <div class="node-card">
+        <div class="node-icon">${ICONS[n.id](n.color)}</div>
+        <div style="text-align:center">
+          <div class="node-title">${n.title}</div>
+          <div class="node-sub">${n.subtitle}</div>
+        </div>
+        <div class="node-tech">
+          ${n.tech.map(t => `<span class="tech-pill">${t}</span>`).join('')}
+        </div>
+      </div>
+      <div class="node-live" id="live-${n.id}">—</div>
+      <div class="node-step">${n.step}</div>
+    `;
+    el.addEventListener('click', () => selectNode(i));
+    nodesRow.appendChild(el);
+  });
+
+  // ── SVG CONNECTIONS ───────────────────────────────────────────────────────
+  let particles = [], rafId = null;
+
+  function drawConnections() {
+    const svg = document.getElementById('conn-svg');
+    svg.innerHTML = '';
+    particles = [];
+    const svgRect = svg.getBoundingClientRect();
+    const nodeEls = document.querySelectorAll('.node');
+
+    for (let i = 0; i < nodeEls.length - 1; i++) {
+      const cA = nodeEls[i].querySelector('.node-card').getBoundingClientRect();
+      const cB = nodeEls[i+1].querySelector('.node-card').getBoundingClientRect();
+      const x1 = cA.right - svgRect.left, y1 = cA.top + cA.height * .44 - svgRect.top;
+      const x2 = cB.left  - svgRect.left, y2 = cB.top + cB.height * .44 - svgRect.top;
+      const mx = (x1 + x2) / 2;
+      const d  = `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+
+      const track = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      track.setAttribute('d', d); track.setAttribute('fill', 'none');
+      track.setAttribute('stroke', '#2a2a2a'); track.setAttribute('stroke-width', '2');
+      track.setAttribute('stroke-dasharray', '5 4');
+      svg.appendChild(track);
+
+      const len = track.getTotalLength();
+      const col = NODES[i+1].color;
+
+      // Arrow
+      const ep = track.getPointAtLength(len), np = track.getPointAtLength(len - 8);
+      const ang = Math.atan2(ep.y-np.y, ep.x-np.x) * 180 / Math.PI;
+      const arw = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      arw.setAttribute('d', 'M-7,-4 L0,0 L-7,4'); arw.setAttribute('fill', 'none');
+      arw.setAttribute('stroke', '#3a3a3a'); arw.setAttribute('stroke-width', '2');
+      arw.setAttribute('stroke-linecap', 'round');
+      arw.setAttribute('transform', `translate(${ep.x},${ep.y}) rotate(${ang})`);
+      svg.appendChild(arw);
+
+      for (let p = 0; p < 3; p++) {
+        const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        c.setAttribute('r', '3.5'); c.setAttribute('fill', col); c.setAttribute('opacity', '0');
+        svg.appendChild(c);
+        particles.push({ el:c, path:track, len, t:p/3, speed:0.0045+p*0.0003 });
+      }
+    }
+  }
+
+  function animateParticles() {
+    for (const p of particles) {
+      p.t = (p.t + p.speed) % 1;
+      const pt = p.path.getPointAtLength(p.t * p.len);
+      p.el.setAttribute('cx', pt.x); p.el.setAttribute('cy', pt.y);
+      const fade = p.t < .08 ? p.t/.08 : p.t > .88 ? (1-p.t)/.12 : 1;
+      p.el.setAttribute('opacity', (fade * .92).toFixed(3));
+    }
+    rafId = requestAnimationFrame(animateParticles);
+  }
+
+  // ── LIVE DATA ─────────────────────────────────────────────────────────────
+  let liveConnected = false;
+
+  function updateLiveBadge(id, text, level) {
+    const el = document.getElementById(`live-${id}`);
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'node-live ' + (level || '');
+  }
+
+  function processState(state) {
+    let totalVehicles = 0, totalQueue = 0, phases = [], maxDir = { dir:'—', val:0 };
+    const dirNames = ['N','S','E','W'];
+
+    for (let i = 0; i < 5; i++) {
+      const s = state[String(i)] || {};
+      const counts = [s.north_count||0, s.south_count||0, s.east_count||0, s.west_count||0];
+      const sum = counts.reduce((a,b)=>a+b,0);
+      totalVehicles += sum;
+      totalQueue    += (s.queue_length || 0);
+      phases.push(s.current_phase ?? '—');
+      counts.forEach((v,d) => { if(v > maxDir.val) maxDir = { dir:dirNames[d], val:v }; });
+    }
+
+    const avgQueue = totalQueue / 5;
+    const level = totalVehicles > 60 ? 'red' : totalVehicles > 35 ? 'amber' : 'green';
+
+    updateLiveBadge('input',      `${totalVehicles} vehicles · 5 intersections`,  level);
+    updateLiveBadge('perception', `Peak: ${maxDir.dir} = ${maxDir.val} vehicles`,  maxDir.val > 15 ? 'amber' : 'green');
+    updateLiveBadge('processing', `5×7 tensor · avg queue ${avgQueue.toFixed(0)}m`, avgQueue > 60 ? 'red' : avgQueue > 30 ? 'amber' : 'green');
+    updateLiveBadge('decision',   `Phases: ${phases.join(' · ')}`,                 'green');
+    updateLiveBadge('output',     `Updated ${new Date().toLocaleTimeString()}`,     'green');
+  }
+
+  const PHASE_LABELS = ['NS Green', 'NS Yellow', 'EW Green', 'EW Yellow'];
+  const PHASE_COLORS = ['#22c55e',  '#f59e0b',   '#22c55e',  '#f59e0b'];
+
+  function renderDecisionTable(decisions) {
+    const wrap = document.getElementById('decision-table-wrap');
+    if (!wrap || !decisions || decisions.length === 0) return;
+
+    wrap.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:5px 8px;font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1)">Node</th>
+            <th style="text-align:right;padding:5px 8px;font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1)">Vehicles</th>
+            <th style="text-align:right;padding:5px 8px;font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1)">Queue</th>
+            <th style="text-align:center;padding:5px 8px;font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1)">AI Decision</th>
+            <th style="padding:5px 8px;font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--b1)">Confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${decisions.map(d => {
+            const phase = d.next_phase;
+            const conf = Math.round(d.confidence * 100);
+            const confColor = conf > 70 ? '#22c55e' : conf > 45 ? '#f59e0b' : '#ef4444';
+            const pressureColor = d.total_vehicles > 40 ? '#ef4444' : d.total_vehicles > 20 ? '#f59e0b' : '#22c55e';
+            return `
+              <tr style="border-bottom:1px solid var(--s3)">
+                <td style="padding:6px 8px;font-weight:700;color:var(--text)">I-${d.intersection_id + 1}</td>
+                <td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums;color:${pressureColor};font-weight:600">${d.total_vehicles}</td>
+                <td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums;color:var(--t2)">${d.queue_length}m</td>
+                <td style="padding:6px 8px;text-align:center">
+                  <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;background:${PHASE_COLORS[phase]}18;color:${PHASE_COLORS[phase]};border:1px solid ${PHASE_COLORS[phase]}44">
+                    ${PHASE_LABELS[phase]}
+                  </span>
+                </td>
+                <td style="padding:6px 8px;min-width:100px">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <div style="flex:1;height:5px;background:var(--s3);border-radius:99px;overflow:hidden">
+                      <div style="width:${conf}%;height:100%;background:${confColor};border-radius:99px;transition:width .4s"></div>
+                    </div>
+                    <span style="font-size:10px;font-weight:700;color:${confColor};font-variant-numeric:tabular-nums;flex-shrink:0">${conf}%</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function fetchDecisions() {
+    fetch('/last_decisions')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && data.decisions && data.decisions.length > 0) {
+          renderDecisionTable(data.decisions);
+        }
+      })
+      .catch(() => {});
+  }
+
+  function fetchState() {
+    fetch('/state')
+      .then(r => { if(!r.ok) throw new Error(); return r.json(); })
+      .then(state => {
+        if (!liveConnected) {
+          liveConnected = true;
+          document.getElementById('live-dot').classList.add('on');
+          document.getElementById('live-label').textContent = 'Live';
+        }
+        processState(state);
+        fetchDecisions();
+      })
+      .catch(() => {
+        if (liveConnected) {
+          liveConnected = false;
+          document.getElementById('live-dot').classList.remove('on');
+          document.getElementById('live-label').textContent = 'No data';
+        }
+        NODES.forEach(n => updateLiveBadge(n.id, '—', ''));
+      });
+  }
+
+  // ── NODE SELECTION ────────────────────────────────────────────────────────
+  let selectedIdx = null;
+
+  function selectNode(idx) {
+    if (selectedIdx === idx) {
+      document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
+      selectedIdx = null;
+      document.getElementById('d-empty').classList.remove('hidden');
+      document.getElementById('d-content').classList.remove('visible');
+      return;
+    }
+    document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
+    document.getElementById(`node-${NODES[idx].id}`).classList.add('selected');
+    selectedIdx = idx;
+
+    const n = NODES[idx];
+    document.getElementById('d-empty').classList.add('hidden');
+    const dc = document.getElementById('d-content');
+
+    dc.innerHTML = `
+      <div class="dc-left">
+        <div>
+          <div class="detail-hdr">
+            <div class="d-dot" style="background:${n.color}"></div>
+            <div>
+              <div class="d-h">${n.title}</div>
+              <div class="d-hs">${n.step} &nbsp;·&nbsp; ${n.subtitle}</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="dl">Description</div>
+          <p class="desc-text">${n.desc}</p>
+        </div>
+        <div>
+          <div class="dl">Tech Stack</div>
+          <div class="tech-list">
+            ${n.techFull.map(t=>`<span class="tl-badge" style="border-color:${n.color}44;color:${n.color}">${t}</span>`).join('')}
+          </div>
+        </div>
+        ${n.extraContent ? n.extraContent() : ''}
+      </div>
+      <div class="dc-right">
+        <div>
+          <div class="dl">Input / Output</div>
+          <div class="io-list">
+            ${n.inputs.map(io=>`<div class="io-item"><span class="io-tag io-in">IN</span>${io}</div>`).join('')}
+            ${n.outputs.map(io=>`<div class="io-item"><span class="io-tag io-out">OUT</span>${io}</div>`).join('')}
+          </div>
+        </div>
+        <div>
+          <div class="dl">Metrics</div>
+          <div class="metrics-grid">
+            ${n.metrics.map(m=>`<div class="met"><div class="met-label">${m.label}</div><div class="met-val" style="color:${n.color}">${m.val}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    dc.classList.add('visible');
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  window.addEventListener('load', () => {
+    setTimeout(() => { drawConnections(); animateParticles(); }, 60);
+    fetchState();
+    setInterval(fetchState, 2000);
+  });
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(rafId);
+    drawConnections();
+    animateParticles();
+  });
+</script>
+</body>
+</html>

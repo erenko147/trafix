@@ -719,6 +719,10 @@ def train(cfg: TrainConfig):
     #  Episode Döngüsü
     # ════════════════════════════════════════
 
+    # Rolling normalisation history — tüm eğitim boyunca birikir,
+    # episodlar arasında sıfırlanmaz. parse_sumo_observations'a geçilir.
+    obs_history: deque = deque(maxlen=500)
+
     for episode in range(start_episode, cfg.episodes):
         episode_start = time.time()
 
@@ -780,8 +784,16 @@ def train(cfg: TrainConfig):
 
         done = False
         while not done:
+            # ── Rolling normalisation: mevcut obs'u geçmişe ekle ──
+            for o in obs:
+                obs_history.append(
+                    o["north_count"] + o["south_count"] +
+                    o["east_count"]  + o["west_count"]
+                )
+            _count_max = float(max(obs_history)) if obs_history else None
+
             # ── Gözlemi tensöre çevir ──
-            x = parse_sumo_observations(obs, device)
+            x = parse_sumo_observations(obs, device, count_max=_count_max)
 
             # ── Aksiyon seç ──
             actions, log_probs, value, new_hidden = agent.select_actions(
@@ -791,6 +803,12 @@ def train(cfg: TrainConfig):
             # ── Ortama uygula ──
             next_obs, done = env.step(actions)
 
+            # ── Yeşil dalga için mevcut fazları topla ──
+            current_phases = [
+                o["current_phase"]
+                for o in sorted(next_obs, key=lambda d: d["intersection_id"])
+            ]
+
             # ── Ödül hesapla ──
             reward = compute_reward(
                 current_obs=next_obs,
@@ -798,6 +816,7 @@ def train(cfg: TrainConfig):
                 previous_actions=prev_actions,
                 current_actions=actions,
                 weights=cfg.reward_weights,
+                current_phases=current_phases,
             ).to(device)
 
             episode_rewards.append(reward.item())
@@ -809,7 +828,7 @@ def train(cfg: TrainConfig):
             if len(buffer) >= cfg.rollout_length:
                 # Son değer tahmini
                 with torch.no_grad():
-                    next_x = parse_sumo_observations(next_obs, device)
+                    next_x = parse_sumo_observations(next_obs, device, count_max=_count_max)
                     _, next_value, _ = agent(next_x, edge_index, new_hidden)
 
                 rollout = buffer.to_dict(edge_index, next_value.detach())
@@ -839,7 +858,7 @@ def train(cfg: TrainConfig):
         # ── Kalan buffer'ı da eğit ──
         if len(buffer) > 1:
             with torch.no_grad():
-                x = parse_sumo_observations(obs, device)
+                x = parse_sumo_observations(obs, device, count_max=_count_max)
                 _, next_value, _ = agent(x, edge_index, hidden)
 
             rollout = buffer.to_dict(edge_index, next_value.detach())
