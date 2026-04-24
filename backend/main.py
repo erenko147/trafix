@@ -13,20 +13,7 @@ import torch
 import os
 import logging
 
-# Her iki model versiyonunu da import et (otomatik algilama icin)
-from backend.ai.trafix_v2 import (
-    CoordinatedPPOAgent as AgentV2,
-    parse_sumo_observations as parse_v2,
-)
-from backend.ai.trafix_v3 import (
-    CoordinatedPPOAgent as AgentV3,
-    parse_sumo_observations as parse_v3,
-)
-
 _MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v2").strip().lower()
-
-
-parse_sumo_observations = parse_v2
 
 if _MODEL_VERSION == "v3":
     from backend.ai.trafix_v3 import CoordinatedPPOAgent, parse_sumo_observations
@@ -126,29 +113,40 @@ def _detect_arch(keys) -> str:
         return "v3"
     if "gcn1" in key_str or "gcn2" in key_str:
         return "v2"
+    if "attn_norm" in key_str or ("proj" in key_str and "gru" in key_str and "gcn" not in key_str):
+        return "simple"
     return "unknown"
 
 
 def _make_agent(version: str):
     """Versiyon stringine gore agent + parser ikilisi don."""
-    if version == "v3":
+    if _MODEL_VERSION == "simple":
         return (
-            AgentV3(
+            CoordinatedPPOAgent(
+                num_node_features=NUM_FEATURES,
+                hidden_dim=64,
+                num_actions=NUM_ACTIONS,
+            ),
+            parse_sumo_observations,
+        )
+    if _MODEL_VERSION == "v3":
+        return (
+            CoordinatedPPOAgent(
                 num_node_features=NUM_FEATURES,
                 hidden_dim=HIDDEN_DIM,
                 num_actions=NUM_ACTIONS,
                 num_heads=NUM_HEADS,
             ),
-            parse_v3,
+            parse_sumo_observations,
         )
     return (
-        AgentV2(
+        CoordinatedPPOAgent(
             num_node_features=NUM_FEATURES,
             hidden_dim=HIDDEN_DIM,
             num_actions=NUM_ACTIONS,
             num_heads=NUM_HEADS,
         ),
-        parse_v2,
+        parse_sumo_observations,
     )
 
 
@@ -166,6 +164,8 @@ def load_model():
         os.path.join(base_dir, "..", "coordinated_agent_weights_v3.pth"),
         os.path.join(base_dir, "ai", "core_agent_weights.pth"),
         os.path.join(base_dir, "..", "core_agent_weights.pth"),
+        os.path.join(base_dir, "..", "coordinated_agent_weights_simple.pth"),
+        os.path.join(base_dir, "..", "training_outputs_simple", "best_model.pth"),
     ]
     # Tekrar eden mutlak yollari kaldir, var olmayanlari at
     seen = set()

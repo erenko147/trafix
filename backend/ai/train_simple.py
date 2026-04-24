@@ -81,24 +81,24 @@ class TrainConfig:
     output_dir:        str   = "training_outputs_simple"
     checkpoint_path:   str   = "coordinated_agent_weights_simple.pth"
 
-    episodes:          int   = 300
+    episodes:          int   = 600
     max_steps:         int   = 3600
-    decision_interval: int   = 10       # eğitim = inference (run_sumo_live.py ile aynı)
+    decision_interval: int   = 10
     warmup_steps:      int   = 50
     ppo_epochs:        int   = 4
-    rollout_length:    int   = 32       # küçük rollout → sık güncelleme
+    rollout_length:    int   = 64
 
-    hidden_dim:        int   = 64       # v2/v3'ten küçük → hızlı eğitim
+    hidden_dim:        int   = 64
     num_actions:       int   = 4
     lr:                float = 3e-4
     lr_min:            float = 1e-5
     gamma:             float = 0.99
     gae_lambda:        float = 0.95
     clip_eps:          float = 0.2
-    entropy_coef:      float = 0.05    # entropi çöküşünü önler
-    entropy_coef_min:  float = 0.01
-    entropy_decay:     float = 0.9998  # yavaş bozunma
-    value_coef:        float = 0.5
+    entropy_coef:      float = 0.05
+    entropy_coef_min:  float = 0.005
+    entropy_decay:     float = 0.9995
+    value_coef:        float = 0.05   # düşürüldü: policy gradyanını boğuyordu
     max_grad_norm:     float = 0.5
 
     reward_weights: RewardWeights = field(default_factory=RewardWeights)
@@ -137,6 +137,7 @@ class SumoEnvironment:
             "--step-length", str(self.cfg.sumo_step_length),
             "--waiting-time-memory", "1000",
             "--no-warnings", "true",
+            "--ignore-route-errors", "true",
             "--seed", str(self.cfg.seed + episode),
         ])
         self._step_count = 0
@@ -493,7 +494,7 @@ def train(cfg: TrainConfig):
 
             reward = compute_reward(
                 current_obs=next_obs,
-                previous_obs=prev_obs,
+                previous_obs=obs,       # obs_t: state when this action was decided
                 previous_actions=prev_actions,
                 current_actions=actions,
                 weights=cfg.reward_weights,
@@ -598,7 +599,7 @@ def parse_args() -> TrainConfig:
     p.add_argument("--checkpoint", default="coordinated_agent_weights_simple.pth")
     p.add_argument("--episodes",   type=int,   default=300)
     p.add_argument("--hidden-dim", type=int,   default=64)
-    p.add_argument("--lr",         type=float, default=3e-4)
+    p.add_argument("--lr",         type=float, default=6e-5)
     p.add_argument("--gui",        action="store_true")
     p.add_argument("--resume",     action="store_true")
     p.add_argument("--seed",       type=int,   default=42)

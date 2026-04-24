@@ -45,7 +45,7 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
 )
 parser.add_argument(
-    "--model", choices=["v2", "v3"], default="v2",
+    "--model", choices=["v2", "v3", "simple"], default="v2",
     help="AI model versiyonu",
 )
 parser.add_argument(
@@ -86,6 +86,10 @@ parser.add_argument(
 parser.add_argument(
     "--no-carla", action="store_true",
     help="CARLA olmadan sadece SUMO + FastAPI baslat (test/fallback modu)",
+)
+parser.add_argument(
+    "--no-custom-map", action="store_true",
+    help="Ozel map.xodr yukleme — CARLA varsayilan haritasini kullan",
 )
 args = parser.parse_args()
 
@@ -139,11 +143,12 @@ def run_carla_bridge(xodr_file=None):
         cmd += ["--sumo-gui"]
 
     # Ozel harita
-    effective_xodr = xodr_file or args.opendrive_file
-    if effective_xodr and os.path.exists(effective_xodr):
-        cmd += ["--opendrive-file", effective_xodr]
-    elif os.path.exists(DEFAULT_XODR):
-        cmd += ["--opendrive-file", DEFAULT_XODR]
+    if not args.no_custom_map:
+        effective_xodr = xodr_file or args.opendrive_file
+        if effective_xodr and os.path.exists(effective_xodr):
+            cmd += ["--opendrive-file", effective_xodr]
+        elif os.path.exists(DEFAULT_XODR):
+            cmd += ["--opendrive-file", DEFAULT_XODR]
 
     cmd += [
         "--carla-host",  args.carla_host,

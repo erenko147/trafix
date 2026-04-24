@@ -74,9 +74,9 @@ def parse_sumo_observations(
 
 class SimplePPOAgent(nn.Module):
     """
-    Akış: (N, 7) → Linear → ReLU → GRU → Actor(N, 4) / Critic(1,)
+    Akış: (N, 7) → Linear → ReLU → GRU → Attention → Actor(N, 4) / Critic(1,)
 
-    Her kavşak bağımsız olarak işlenir (N = num_intersections).
+    Attention katmanı kavşakların birbirinin durumunu görmesini sağlar.
     GRU gizli durumu istekler/adımlar arasında dışarıdan beslenir
     (PPO rollout replay için zorunlu — dahili durum kullanılamaz).
     """
@@ -99,27 +99,32 @@ class SimplePPOAgent(nn.Module):
         self.clip_eps      = clip_eps
         self.max_grad_norm = max_grad_norm
 
-        # Özellik projeksiyonu — GRU'dan önce lineer dönüşüm
         self.proj = nn.Sequential(
             nn.Linear(num_node_features, hidden_dim),
             nn.ReLU(),
         )
 
-        # Zamansal hafıza — her kavşak bağımsız batch öğesi
         self.gru = nn.GRU(
             input_size=hidden_dim,
             hidden_size=hidden_dim,
             batch_first=True,
         )
 
-        # Actor — her kavşak için aksiyon dağılımı
+        # Kavşaklar arası koordinasyon — her kavşak komşularını görebilir
+        self.attn = nn.MultiheadAttention(
+            embed_dim=hidden_dim,
+            num_heads=2,
+            batch_first=True,
+            dropout=0.0,
+        )
+        self.attn_norm = nn.LayerNorm(hidden_dim)
+
         self.actor = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim // 2),
             nn.ReLU(),
             nn.Linear(hidden_dim // 2, num_actions),
         )
 
-        # Critic — ağ geneli tek value (global ortalama üzerinden)
         self.critic = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim // 2),
             nn.ReLU(),
@@ -146,11 +151,13 @@ class SimplePPOAgent(nn.Module):
         )
         out = out.squeeze(1)                       # (N, H)
 
+        # Attention: (1, N, H) — batch=1, seq=N intersections
+        attn_in  = out.unsqueeze(0)
+        attn_out, _ = self.attn(attn_in, attn_in, attn_in)
+        out = self.attn_norm(out + attn_out.squeeze(0))    # residual + norm
+
         action_probs = F.softmax(self.actor(out), dim=-1)  # (N, 4)
-        # Per-intersection value estimates averaged — critic sees each
-        # intersection's actual state, not a blurred average of all of them
-        state_value  = self.critic(out).mean()             # (N,1) → scalar → keep as (1,)
-        state_value  = state_value.view(1)
+        state_value  = self.critic(out).mean().view(1)     # scalar
 
         return action_probs, state_value, new_hidden
 
@@ -205,11 +212,9 @@ class SimplePPOAgent(nn.Module):
 
 @dataclass
 class RewardWeights:
-    pressure:      float = -0.40
-    queue:         float = -0.30
-    throughput:    float =  0.30
-    phase_penalty: float = -0.10
-    wait_penalty:  float = -0.05
+    alignment:    float = 0.70  # green phase matches busiest direction
+    queue:        float = 0.20  # penalize total queues
+    wait_penalty: float = 0.10  # penalize starvation (>60s same phase)
 
 
 def compute_reward(
@@ -219,44 +224,48 @@ def compute_reward(
     current_actions: torch.Tensor,
     weights: RewardWeights = RewardWeights(),
 ) -> torch.Tensor:
+    ref = sorted(
+        previous_obs if previous_obs is not None else current_obs,
+        key=lambda d: d["intersection_id"],
+    )
     cur = sorted(current_obs, key=lambda d: d["intersection_id"])
+    n   = len(cur)
 
-    def total(o):
-        return o["north_count"] + o["south_count"] + o["east_count"] + o["west_count"]
+    # 1. Alignment: fraction of cars in the chosen green direction.
+    #    Baseline for random policy ≈ 0.25; optimal ≈ 0.6-0.8.
+    alignment = 0.0
+    for i, obs in enumerate(ref):
+        counts = [
+            obs["north_count"], obs["south_count"],
+            obs["east_count"],  obs["west_count"],
+        ]
+        total  = sum(counts)
+        action = int(current_actions[i].item()) % 4
+        alignment += (counts[action] / total) if total > 0 else 0.25
+    alignment /= n  # [0, 1]
 
-    # 1. Basınç
-    pressure = sum(total(o) for o in cur) / max(len(cur) * 40.0, 1.0)
+    # 2. Delta-queue: reward queue reduction, penalise growth.
+    #    This is the primary discriminating signal within a rollout.
+    prev_queue = sum(o["queue_length"] for o in ref)
+    curr_queue = sum(o["queue_length"] for o in cur)
+    normalizer = max(prev_queue, curr_queue, n * 10.0)
+    delta_queue = (prev_queue - curr_queue) / normalizer  # +1 best, -1 worst
 
-    # 2. Kuyruk
-    queue = sum(o["queue_length"] for o in cur) / max(len(cur) * 100.0, 1.0)
+    # 3. Absolute queue penalty — keep overall congestion low.
+    queue_abs = curr_queue / max(n * 100.0, 1.0)
 
-    # 3. Throughput
-    throughput = 0.0
-    if previous_obs is not None:
-        prev = sorted(previous_obs, key=lambda d: d["intersection_id"])
-        prev_total = sum(total(o) for o in prev)
-        cur_total  = sum(total(o) for o in cur)
-        throughput = (prev_total - cur_total) / max(prev_total, 1.0)
-        throughput = max(throughput, -1.0)
-
-    # 4. Faz stabilitesi
-    phase_changes = 0.0
-    if previous_actions is not None:
-        phase_changes = (current_actions != previous_actions).float().mean().item()
-
-    # 5. Bekleme cezası (>60 sn aynı fazda)
-    wait_penalty = 0.0
+    # 4. Starvation penalty — any direction stuck red > 60 s.
+    wait = 0.0
     for o in cur:
         if o["phase_duration"] > 60.0:
-            wait_penalty += (o["phase_duration"] - 60.0) / 60.0
-    wait_penalty /= len(cur)
+            wait += (o["phase_duration"] - 60.0) / 60.0
+    wait /= n
 
     reward = (
-        weights.pressure      * pressure
-        + weights.queue        * queue
-        + weights.throughput   * throughput
-        + weights.phase_penalty * phase_changes
-        + weights.wait_penalty  * wait_penalty
+          weights.alignment    * alignment
+        + weights.queue        * delta_queue   # queue weight now rewards improvement
+        - 0.10                 * queue_abs     # small absolute penalty
+        - weights.wait_penalty * wait
     )
     return torch.tensor(reward, dtype=torch.float32)
 
@@ -284,7 +293,11 @@ def compute_gae(
     advantages = torch.stack(advantages)
     returns    = advantages + torch.stack(values)
 
-    # Std eşik koruması: tüm ödüller aynıysa normalize etme
+    # Normalize returns so value targets are stable across variable-length episodes.
+    if returns.numel() > 1 and returns.std() > 0.01:
+        returns = (returns - returns.mean()) / (returns.std() + 1e-8)
+
+    # Normalize advantages only when there is real variance (avoids dividing near-zero).
     if advantages.numel() > 1 and advantages.std() > 0.01:
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
@@ -311,6 +324,7 @@ def train_step(
     T = len(rollout["rewards"])
 
     for _ in range(ppo_epochs):
+        epoch_loss = torch.tensor(0.0)
         for t in range(T):
             losses = agent.compute_ppo_loss(
                 x=rollout["observations"][t],
@@ -320,14 +334,15 @@ def train_step(
                 advantages=advantages[t].expand(rollout["actions"][t].shape[0]),
                 returns=returns[t],
             )
-
-            optimizer.zero_grad()
-            losses["total"].backward()
-            nn.utils.clip_grad_norm_(agent.parameters(), agent.max_grad_norm)
-            optimizer.step()
-
+            epoch_loss = epoch_loss + losses["total"]
             for k in total_metrics:
                 total_metrics[k] += losses[k].item()
+
+        # One update per epoch, not per timestep
+        optimizer.zero_grad()
+        (epoch_loss / T).backward()
+        nn.utils.clip_grad_norm_(agent.parameters(), agent.max_grad_norm)
+        optimizer.step()
 
     n = ppo_epochs * T
     return {k: v / max(n, 1) for k, v in total_metrics.items()}
