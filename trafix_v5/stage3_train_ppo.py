@@ -171,8 +171,11 @@ def ppo_update(
     ppo_epochs: int,
     minibatch_size: int,
     device: torch.device,
+    max_log_ratio: float = 2.0,
+    value_clip_eps: float = 0.2,
+    target_kl: float = 0.015,
 ) -> Dict[str, float]:
-    """Runs ppo_epochs passes over the rollout buffer with minibatch sampling."""
+    """Runs ppo_epochs passes with ratio clamping, value clipping, KL early stop."""
 
     # ── GAE ──
     rewards_t = [r.to(device) for r in buffer.rewards]
@@ -184,41 +187,54 @@ def ppo_update(
     returns = returns.to(device)
 
     # Stack rollout tensors for batched evaluation
-    obs_batch     = torch.stack(buffer.obs_windows).to(device)   # [N, T, J, obs_dim]
-    actions_batch = torch.stack(buffer.actions).to(device)       # [N, J]
-    old_lp_batch  = torch.stack(buffer.log_probs).detach().to(device)  # [N, J]
+    obs_batch      = torch.stack(buffer.obs_windows).to(device)         # [N, T, J, obs_dim]
+    actions_batch  = torch.stack(buffer.actions).to(device)             # [N, J]
+    old_lp_batch   = torch.stack(buffer.log_probs).detach().to(device)  # [N, J]
+    old_val_batch  = torch.cat(buffer.values).to(device)                # [N]
 
     N = obs_batch.shape[0]
     all_indices = list(range(N))
 
     metrics = {"policy": 0.0, "value": 0.0, "entropy": 0.0, "total": 0.0}
     update_count = 0
+    kl_exceeded = False
 
     for _ in range(ppo_epochs):
+        if kl_exceeded:
+            break
         random.shuffle(all_indices)
         for start in range(0, N, minibatch_size):
             idx = all_indices[start : start + minibatch_size]
             if not idx:
                 continue
 
-            mb_obs   = obs_batch[idx]          # [mb, T, J, obs_dim]
-            mb_acts  = actions_batch[idx]      # [mb, J]
-            mb_old   = old_lp_batch[idx]       # [mb, J]
-            mb_adv   = advantages[idx]         # [mb, N]
-            mb_ret   = returns[idx]            # [mb, N]
+            mb_obs     = obs_batch[idx]          # [mb, T, J, obs_dim]
+            mb_acts    = actions_batch[idx]      # [mb, J]
+            mb_old     = old_lp_batch[idx]       # [mb, J]
+            mb_adv     = advantages[idx]         # [mb, J]
+            mb_ret     = returns[idx]            # [mb, J]
+            mb_old_val = old_val_batch[idx]      # [mb]
 
             # Evaluate under current policy
             new_lp, ent, value = model.evaluate_actions(mb_obs, mb_acts)
             # new_lp: [mb, J], ent: [mb, J], value: [mb, 1]
 
-            # Per-junction ratio with per-node advantages (both [mb, J])
-            ratio = torch.exp(new_lp - mb_old)                 # [mb, J]
+            # Clamp log-ratio before exp to prevent ratio explosion
+            log_ratio = (new_lp - mb_old).clamp(-max_log_ratio, max_log_ratio)
+            ratio = torch.exp(log_ratio)                         # [mb, J]
 
             surr1 = ratio * mb_adv
             surr2 = torch.clamp(ratio, 1.0 - clip_eps, 1.0 + clip_eps) * mb_adv
             policy_loss = -torch.min(surr1, surr2).mean()
 
-            value_loss = F.mse_loss(value.squeeze(-1), mb_ret.mean(dim=-1))
+            # Clipped value objective (PPO-style)
+            v_new = value.squeeze(-1)                            # [mb]
+            ret_target = mb_ret.mean(dim=-1)                     # [mb]
+            v_clipped = mb_old_val + (v_new - mb_old_val).clamp(-value_clip_eps, value_clip_eps)
+            vf_loss1 = (v_new - ret_target).pow(2)
+            vf_loss2 = (v_clipped - ret_target).pow(2)
+            value_loss = 0.5 * torch.max(vf_loss1, vf_loss2).mean()
+
             entropy_loss = ent.mean()
 
             total_loss = (
@@ -226,6 +242,10 @@ def ppo_update(
                 + value_loss_coef * value_loss
                 - entropy_coef * entropy_loss
             )
+
+            # Skip minibatch if loss is NaN or Inf
+            if not torch.isfinite(total_loss):
+                continue
 
             optimizer.zero_grad()
             total_loss.backward()
@@ -237,6 +257,13 @@ def ppo_update(
             metrics["entropy"] += entropy_loss.item()
             metrics["total"]   += total_loss.item()
             update_count += 1
+
+            # KL early stopping
+            with torch.no_grad():
+                approx_kl = 0.5 * log_ratio.pow(2).mean().item()
+            if approx_kl > target_kl:
+                kl_exceeded = True
+                break
 
     denom = max(update_count, 1)
     return {k: v / denom for k, v in metrics.items()}
@@ -327,6 +354,16 @@ def train(args: argparse.Namespace):
             {"params": model.critic_head.parameters(),  "lr": args.lr},
         ]
     )
+    # Store base LRs for cosine decay
+    base_lrs = [pg["lr"] for pg in optimizer.param_groups]
+
+    # ── Optional encoder freeze (warm start) ──
+    if args.freeze_episodes > 0:
+        for p in model.temporal_enc.parameters():
+            p.requires_grad_(False)
+        for p in model.graph_enc.parameters():
+            p.requires_grad_(False)
+        logging.info(f"  Pretrained encoders frozen for first {args.freeze_episodes} episodes")
 
     # ── SUMO environment ──
     env_cfg = TrainConfig()
@@ -351,6 +388,23 @@ def train(args: argparse.Namespace):
     best_reward = -math.inf
 
     for episode in range(args.episodes):
+        # ── Unfreeze pretrained encoders after warm-up ──
+        if args.freeze_episodes > 0 and episode == args.freeze_episodes:
+            for p in model.temporal_enc.parameters():
+                p.requires_grad_(True)
+            for p in model.graph_enc.parameters():
+                p.requires_grad_(True)
+            logging.info(f"  Episode {episode}: Pretrained encoders unfrozen")
+
+        # ── Cosine LR decay ──
+        progress = episode / max(args.episodes - 1, 1)
+        lr_scale = (args.lr_min / args.lr
+                    + 0.5 * (1.0 - args.lr_min / args.lr)
+                    * (1.0 + math.cos(math.pi * progress)))
+        for pg, base_lr in zip(optimizer.param_groups, base_lrs):
+            pg["lr"] = base_lr * lr_scale
+        current_lr = optimizer.param_groups[-1]["lr"]  # trunk/actor/critic LR
+
         scenario_type, route_file = generator.sample(episode)
         env.set_route_file(route_file)
 
@@ -442,6 +496,9 @@ def train(args: argparse.Namespace):
                         ppo_epochs=args.ppo_epochs,
                         minibatch_size=args.minibatch_size,
                         device=device,
+                        max_log_ratio=args.max_log_ratio,
+                        value_clip_eps=args.value_clip_eps,
+                        target_kl=args.target_kl,
                     )
                     for k in ppo_metrics:
                         ppo_metrics[k] += step_metrics[k]
@@ -478,6 +535,9 @@ def train(args: argparse.Namespace):
                     ppo_epochs=args.ppo_epochs,
                     minibatch_size=args.minibatch_size,
                     device=device,
+                    max_log_ratio=args.max_log_ratio,
+                    value_clip_eps=args.value_clip_eps,
+                    target_kl=args.target_kl,
                 )
                 for k in ppo_metrics:
                     ppo_metrics[k] += step_metrics[k]
@@ -515,7 +575,7 @@ def train(args: argparse.Namespace):
                 f"Q={mean_queue:.3f} W={mean_wait:.3f} | "
                 f"π={ppo_metrics['policy']/denom:.4f} "
                 f"V={ppo_metrics['value']/denom:.4f} | "
-                f"H=[{ent_str}] | {elapsed:.1f}s | "
+                f"H=[{ent_str}] | LR={current_lr:.2e} | {elapsed:.1f}s | "
                 f"{generator.last_summary}"
             )
 
@@ -548,14 +608,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--decision-interval", type=int, default=10)
     parser.add_argument("--rollout-length", type=int, default=64)
     parser.add_argument("--lr", type=float, default=3e-4,
-                        help="LR for trunk, actor heads, critic head")
+                        help="Base LR for trunk, actor heads, critic head")
+    parser.add_argument("--lr-min", type=float, default=1e-5,
+                        help="Minimum LR for cosine decay")
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--gae-lambda", type=float, default=0.95)
     parser.add_argument("--clip-eps", type=float, default=0.2)
+    parser.add_argument("--max-log-ratio", type=float, default=2.0,
+                        help="Clamp log(new/old) to [-X, X] before exp")
+    parser.add_argument("--value-clip-eps", type=float, default=0.2,
+                        help="Epsilon for clipped value objective")
+    parser.add_argument("--target-kl", type=float, default=0.015,
+                        help="Approx KL threshold for early stopping PPO epochs")
     parser.add_argument("--entropy-coef", type=float, default=0.005)
     parser.add_argument("--value-loss-coef", type=float, default=0.25)
     parser.add_argument("--ppo-epochs", type=int, default=4)
     parser.add_argument("--minibatch-size", type=int, default=64)
+    parser.add_argument("--freeze-episodes", type=int, default=0,
+                        help="Freeze pretrained encoders for this many episodes (0=no freeze)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--gui", action="store_true")
     return parser.parse_args()

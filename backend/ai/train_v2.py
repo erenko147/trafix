@@ -171,12 +171,16 @@ class SumoEnvironment:
     Her adımda kavşak gözlemlerini toplar ve faz değişikliklerini uygular.
     """
 
+    YELLOW_STEPS = 4   # fixed 4-second yellow before any green switch
+
     def __init__(self, cfg: TrainConfig):
         self.cfg = cfg
         self.tls_ids: List[str] = []       # trafik ışığı ID'leri
         self.num_nodes = 0
         self._step_count = 0
         self._episode_count = 0
+        self._pending_target: Dict[str, int] = {}        # tls_id → target green phase
+        self._yellow_steps_remaining: Dict[str, int] = {}  # tls_id → steps until green
 
     # ── SUMO Başlat / Kapat ──────────────────────
 
@@ -216,6 +220,8 @@ class SumoEnvironment:
         traci.start(sumo_cmd)
         self._step_count = 0
         self._episode_count = episode
+        self._pending_target = {}
+        self._yellow_steps_remaining = {}
 
         # Trafik ışığı ID'lerini al
         self.tls_ids = sorted(traci.trafficlight.getIDList())
@@ -338,19 +344,19 @@ class SumoEnvironment:
 
     def apply_actions(self, actions: torch.Tensor):
         """
-        Maps model actions to SUMO 8-phase scheme and applies them.
+        Records desired target green phase per TLS and starts yellow transition.
 
-        Model action → SUMO phase mapping:
-          0 (N-only) → SUMO phase 0   (North green)
-          1 (E-only) → SUMO phase 2   (East green)
-          2 (S-only) → SUMO phase 4   (South green)
-          3 (W-only) → SUMO phase 6   (West green)
-          formula: sumo_phase = model_action * 2
+        Model action → target green SUMO phase:
+          0 → 0, 1 → 2, 2 → 4, 3 → 6
 
-        Safety: if currently in a green phase (even index), transition through
-        the corresponding yellow (current_green + 1) before switching approach.
+        If a yellow transition is already in progress for a TLS the new action
+        is ignored so the running transition is never interrupted.
         """
         for i, tls_id in enumerate(self.tls_ids):
+            # Never interrupt an ongoing yellow transition
+            if self._yellow_steps_remaining.get(tls_id, 0) > 0:
+                continue
+
             model_action      = int(actions[i].item()) % 4
             target_sumo_phase = model_action * 2          # 0, 2, 4, or 6
             current_sumo_phase = traci.trafficlight.getPhase(tls_id)
@@ -358,12 +364,26 @@ class SumoEnvironment:
             if target_sumo_phase == current_sumo_phase:
                 continue
 
-            if current_sumo_phase % 2 == 0:
-                # In a green phase — go through its yellow before switching
-                traci.trafficlight.setPhase(tls_id, current_sumo_phase + 1)
-            else:
-                # In a yellow phase — safe to set target green directly
-                traci.trafficlight.setPhase(tls_id, target_sumo_phase)
+            # Start fixed-length yellow then switch to target green
+            self._pending_target[tls_id] = target_sumo_phase
+            self._yellow_steps_remaining[tls_id] = self.YELLOW_STEPS
+
+            yellow_phase = (current_sumo_phase if current_sumo_phase % 2 != 0
+                            else current_sumo_phase + 1)
+            traci.trafficlight.setPhase(tls_id, yellow_phase)
+
+    def _advance_transitions(self):
+        """Decrement yellow timers; switch to target green when timer reaches zero."""
+        for tls_id in self.tls_ids:
+            remaining = self._yellow_steps_remaining.get(tls_id, 0)
+            if remaining <= 0:
+                continue
+            remaining -= 1
+            self._yellow_steps_remaining[tls_id] = remaining
+            if remaining == 0:
+                target = self._pending_target.pop(tls_id, None)
+                if target is not None:
+                    traci.trafficlight.setPhase(tls_id, target)
 
     # ── Simülasyon Adımı ──────────────────────────
 
@@ -382,6 +402,7 @@ class SumoEnvironment:
         for _ in range(self.cfg.decision_interval):
             if not self.is_running:
                 return self.get_observations(), True
+            self._advance_transitions()
             traci.simulationStep()
             self._step_count += 1
 
