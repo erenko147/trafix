@@ -61,7 +61,7 @@ sys.path.insert(0, str(_SCRIPT_DIR))
 sys.path.insert(0, str(_PROJECT_ROOT))
 
 from trafix_v5 import TraFixV5, NUM_JUNCTIONS
-from scenario_generator import ScenarioGenerator, ScenarioEnvironment
+from scenario_generator import ScenarioGenerator, ScenarioEnvironment, ScenarioType
 
 try:
     from backend.ai.train_v2 import TrainConfig
@@ -100,6 +100,16 @@ DEFAULT_NET_FILE = str(_PROJECT_ROOT / "sumo" / "map.net.xml")
 # ══════════════════════════════════════════════════
 #  Komşu kuyruk tahmini yardımcıları
 # ══════════════════════════════════════════════════
+
+def _nmse(pred: torch.Tensor, target: torch.Tensor, eps: float = 0.02) -> torch.Tensor:
+    """Variance-normalized MSE — keeps loss scale comparable across OFFPEAK / peak scenarios.
+
+    Uses population variance (correction=0) so single-neighbor junctions (n=1)
+    don't produce nan. eps=0.02 floors near-zero variance during light traffic.
+    """
+    var = target.var(correction=0).clamp(min=eps)
+    return F.mse_loss(pred, target) / var
+
 
 def build_neighbor_targets(obs_tensor: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """
@@ -180,9 +190,13 @@ def train(args: argparse.Namespace):
         param.requires_grad = False
     logging.info(f"  GRU loaded from {STAGE1_CHECKPOINT} and frozen.")
 
-    # Temporary neighbor queue prediction heads (one per junction, not added to TraFixV5)
+    # Temporary neighbor queue prediction heads (one per junction, not added to TraFixV5).
+    # Sigmoid bounds output to [0, 1], matching queue/150 targets — MSE is then fully normalized.
     pred_heads = nn.ModuleList([
-        nn.Linear(model.trunk_out, len(CHAIN_NEIGHBORS[j]))
+        nn.Sequential(
+            nn.Linear(model.trunk_out, len(CHAIN_NEIGHBORS[j])),
+            nn.Sigmoid(),
+        )
         for j in range(NUM_JUNCTIONS)
     ]).to(device)
 
@@ -192,6 +206,9 @@ def train(args: argparse.Namespace):
         + list(pred_heads.parameters())
     )
     optimizer = optim.Adam(trainable_params, lr=args.lr)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode="min", factor=0.5, patience=15, min_lr=1e-5
+    )
 
     env_cfg = make_env_config(args.sumo_cfg, args.gui, args.seed, args.decision_interval)
     env = ScenarioEnvironment(env_cfg)
@@ -203,9 +220,19 @@ def train(args: argparse.Namespace):
     )
 
     best_loss = math.inf
+    logging.info(
+        f"  Curriculum: OFFPEAK-only for first {args.offpeak_episodes} episodes, "
+        f"then standard curriculum mix."
+    )
 
     for episode in range(args.episodes):
-        scenario_type, route_file = generator.sample(episode)
+        # Curriculum: master OFFPEAK before introducing peak scenarios
+        if episode < args.offpeak_episodes:
+            route_file = generator.generate(ScenarioType.OFFPEAK, episode)
+            scenario_type = ScenarioType.OFFPEAK
+        else:
+            scenario_type, route_file = generator.sample(episode)
+
         env.set_route_file(route_file)
 
         episode_start = time.time()
@@ -241,7 +268,10 @@ def train(args: argparse.Namespace):
                 # Trunk → [J, trunk_out]
                 t = model.trunk(g)  # [J, trunk_out]
 
-                # Predict neighbor queue lengths for each junction
+                # Predict neighbor queue lengths for each junction.
+                # Targets are queue/150 ∈ [0,1]; pred_heads are Sigmoid-bounded.
+                # _nmse normalises by target variance so OFFPEAK and peak scenarios
+                # contribute comparable gradient magnitudes.
                 loss = torch.tensor(0.0, device=device)
                 for j in range(NUM_JUNCTIONS):
                     pred = pred_heads[j](t[j])               # [len(neighbors_j)]
@@ -250,7 +280,7 @@ def train(args: argparse.Namespace):
                         dtype=torch.float32,
                         device=device,
                     )
-                    loss = loss + F.mse_loss(pred, target)
+                    loss = loss + _nmse(pred, target)
 
                 loss = loss / NUM_JUNCTIONS
 
@@ -268,22 +298,26 @@ def train(args: argparse.Namespace):
         mean_loss = sum(episode_losses) / max(len(episode_losses), 1)
         elapsed = time.time() - episode_start
 
+        scheduler.step(mean_loss)
+        current_lr = optimizer.param_groups[0]["lr"]
+
         if mean_loss < best_loss:
             best_loss = mean_loss
+            torch.save(model.graph_enc.state_dict(), str(STAGE2_GATCONV_CHECKPOINT))
+            torch.save(model.trunk.state_dict(), str(STAGE2_TRUNK_CHECKPOINT))
 
         if (episode + 1) % 10 == 0:
+            phase_tag = "OFFPEAK-only" if episode < args.offpeak_episodes else "curriculum"
             logging.info(
-                f"  Ep {episode + 1:>3d}/{args.episodes} | "
+                f"  Ep {episode + 1:>3d}/{args.episodes} [{phase_tag}] | "
                 f"Loss: {mean_loss:.6f} | Best: {best_loss:.6f} | "
+                f"LR: {current_lr:.2e} | "
                 f"Steps: {len(episode_losses):>4d} | {elapsed:.1f}s | "
                 f"{generator.last_summary}"
             )
 
-    # ── Save GATConv and trunk (not GRU, not actor/critic) ──
-    torch.save(model.graph_enc.state_dict(), str(STAGE2_GATCONV_CHECKPOINT))
-    torch.save(model.trunk.state_dict(), str(STAGE2_TRUNK_CHECKPOINT))
-    logging.info(f"  GATConv saved → {STAGE2_GATCONV_CHECKPOINT}")
-    logging.info(f"  Trunk   saved → {STAGE2_TRUNK_CHECKPOINT}")
+    logging.info(f"  Best GATConv saved → {STAGE2_GATCONV_CHECKPOINT}")
+    logging.info(f"  Best Trunk   saved → {STAGE2_TRUNK_CHECKPOINT}")
     print("Stage 2 complete. GATConv and trunk saved.")
 
 
@@ -299,6 +333,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sumo-cfg", default=DEFAULT_SUMO_CFG)
     parser.add_argument("--net-file", default=DEFAULT_NET_FILE)
     parser.add_argument("--episodes", type=int, default=200)
+    parser.add_argument("--offpeak-episodes", type=int, default=100,
+                        help="Episodes to train on OFFPEAK only before introducing peak scenarios")
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--decision-interval", type=int, default=10)
     parser.add_argument("--seed", type=int, default=42)

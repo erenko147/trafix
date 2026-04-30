@@ -136,10 +136,12 @@ class ScenarioGenerator:
         net_file: str = _DEFAULT_NET_FILE,
         output_dir: str = _DEFAULT_OUTPUT_DIR,
         seed: Optional[int] = None,
+        flow_horizon: int = 1800,
     ):
         self.net_file = net_file
         self.output_dir = Path(output_dir)
         self.seed = seed
+        self.flow_horizon = flow_horizon
         self.last_summary = ""
 
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -168,16 +170,16 @@ class ScenarioGenerator:
         out_path = self.output_dir / f"ep{episode:04d}.rou.xml"
 
         if scenario_type == ScenarioType.OFFPEAK:
-            params = self._gen_offpeak(rng, episode, episode_duration)
+            params = self._gen_offpeak(rng, episode, episode_duration, self.flow_horizon)
 
         elif scenario_type == ScenarioType.MORNING_PEAK:
-            params = self._gen_morning_peak(rng, episode, episode_duration)
+            params = self._gen_morning_peak(rng, episode, episode_duration, self.flow_horizon)
 
         elif scenario_type == ScenarioType.EVENING_PEAK:
-            params = self._gen_evening_peak(rng, episode, episode_duration)
+            params = self._gen_evening_peak(rng, episode, episode_duration, self.flow_horizon)
 
         elif scenario_type == ScenarioType.INCIDENT:
-            params = self._gen_incident(rng, episode, episode_duration)
+            params = self._gen_incident(rng, episode, episode_duration, self.flow_horizon)
 
         else:
             raise ValueError(f"Unknown scenario type: {scenario_type}")
@@ -250,11 +252,11 @@ class ScenarioGenerator:
 
     # ── Parameter generators ──────────────────
 
-    def _gen_offpeak(self, rng, episode: int, duration: int) -> dict:
+    def _gen_offpeak(self, rng, episode: int, duration: int, flow_horizon: int) -> dict:
         base_flow = float(rng.uniform(200, 500))
         per_od = base_flow / len(_ALL_OD)
         flows = [
-            (from_e, to_e, 0, duration, per_od)
+            (from_e, to_e, 0, flow_horizon, per_od)
             for from_e, to_e in _ALL_OD
         ]
         return {
@@ -264,7 +266,7 @@ class ScenarioGenerator:
             "flows": flows,
         }
 
-    def _gen_morning_peak(self, rng, episode: int, duration: int) -> dict:
+    def _gen_morning_peak(self, rng, episode: int, duration: int, flow_horizon: int) -> dict:
         main_flow = float(rng.uniform(800, 1200))
         side_flow = float(rng.uniform(100, 300))
 
@@ -273,9 +275,9 @@ class ScenarioGenerator:
 
         flows = []
         for from_e, to_e in _MAIN_INBOUND_OD:
-            flows.append((from_e, to_e, 0, duration, per_main))
+            flows.append((from_e, to_e, 0, flow_horizon, per_main))
         for from_e, to_e in _MAIN_OUTBOUND_OD + _LOCAL_OD:
-            flows.append((from_e, to_e, 0, duration, per_side))
+            flows.append((from_e, to_e, 0, flow_horizon, per_side))
 
         return {
             "episode": episode,
@@ -285,7 +287,7 @@ class ScenarioGenerator:
             "flows": flows,
         }
 
-    def _gen_evening_peak(self, rng, episode: int, duration: int) -> dict:
+    def _gen_evening_peak(self, rng, episode: int, duration: int, flow_horizon: int) -> dict:
         main_flow = float(rng.uniform(800, 1200))
         side_flow = float(rng.uniform(100, 300))
 
@@ -294,9 +296,9 @@ class ScenarioGenerator:
 
         flows = []
         for from_e, to_e in _MAIN_OUTBOUND_OD:
-            flows.append((from_e, to_e, 0, duration, per_main))
+            flows.append((from_e, to_e, 0, flow_horizon, per_main))
         for from_e, to_e in _MAIN_INBOUND_OD + _LOCAL_OD:
-            flows.append((from_e, to_e, 0, duration, per_side))
+            flows.append((from_e, to_e, 0, flow_horizon, per_side))
 
         return {
             "episode": episode,
@@ -306,7 +308,7 @@ class ScenarioGenerator:
             "flows": flows,
         }
 
-    def _gen_incident(self, rng, episode: int, duration: int) -> dict:
+    def _gen_incident(self, rng, episode: int, duration: int, flow_horizon: int) -> dict:
         base_flow = float(rng.uniform(200, 500))
         per_od = base_flow / len(_ALL_OD)
 
@@ -320,13 +322,13 @@ class ScenarioGenerator:
         flows = []
         for from_e, to_e in _ALL_OD:
             if from_e in blocked_fringe:
-                # Split flow around the incident window
+                # Split flow around the incident window; resume after block through full horizon
                 if onset_step > 0:
                     flows.append((from_e, to_e, 0, onset_step, per_od))
-                if incident_end < duration:
-                    flows.append((from_e, to_e, incident_end, duration, per_od))
+                if incident_end < flow_horizon:
+                    flows.append((from_e, to_e, incident_end, flow_horizon, per_od))
             else:
-                flows.append((from_e, to_e, 0, duration, per_od))
+                flows.append((from_e, to_e, 0, flow_horizon, per_od))
 
         return {
             "episode": episode,

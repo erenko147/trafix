@@ -80,6 +80,12 @@ except ImportError:
 OBS_DIM = NUM_NODE_FEATURES          # 10: counts/30, queue/150, phase one-hot (4), duration/120
 NUM_PHASES = 4
 T_WINDOW = 10                        # GRU geçmiş penceresi
+
+# Only predict the physically-meaningful traffic state features (indices 0-4).
+# Phase one-hot (5-8) and duration (9) are driven by random actions → pure noise
+# for the pretraining task and cause the GRU to default to predicting the mean.
+TRAFFIC_FEAT_DIM = 5                 # [north/30, south/30, east/30, west/30, queue/150]
+
 CHECKPOINTS_DIR = _SCRIPT_DIR / "checkpoints"
 STAGE1_CHECKPOINT = CHECKPOINTS_DIR / "stage1_gru.pt"
 DEFAULT_SUMO_CFG = str(_PROJECT_ROOT / "sumo" / "training.sumocfg")
@@ -133,12 +139,13 @@ def train(args: argparse.Namespace):
     # ── Model ──
     model = TraFixV5(obs_dim=OBS_DIM, num_phases=NUM_PHASES).to(device)
 
-    # Prediction head: project GRU hidden → next obs features
-    pred_head = nn.Linear(model.hidden_dim, OBS_DIM).to(device)
+    # Prediction head: GRU hidden → next-step traffic state (counts + queue only)
+    pred_head = nn.Linear(model.hidden_dim, TRAFFIC_FEAT_DIM).to(device)
 
-    optimizer = optim.Adam(
-        list(model.temporal_enc.parameters()) + list(pred_head.parameters()),
-        lr=args.lr,
+    trainable = list(model.temporal_enc.parameters()) + list(pred_head.parameters())
+    optimizer = optim.Adam(trainable, lr=args.lr)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode="min", factor=0.5, patience=15, min_lr=1e-5
     )
 
     env_cfg = make_env_config(args.sumo_cfg, args.gui, args.seed, args.decision_interval)
@@ -178,21 +185,19 @@ def train(args: argparse.Namespace):
                 x_next = parse_sumo_observations(next_obs_list, device=device)  # [J, obs_dim]
 
                 # Stack window → [1, T, J, obs_dim]
-                window_tensor = torch.stack(list(window)).unsqueeze(0)  # [1, T, J, obs_dim]
-                target = x_next.unsqueeze(0)                            # [1, J, obs_dim]
+                window_tensor = torch.stack(list(window)).unsqueeze(0)       # [1, T, J, obs_dim]
+                # Target: only traffic-state features — counts + queue, all in [0,1]
+                target = x_next[:, :TRAFFIC_FEAT_DIM].unsqueeze(0)          # [1, J, 5]
 
                 # Forward: temporal encoder only
                 h = model.temporal_enc(window_tensor)  # [1, J, hidden_dim]
-                pred = pred_head(h)                    # [1, J, obs_dim]
+                pred = pred_head(h)                    # [1, J, TRAFFIC_FEAT_DIM]
 
                 loss = F.mse_loss(pred, target)
 
                 optimizer.zero_grad()
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(
-                    list(model.temporal_enc.parameters()) + list(pred_head.parameters()),
-                    max_norm=0.5,
-                )
+                torch.nn.utils.clip_grad_norm_(trainable, max_norm=0.5)
                 optimizer.step()
 
                 episode_losses.append(loss.item())
@@ -204,20 +209,23 @@ def train(args: argparse.Namespace):
         mean_loss = sum(episode_losses) / max(len(episode_losses), 1)
         elapsed = time.time() - episode_start
 
+        scheduler.step(mean_loss)
+        current_lr = optimizer.param_groups[0]["lr"]
+
         if mean_loss < best_loss:
             best_loss = mean_loss
+            torch.save(model.temporal_enc.state_dict(), str(STAGE1_CHECKPOINT))
 
         if (episode + 1) % 10 == 0:
             logging.info(
                 f"  Ep {episode + 1:>3d}/{args.episodes} | "
                 f"Loss: {mean_loss:.6f} | Best: {best_loss:.6f} | "
+                f"LR: {current_lr:.2e} | "
                 f"Steps: {len(episode_losses):>4d} | {elapsed:.1f}s | "
                 f"{generator.last_summary}"
             )
 
-    # ── Save GRU (temporal encoder) only ──
-    torch.save(model.temporal_enc.state_dict(), str(STAGE1_CHECKPOINT))
-    logging.info(f"  Checkpoint saved → {STAGE1_CHECKPOINT}")
+    logging.info(f"  Best checkpoint saved → {STAGE1_CHECKPOINT}")
     print("Stage 1 complete. GRU saved.")
 
 
