@@ -412,35 +412,65 @@
         <lane id="E9_1" index="1" speed="13.89" length="39.60" shape="101.60,110.40 101.60,150.00"/>
     </edge>
 
+    <!-- 8-phase single-approach protected phasing (action*2 = SUMO phase index)
+         Slot ordering per junction (16 signal indices, 4 per approach):
+           0-3  : NORTH approach  (right=G, straight=G, straight=G, left=g)
+           4-7  : EAST  approach
+           8-11 : SOUTH approach
+           12-15: WEST  approach
+         Phase sequence: N-green(0), N-yellow(1), E-green(2), E-yellow(3),
+                         S-green(4), S-yellow(5), W-green(6), W-yellow(7)
+         Model action a maps to SUMO phase a*2.
+    -->
     <tlLogic id="J0" type="static" programID="0" offset="0">
-        <phase duration="42" state="GGGgrrrrGGGgrrrr"/>
-        <phase duration="3"  state="yyyyrrrryyyyrrrr"/>
-        <phase duration="42" state="rrrrGGGgrrrrGGGg"/>
-        <phase duration="3"  state="rrrryyyyrrrryyyy"/>
+        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
+        <phase duration="3"  state="yyyyrrrrrrrrrrrr"/>
+        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
+        <phase duration="3"  state="rrrryyyyrrrrrrrr"/>
+        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
+        <phase duration="3"  state="rrrrrrrryyyyrrrr"/>
+        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
+        <phase duration="3"  state="rrrrrrrrrrrryyyy"/>
     </tlLogic>
     <tlLogic id="J1" type="static" programID="0" offset="0">
-        <phase duration="42" state="GGGgrrrrGGGgrrrr"/>
-        <phase duration="3"  state="yyyyrrrryyyyrrrr"/>
-        <phase duration="42" state="rrrrGGGgrrrrGGGg"/>
-        <phase duration="3"  state="rrrryyyyrrrryyyy"/>
+        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
+        <phase duration="3"  state="yyyyrrrrrrrrrrrr"/>
+        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
+        <phase duration="3"  state="rrrryyyyrrrrrrrr"/>
+        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
+        <phase duration="3"  state="rrrrrrrryyyyrrrr"/>
+        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
+        <phase duration="3"  state="rrrrrrrrrrrryyyy"/>
     </tlLogic>
     <tlLogic id="J2" type="static" programID="0" offset="0">
-        <phase duration="42" state="GGGgrrrrGGGgrrrr"/>
-        <phase duration="3"  state="yyyyrrrryyyyrrrr"/>
-        <phase duration="42" state="rrrrGGGgrrrrGGGg"/>
-        <phase duration="3"  state="rrrryyyyrrrryyyy"/>
+        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
+        <phase duration="3"  state="yyyyrrrrrrrrrrrr"/>
+        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
+        <phase duration="3"  state="rrrryyyyrrrrrrrr"/>
+        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
+        <phase duration="3"  state="rrrrrrrryyyyrrrr"/>
+        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
+        <phase duration="3"  state="rrrrrrrrrrrryyyy"/>
     </tlLogic>
     <tlLogic id="J3" type="static" programID="0" offset="0">
-        <phase duration="42" state="GGGgrrrrGGGgrrrr"/>
-        <phase duration="3"  state="yyyyrrrryyyyrrrr"/>
-        <phase duration="42" state="rrrrGGGgrrrrGGGg"/>
-        <phase duration="3"  state="rrrryyyyrrrryyyy"/>
+        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
+        <phase duration="3"  state="yyyyrrrrrrrrrrrr"/>
+        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
+        <phase duration="3"  state="rrrryyyyrrrrrrrr"/>
+        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
+        <phase duration="3"  state="rrrrrrrryyyyrrrr"/>
+        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
+        <phase duration="3"  state="rrrrrrrrrrrryyyy"/>
     </tlLogic>
     <tlLogic id="J4" type="static" programID="0" offset="0">
-        <phase duration="42" state="GGGgrrrrGGGgrrrr"/>
-        <phase duration="3"  state="yyyyrrrryyyyrrrr"/>
-        <phase duration="42" state="rrrrGGGgrrrrGGGg"/>
-        <phase duration="3"  state="rrrryyyyrrrryyyy"/>
+        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
+        <phase duration="3"  state="yyyyrrrrrrrrrrrr"/>
+        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
+        <phase duration="3"  state="rrrryyyyrrrrrrrr"/>
+        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
+        <phase duration="3"  state="rrrrrrrryyyyrrrr"/>
+        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
+        <phase duration="3"  state="rrrrrrrrrrrryyyy"/>
     </tlLogic>
 
     <junction id="J0" type="traffic_light" x="0.00" y="100.00" incLanes="-E5_0 -E5_1 -E1_0 -E1_1 -E0_0 -E0_1 -E6_0 -E6_1" intLanes=":J0_0_0 :J0_1_0 :J0_1_1 :J0_16_0 :J0_4_0 :J0_5_0 :J0_5_1 :J0_17_0 :J0_8_0 :J0_9_0 :J0_9_1 :J0_18_0 :J0_12_0 :J0_13_0 :J0_13_1 :J0_19_0" shape="-6.40,110.40 6.40,110.40 6.84,108.18 7.40,107.40 8.18,106.84 9.18,106.51 10.40,106.40 10.40,93.60 8.18,93.16 7.40,92.60 6.84,91.82 6.51,90.82 6.40,89.60 -6.40,89.60 -6.84,91.82 -7.40,92.60 -8.18,93.16 -9.18,93.49 -10.40,93.60 -10.40,106.40 -8.18,106.84 -7.40,107.40 -6.84,108.18 -6.51,109.18">

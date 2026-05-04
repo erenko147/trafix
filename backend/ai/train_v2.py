@@ -139,10 +139,10 @@ class TrainConfig:
 
     # ── PPO ──
     clip_eps: float = 0.2
-    entropy_coef: float = 0.05            # 0.02 → 0.05: erken entropi çöküşünü önler
-    entropy_coef_min: float = 0.01        # 0.005 → 0.01: daha yavaş bozunma
-    entropy_decay: float = 0.9998         # 0.9995 → 0.9998: daha yavaş azalma
-    value_coef: float = 0.5
+    entropy_coef: float = 0.005
+    entropy_coef_min: float = 0.001
+    entropy_decay: float = 0.9998
+    value_coef: float = 0.25
 
     # ── Ödül ──
     reward_weights: RewardWeights = field(default_factory=RewardWeights)
@@ -171,12 +171,16 @@ class SumoEnvironment:
     Her adımda kavşak gözlemlerini toplar ve faz değişikliklerini uygular.
     """
 
+    YELLOW_STEPS = 4   # fixed 4-second yellow before any green switch
+
     def __init__(self, cfg: TrainConfig):
         self.cfg = cfg
         self.tls_ids: List[str] = []       # trafik ışığı ID'leri
         self.num_nodes = 0
         self._step_count = 0
         self._episode_count = 0
+        self._pending_target: Dict[str, int] = {}        # tls_id → target green phase
+        self._yellow_steps_remaining: Dict[str, int] = {}  # tls_id → steps until green
 
     # ── SUMO Başlat / Kapat ──────────────────────
 
@@ -216,6 +220,8 @@ class SumoEnvironment:
         traci.start(sumo_cmd)
         self._step_count = 0
         self._episode_count = episode
+        self._pending_target = {}
+        self._yellow_steps_remaining = {}
 
         # Trafik ışığı ID'lerini al
         self.tls_ids = sorted(traci.trafficlight.getIDList())
@@ -305,8 +311,13 @@ class SumoEnvironment:
             direction_counts[dir_name] += vehicle_count
             total_queue += queue
 
-        # Mevcut faz
-        current_phase = traci.trafficlight.getPhase(tls_id)
+        # Mevcut faz — convert SUMO 8-phase (0–7) to model space (0–3)
+        # SUMO phases: 0=N-green, 1=N-yellow, 2=E-green, 3=E-yellow,
+        #              4=S-green, 5=S-yellow, 6=W-green, 7=W-yellow
+        # Model actions: 0=N, 1=E, 2=S, 3=W  (maps to SUMO phase = action * 2)
+        # Yellow phases (odd) map to the preceding green: sumo_phase // 2
+        current_sumo_phase = traci.trafficlight.getPhase(tls_id)
+        model_phase = current_sumo_phase // 2   # 0→0, 1→0, 2→1, 3→1, 4→2, 5→2, 6→3, 7→3
 
         # Faz süresi — bu faz ne zamandır aktif
         try:
@@ -325,7 +336,7 @@ class SumoEnvironment:
             "east_count": direction_counts["east"],
             "west_count": direction_counts["west"],
             "queue_length": total_queue,
-            "current_phase": current_phase % self.cfg.num_actions,
+            "current_phase": model_phase,   # 0–3 model-action space
             "phase_duration": phase_duration_val,
         }
 
@@ -333,35 +344,46 @@ class SumoEnvironment:
 
     def apply_actions(self, actions: torch.Tensor):
         """
-        Her kavşağa seçilen fazı uygular. Güvenli geçişler (Sarı ışık) zorunludur.
+        Records desired target green phase per TLS and starts yellow transition.
 
-        Args:
-            actions: (num_nodes,) — her kavşak için faz indeksi
+        Model action → target green SUMO phase:
+          0 → 0, 1 → 2, 2 → 4, 3 → 6
+
+        If a yellow transition is already in progress for a TLS the new action
+        is ignored so the running transition is never interrupted.
         """
         for i, tls_id in enumerate(self.tls_ids):
-            desired_phase = actions[i].item()
-            current_phase = traci.trafficlight.getPhase(tls_id)
-
-            # Faz sayısı kontrolü — SUMO'daki gerçek faz sayısı
-            logic = traci.trafficlight.getAllProgramLogics(tls_id)
-            if logic:
-                num_phases = len(logic[0].phases)
-                desired_phase = int(desired_phase % num_phases)
-
-            if desired_phase == current_phase:
+            # Never interrupt an ongoing yellow transition
+            if self._yellow_steps_remaining.get(tls_id, 0) > 0:
                 continue
-                
-            # GÜVENLİK YAMASI: Green -> Green atlamasını engelle (Sarı işığı atlama)
-            # AI modeli sarı ışığı atlayarak araçların crash/teleport olmasına yol açıp,
-            # haksız ödül kazanıyordu (Kuyruklar aniden sıfırlanıyordu).
-            if current_phase == 0 and desired_phase in [2, 3]:
-                # North-South Green'den dönüyorsa, önce North-South Yellow (1) yap
-                desired_phase = 1
-            elif current_phase == 2 and desired_phase in [0, 1]:
-                # East-West Green'den dönüyorsa, önce East-West Yellow (3) yap
-                desired_phase = 3
 
-            traci.trafficlight.setPhase(tls_id, desired_phase)
+            model_action      = int(actions[i].item()) % 4
+            target_sumo_phase = model_action * 2          # 0, 2, 4, or 6
+            current_sumo_phase = traci.trafficlight.getPhase(tls_id)
+
+            if target_sumo_phase == current_sumo_phase:
+                continue
+
+            # Start fixed-length yellow then switch to target green
+            self._pending_target[tls_id] = target_sumo_phase
+            self._yellow_steps_remaining[tls_id] = self.YELLOW_STEPS
+
+            yellow_phase = (current_sumo_phase if current_sumo_phase % 2 != 0
+                            else current_sumo_phase + 1)
+            traci.trafficlight.setPhase(tls_id, yellow_phase)
+
+    def _advance_transitions(self):
+        """Decrement yellow timers; switch to target green when timer reaches zero."""
+        for tls_id in self.tls_ids:
+            remaining = self._yellow_steps_remaining.get(tls_id, 0)
+            if remaining <= 0:
+                continue
+            remaining -= 1
+            self._yellow_steps_remaining[tls_id] = remaining
+            if remaining == 0:
+                target = self._pending_target.pop(tls_id, None)
+                if target is not None:
+                    traci.trafficlight.setPhase(tls_id, target)
 
     # ── Simülasyon Adımı ──────────────────────────
 
@@ -380,6 +402,7 @@ class SumoEnvironment:
         for _ in range(self.cfg.decision_interval):
             if not self.is_running:
                 return self.get_observations(), True
+            self._advance_transitions()
             traci.simulationStep()
             self._step_count += 1
 
@@ -500,9 +523,8 @@ class RolloutBuffer:
         self.observations: List[torch.Tensor] = []
         self.actions: List[torch.Tensor] = []
         self.log_probs: List[torch.Tensor] = []
-        self.rewards: List[torch.Tensor] = []
-        self.values: List[torch.Tensor] = []
-        self.hidden_states: List[torch.Tensor] = []
+        self.rewards: List[torch.Tensor] = []   # each (N,) per-node
+        self.values: List[torch.Tensor] = []    # each scalar
 
     def add(
         self,
@@ -511,14 +533,12 @@ class RolloutBuffer:
         log_prob: torch.Tensor,
         reward: torch.Tensor,
         value: torch.Tensor,
-        hidden: torch.Tensor,
     ):
         self.observations.append(obs)
         self.actions.append(action)
         self.log_probs.append(log_prob)
         self.rewards.append(reward)
         self.values.append(value.detach())
-        self.hidden_states.append(hidden.detach())
 
     def __len__(self):
         return len(self.rewards)
@@ -531,7 +551,6 @@ class RolloutBuffer:
             "log_probs": self.log_probs,
             "rewards": self.rewards,
             "values": self.values,
-            "hidden_states": self.hidden_states,
             "next_value": next_value,
         }
 
@@ -719,10 +738,6 @@ def train(cfg: TrainConfig):
     #  Episode Döngüsü
     # ════════════════════════════════════════
 
-    # Rolling normalisation history — tüm eğitim boyunca birikir,
-    # episodlar arasında sıfırlanmaz. parse_sumo_observations'a geçilir.
-    obs_history: deque = deque(maxlen=500)
-
     for episode in range(start_episode, cfg.episodes):
         episode_start = time.time()
 
@@ -763,7 +778,6 @@ def train(cfg: TrainConfig):
 
         # ── Başlangıç durumu ──
         agent.train()
-        hidden = agent.init_hidden(num_nodes, device)
         buffer = RolloutBuffer()
 
         obs = env.get_observations()
@@ -772,9 +786,9 @@ def train(cfg: TrainConfig):
 
         episode_rewards = []
         episode_metrics = []
-        total_policy_loss = 0
-        total_value_loss = 0
-        total_entropy = 0
+        total_policy_loss = 0.0
+        total_value_loss = 0.0
+        total_entropy = 0.0
         update_count = 0
         step = 0
 
@@ -784,26 +798,16 @@ def train(cfg: TrainConfig):
 
         done = False
         while not done:
-            # ── Rolling normalisation: mevcut obs'u geçmişe ekle ──
-            for o in obs:
-                obs_history.append(
-                    o["north_count"] + o["south_count"] +
-                    o["east_count"]  + o["west_count"]
-                )
-            _count_max = float(max(obs_history)) if obs_history else None
-
-            # ── Gözlemi tensöre çevir ──
-            x = parse_sumo_observations(obs, device, count_max=_count_max)
+            # ── Gözlemi tensöre çevir (fixed-scale normalisation) ──
+            x = parse_sumo_observations(obs, device)
 
             # ── Aksiyon seç ──
-            actions, log_probs, value, new_hidden = agent.select_actions(
-                x, edge_index, hidden
-            )
+            actions, log_probs, value = agent.select_actions(x, edge_index)
 
             # ── Ortama uygula ──
             next_obs, done = env.step(actions)
 
-            # ── Ödül hesapla ──
+            # ── Ödül hesapla — (N,) per-node tensor ──
             reward = compute_reward(
                 current_obs=next_obs,
                 previous_obs=prev_obs,
@@ -812,17 +816,16 @@ def train(cfg: TrainConfig):
                 weights=cfg.reward_weights,
             ).to(device)
 
-            episode_rewards.append(reward.item())
+            episode_rewards.append(reward.mean().item())
 
             # ── Buffer'a ekle ──
-            buffer.add(x, actions, log_probs, reward, value, hidden)
+            buffer.add(x, actions, log_probs, reward, value)
 
             # ── PPO güncelleme (buffer dolduğunda) ──
             if len(buffer) >= cfg.rollout_length:
-                # Son değer tahmini
                 with torch.no_grad():
-                    next_x = parse_sumo_observations(next_obs, device, count_max=_count_max)
-                    _, next_value, _ = agent(next_x, edge_index, new_hidden)
+                    next_x = parse_sumo_observations(next_obs, device)
+                    _, next_value = agent(next_x, edge_index)
 
                 rollout = buffer.to_dict(edge_index, next_value.detach())
 
@@ -830,8 +833,8 @@ def train(cfg: TrainConfig):
                 losses = train_step(agent, optimizer, rollout, cfg.ppo_epochs)
 
                 total_policy_loss += losses["policy"]
-                total_value_loss += losses["value"]
-                total_entropy += losses["entropy"]
+                total_value_loss  += losses["value"]
+                total_entropy     += losses["entropy"]
                 update_count += 1
 
                 buffer.clear()
@@ -842,24 +845,23 @@ def train(cfg: TrainConfig):
                 episode_metrics.append(metrics)
 
             # ── Sonraki adıma hazırlan ──
-            prev_obs = obs
+            prev_obs     = obs
             prev_actions = actions
-            obs = next_obs
-            hidden = new_hidden
+            obs  = next_obs
             step += 1
 
         # ── Kalan buffer'ı da eğit ──
         if len(buffer) > 1:
             with torch.no_grad():
-                x = parse_sumo_observations(obs, device, count_max=_count_max)
-                _, next_value, _ = agent(x, edge_index, hidden)
+                x = parse_sumo_observations(obs, device)
+                _, next_value = agent(x, edge_index)
 
             rollout = buffer.to_dict(edge_index, next_value.detach())
             agent.train()
             losses = train_step(agent, optimizer, rollout, cfg.ppo_epochs)
             total_policy_loss += losses["policy"]
-            total_value_loss += losses["value"]
-            total_entropy += losses["entropy"]
+            total_value_loss  += losses["value"]
+            total_entropy     += losses["entropy"]
             update_count += 1
 
         # ── SUMO kapat ──
@@ -1025,13 +1027,15 @@ def parse_args() -> TrainConfig:
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--clip-eps", type=float, default=0.2)
-    parser.add_argument("--entropy-coef", type=float, default=0.02)
-    parser.add_argument("--value-coef", type=float, default=0.5)
+    parser.add_argument("--entropy-coef", type=float, default=0.005)
+    parser.add_argument("--value-coef", type=float, default=0.25)
 
     # SUMO
     parser.add_argument("--gui", action="store_true",
                         help="SUMO GUI ile çalıştır")
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--log-interval", type=int, default=5,
+                        help="Her N episode'da detaylı log yaz")
 
     # Resume
     parser.add_argument("--resume", action="store_true",
@@ -1060,6 +1064,7 @@ def parse_args() -> TrainConfig:
         gui=args.gui,
         seed=args.seed,
         resume=args.resume,
+        log_interval=args.log_interval,
     )
 
 

@@ -74,7 +74,7 @@ class Telemetry(BaseModel):
 # ==========================================
 # MODEL KONFİGÜRASYONU
 # ==========================================
-NUM_FEATURES = 7
+NUM_FEATURES = 10  # 4 counts + queue + 4 one-hot phase bits + duration
 HIDDEN_DIM = 128
 NUM_ACTIONS = 4
 NUM_NODES = 5
@@ -104,14 +104,13 @@ edge_index = torch.tensor([
 # AI MODEL — Başlangıçta None, startup'ta yüklenir
 # ==========================================
 ai_agent = None
-hidden_state = None  # GRU hidden state — istekler arası korunur
-obs_history: deque = deque(maxlen=500)  # rolling araç sayısı geçmişi — adaptif normalizasyon için
+obs_history: deque = deque(maxlen=500)  # kept for compatibility but unused after fixed-scale normalisation
 last_decisions_cache: list = []  # /last_decisions endpoint için önbellek
 
 
 def load_model():
     """Eğitilmiş model ağırlıklarını diskten yükler."""
-    global ai_agent, hidden_state
+    global ai_agent
 
     agent = CoordinatedPPOAgent(
         num_node_features=NUM_FEATURES,
@@ -144,7 +143,6 @@ def load_model():
                 agent.load_state_dict(state_dict)
                 agent.eval()
                 ai_agent = agent
-                hidden_state = agent.init_hidden(NUM_NODES)
                 logger.info(f"AI modeli yüklendi: {abs_path}")
                 print(f"[OK] AI modeli yuklendi: {abs_path}")
                 return True
@@ -188,9 +186,11 @@ class TelemetryBatch(BaseModel):
 # ==========================================
 @app.post("/telemetry_batch")
 async def receive_telemetry_batch(batch: TelemetryBatch):
-    global hidden_state, obs_history, last_decisions_cache
+    global last_decisions_cache
 
     # 1. Gelen veriyi state_dict'e kaydet
+    # current_phase in the incoming data must be in 0–3 model-action space
+    # (0=N-only, 1=E-only, 2=S-only, 3=W-only), NOT the 0–7 SUMO phase space.
     for data in batch.intersections:
         state_dict[str(data.intersection_id)] = data.dict()
 
@@ -205,7 +205,6 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
             if node:
                 obs_list.append(node)
             else:
-                # Default empty observation for missing intersections
                 obs_list.append({
                     "intersection_id": i,
                     "north_count": 0, "south_count": 0,
@@ -214,23 +213,14 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
                     "current_phase": 0, "phase_duration": 0.0,
                 })
 
-        # Rolling normalisation: bu batch'teki araç sayılarını geçmişe ekle
-        for node in obs_list:
-            obs_history.append(
-                node["north_count"] + node["south_count"] +
-                node["east_count"]  + node["west_count"]
-            )
-        _count_max = float(max(obs_history)) if obs_history else None
-
-        # Normalize data exactly as during training
-        node_features = parse_sumo_observations(obs_list, count_max=_count_max)
+        # Fixed-scale normalisation (matches training)
+        node_features = parse_sumo_observations(obs_list)
 
         with torch.no_grad():
             if _USE_GRAPH:
-                action_probs, _, new_hidden = ai_agent(node_features, edge_index, hidden_state)
+                action_probs, _ = ai_agent(node_features, edge_index)
             else:
-                action_probs, _, new_hidden = ai_agent(node_features, hidden_state)
-            hidden_state = new_hidden
+                action_probs, _ = ai_agent(node_features)
 
             for data in batch.intersections:
                 idx = data.intersection_id
