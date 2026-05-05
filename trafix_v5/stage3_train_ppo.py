@@ -70,6 +70,7 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 
 from trafix_v5 import TraFixV5, NUM_JUNCTIONS
 from scenario_generator import ScenarioGenerator, ScenarioEnvironment
+from trafix_v5 import api as _api
 
 try:
     from backend.ai.train_v2 import TrainConfig
@@ -322,6 +323,9 @@ def train(args: argparse.Namespace):
     logging.info("  TraFix v5 — Stage 3: Full PPO Training")
     logging.info("=" * 60)
 
+    if args.serve:
+        _api.start_server(port=args.port)
+
     torch.manual_seed(args.seed)
     random.seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -464,6 +468,10 @@ def train(args: argparse.Namespace):
                 w_mean = float(x_next[:, 9].mean())  # phase_duration col index 9 after one-hot
                 episode_queues.append(q_mean)
                 episode_waits.append(w_mean)
+
+                if args.serve:
+                    logits_list, _ = model.forward(obs_input)
+                    _api.update_state_batch(x_next, actions_1d, logits_list)
 
                 # ── Buffer ──
                 buffer.add(
@@ -628,6 +636,10 @@ def parse_args() -> argparse.Namespace:
                         help="Freeze pretrained encoders for this many episodes (0=no freeze)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--gui", action="store_true")
+    parser.add_argument("--serve", action="store_true",
+                        help="FastAPI dashboard sunucusunu başlat (http://localhost:PORT)")
+    parser.add_argument("--port", type=int, default=8000,
+                        help="Dashboard sunucu portu (--serve ile kullanılır)")
     return parser.parse_args()
 
 

@@ -8,6 +8,8 @@ Usage:
   python eval_stage3.py
   python eval_stage3.py --checkpoint checkpoints/stage3_ep600.pt --scenarios 10
   python eval_stage3.py --checkpoint checkpoints/trafix_v5_final.pt --greedy --gui
+  python eval_stage3.py --checkpoint checkpoints/stage3_ep1200.pt --scenarios 5 --serve
+  python eval_stage3.py --checkpoint checkpoints/stage3_ep1200.pt --scenarios 5 --serve --port 8001
 """
 
 import os
@@ -53,6 +55,7 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 
 from trafix_v5 import TraFixV5, NUM_JUNCTIONS
 from scenario_generator import ScenarioGenerator, ScenarioEnvironment
+from trafix_v5 import api as _api
 
 try:
     from backend.ai.train_v2 import TrainConfig
@@ -95,6 +98,7 @@ def run_episode(
     device: torch.device,
     episode_idx: int,
     greedy: bool,
+    serve: bool = False,
 ) -> Dict[str, float]:
     """Run one evaluation episode; return per-episode metrics."""
     env.start(episode=episode_idx)
@@ -115,8 +119,8 @@ def run_episode(
     with torch.no_grad():
         while not done:
             window_tensor = torch.stack(list(window)).unsqueeze(0).to(device)  # [1,T,J,d]
+            logits_list, value = model.forward(window_tensor)
             if greedy:
-                logits_list, value = model.forward(window_tensor)
                 actions_1d = torch.stack([l.argmax(dim=-1) for l in logits_list], dim=1).squeeze(0)  # [J]
             else:
                 actions, _lp, value = model.get_action(window_tensor)
@@ -135,6 +139,9 @@ def run_episode(
             rewards.append(reward.mean().item())
             queues.append(float(x_next[:, 4].mean()))
             waits.append(float(x_next[:, 9].mean()))
+
+            if serve:
+                _api.update_state_batch(x_next, actions_1d, logits_list)
 
             prev_obs = next_obs_list
             prev_actions = actions_1d
@@ -174,6 +181,9 @@ def evaluate(args: argparse.Namespace):
     logging.info(f"  Total params: {sum(p.numel() for p in model.parameters()):,}")
     logging.info(f"  Mode: {'greedy' if args.greedy else 'stochastic'}")
 
+    if args.serve:
+        _api.start_server(port=args.port)
+
     # ── Environment setup ──
     env_cfg = TrainConfig()
     env_cfg.sumo_cfg = args.sumo_cfg
@@ -205,7 +215,7 @@ def evaluate(args: argparse.Namespace):
         scenario_types.append(scenario_type.value)
 
         try:
-            metrics = run_episode(model, env, device, episode_idx=i, greedy=args.greedy)
+            metrics = run_episode(model, env, device, episode_idx=i, greedy=args.greedy, serve=args.serve)
         except Exception as e:
             logging.warning(f"  Scenario {i} ({scenario_type.value}) failed: {e}")
             env.close()
@@ -255,6 +265,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gui", action="store_true",
                         help="Open SUMO GUI for visual inspection")
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--serve", action="store_true",
+                        help="FastAPI dashboard sunucusunu başlat (http://localhost:PORT)")
+    parser.add_argument("--port", type=int, default=8000,
+                        help="Dashboard sunucu portu (--serve ile kullanılır)")
     return parser.parse_args()
 
 

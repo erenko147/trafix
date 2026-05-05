@@ -1,8 +1,8 @@
 # TraFix — CPU kurulumu
 # pip install -r requirements-cpu.txt
 
-torch==2.11.0
-torch-geometric==2.7.0
+torch==2.6.0
+torch-geometric==2.6.1
 
 fastapi
 uvicorn[standard]

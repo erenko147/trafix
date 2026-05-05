@@ -458,7 +458,13 @@ class ScenarioEnvironment:
                 f"{'=' * 60}"
             )
 
-        sumo_binary = "sumo-gui" if cfg.gui else "sumo"
+        import platform
+        if cfg.gui and platform.system() == "Darwin":
+            sumo_binary = "/Applications/SUMO sumo-gui.app/Contents/MacOS/SUMO sumo-gui"
+        elif cfg.gui:
+            sumo_binary = "sumo-gui"
+        else:
+            sumo_binary = "sumo"
         sumo_cmd = [
             sumo_binary,
             "-c", cfg_path,
