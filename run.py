@@ -20,9 +20,9 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument(
     "--model",
-    choices=["v2", "v3", "simple"],
+    choices=["v2", "v3", "simple", "v5"],
     default="v2",
-    help="AI model versiyonu: simple (demo), v2 (GCN+GRU), v3 (GConvGRU)",
+    help="AI model versiyonu: simple (demo), v2 (GCN+GRU), v3 (GConvGRU), v5 (GRU+GAT PPO)",
 )
 parser.add_argument("--host", default="127.0.0.1", help="Sunucu adresi")
 parser.add_argument("--port", type=int, default=8000, help="Port numarası")
@@ -38,7 +38,7 @@ os.environ["TRAFIX_MODEL_VERSION"] = args.model
 print(f"[TraFix] Model: {args.model.upper()} | {args.host}:{args.port}")
 
 uvicorn.run(
-    "backend.main:app",
+    "main:app",
     host=args.host,
     port=args.port,
     reload=args.reload,

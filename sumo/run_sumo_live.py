@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import argparse
 import requests
 
 # SUMO_HOME kontrolü ve kütüphane yolunun eklenmesi
@@ -16,7 +17,13 @@ import warnings
 # TraCI'nin kendi icindeki gereksiz deprecation uyarisini gizle
 warnings.filterwarnings("ignore", category=UserWarning, module="traci")
 
-API_URL = "http://127.0.0.1:8000/telemetry"
+_parser = argparse.ArgumentParser(add_help=False)
+_parser.add_argument("sumocfg", nargs="?", default=None)
+_parser.add_argument("--no-gui", action="store_true")
+_args, _ = _parser.parse_known_args()
+
+_api_port = int(os.environ.get("TRAFIX_API_PORT", "8000"))
+API_URL = f"http://127.0.0.1:{_api_port}/telemetry"
 
 
 def get_incoming_edges_for_tls(tls_id):
@@ -79,16 +86,16 @@ def build_intersection_map():
 
 
 def main():
-    sumo_cfg = os.path.join(os.path.dirname(__file__), "demo.sumocfg")
-    
+    sumo_cfg = _args.sumocfg or os.path.join(os.path.dirname(__file__), "demo.sumocfg")
+
     if not os.path.exists(sumo_cfg):
         print(f"HATA: SUMO config dosyası bulunamadı: {sumo_cfg}")
         sys.exit(1)
 
-    print("🚦 TraFix <-> SUMO Canlı Bağlantısı Başlatılıyor...")
-    
-    # SUMO'yu GUI ile başlat
-    traci_cmd = ["sumo-gui", "-c", sumo_cfg]
+    print(f"[SUMO] TraFix <-> SUMO Canli Baglantisi Baslatiliyor... (API={API_URL})")
+
+    sumo_bin = "sumo" if _args.no_gui else "sumo-gui"
+    traci_cmd = [sumo_bin, "-c", sumo_cfg]
     traci.start(traci_cmd)
     
     # Kavşak topolojisini çıkar

@@ -22,14 +22,27 @@ if _MODEL_VERSION == "v3":
     from backend.ai.trafix_v3 import CoordinatedPPOAgent, parse_sumo_observations
     _WEIGHT_FILENAME = "coordinated_agent_weights_v3.pth"
     _USE_GRAPH = True
+    _USE_V5 = False
 elif _MODEL_VERSION == "simple":
     from backend.ai.trafix_simple import SimplePPOAgent as CoordinatedPPOAgent, parse_sumo_observations
     _WEIGHT_FILENAME = "coordinated_agent_weights_simple.pth"
     _USE_GRAPH = False
+    _USE_V5 = False
+elif _MODEL_VERSION == "v5":
+    import sys as _sys, os as _os
+    _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(__file__))))
+    from trafix_v5.trafix_v5 import TraFixV5
+    from trafix_v5.rule_governor import RuleGovernor
+    from backend.ai.trafix_v2 import parse_sumo_observations
+    _WEIGHT_FILENAME = "trafix_v5/checkpoints/trafix_v5_final.pt"
+    _USE_GRAPH = False
+    _USE_V5 = True
+    CoordinatedPPOAgent = None  # unused for v5
 else:  # v2 default
     from backend.ai.trafix_v2 import CoordinatedPPOAgent, parse_sumo_observations
     _WEIGHT_FILENAME = "coordinated_agent_weights.pth"
     _USE_GRAPH = True
+    _USE_V5 = False
 
 logger = logging.getLogger("trafix")
 
@@ -107,10 +120,54 @@ ai_agent = None
 obs_history: deque = deque(maxlen=500)  # kept for compatibility but unused after fixed-scale normalisation
 last_decisions_cache: list = []  # /last_decisions endpoint için önbellek
 
+# v5-specific: sliding temporal window [T, 5, obs_dim]
+_V5_T_WINDOW = 10
+_v5_window: deque = deque(maxlen=_V5_T_WINDOW)
+_v5_governor: "RuleGovernor | None" = None
+
 
 def load_model():
     """Eğitilmiş model ağırlıklarını diskten yükler."""
     global ai_agent
+
+    base_dir = os.path.dirname(__file__)
+    project_root = os.path.dirname(base_dir)
+
+    print(f"[INFO] Model versiyonu: {_MODEL_VERSION.upper()} | Aranan ağırlık: {_WEIGHT_FILENAME}")
+
+    if _USE_V5:
+        global _v5_governor
+        weight_paths = [
+            os.path.join(project_root, _WEIGHT_FILENAME),
+            _WEIGHT_FILENAME,
+        ]
+        agent = TraFixV5(obs_dim=NUM_FEATURES, num_phases=NUM_ACTIONS)
+        for path in weight_paths:
+            abs_path = os.path.abspath(path)
+            if os.path.exists(abs_path):
+                try:
+                    ckpt = torch.load(abs_path, map_location="cpu", weights_only=True)
+                    state = ckpt.get("model_state_dict", ckpt)
+                    agent.load_state_dict(state)
+                    agent.eval()
+                    ai_agent = agent
+                    _v5_governor = RuleGovernor(
+                        num_junctions=NUM_NODES,
+                        num_phases=NUM_ACTIONS,
+                        min_green_s=10.0,
+                        max_green_s=90.0,
+                        flicker_window=2,
+                        flicker_penalty=3.0,
+                        pressure_boost=1.0,
+                    )
+                    print(f"[OK] TraFixV5 modeli yuklendi: {abs_path}")
+                    print(f"[OK] RuleGovernor aktif (min_green=10s, max_green=90s)")
+                    return True
+                except RuntimeError as e:
+                    print(f"[WARN] V5 agirlik dosyasi uyumsuz: {abs_path} — {e}")
+                    continue
+        print("[WARN] TraFixV5 agirlik dosyasi bulunamadi. Heuristic fallback aktif olacak.")
+        return False
 
     agent = CoordinatedPPOAgent(
         num_node_features=NUM_FEATURES,
@@ -120,17 +177,14 @@ def load_model():
     )
 
     # Olası weight dosya yolları (öncelik sırasıyla)
-    base_dir = os.path.dirname(__file__)
     weight_paths = [
         os.path.join(base_dir, "ai", _WEIGHT_FILENAME),
         os.path.join(base_dir, "..", _WEIGHT_FILENAME),
         _WEIGHT_FILENAME,
-        # fallback to legacy names
         os.path.join(base_dir, "ai", "core_agent_weights.pth"),
         os.path.join(base_dir, "..", "core_agent_weights.pth"),
         "core_agent_weights.pth",
     ]
-    print(f"[INFO] Model versiyonu: {_MODEL_VERSION.upper()} | Aranan ağırlık: {_WEIGHT_FILENAME}")
 
     for path in weight_paths:
         abs_path = os.path.abspath(path)
@@ -214,14 +268,35 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
                 })
 
         # Fixed-scale normalisation (matches training)
-        node_features = parse_sumo_observations(obs_list)
+        node_features = parse_sumo_observations(obs_list)  # [5, obs_dim]
 
         with torch.no_grad():
-            if _USE_GRAPH:
+            if _USE_V5:
+                # Maintain temporal window and run TraFixV5
+                if len(_v5_window) == 0:
+                    for _ in range(_V5_T_WINDOW):
+                        _v5_window.append(node_features.detach())
+                else:
+                    _v5_window.append(node_features.detach())
+                # [1, T, 5, obs_dim]
+                window_tensor = torch.stack(list(_v5_window)).unsqueeze(0)
+                logits_list, _ = ai_agent(window_tensor)
+
+                # Apply governor rules to logits
+                obs_last = window_tensor[0, -1]  # [J, obs_dim]
+                if _v5_governor is not None:
+                    logits_list = _v5_governor.apply(logits_list, obs_last)
+
+                # Stack softmax probs to [5, num_phases]
+                action_probs = torch.stack(
+                    [torch.softmax(l, dim=-1).squeeze(0) for l in logits_list], dim=0
+                )
+            elif _USE_GRAPH:
                 action_probs, _ = ai_agent(node_features, edge_index)
             else:
                 action_probs, _ = ai_agent(node_features)
 
+            chosen_phases = []
             for data in batch.intersections:
                 idx = data.intersection_id
                 if 0 <= idx < action_probs.shape[0]:
@@ -230,6 +305,7 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
                 else:
                     next_phase = data.current_phase
                     confidence = 0.0
+                chosen_phases.append(next_phase)
                 decisions.append({
                     "intersection_id": idx,
                     "next_phase": next_phase,
@@ -237,6 +313,11 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
                     "total_vehicles": data.north_count + data.south_count + data.east_count + data.west_count,
                     "queue_length": round(data.queue_length, 1),
                 })
+
+            # Update governor state so anti-flicker tracks this step
+            if _USE_V5 and _v5_governor is not None:
+                chosen_tensor = torch.tensor(chosen_phases, dtype=torch.long)
+                _v5_governor.update_state(chosen_tensor)
 
         last_decisions_cache = decisions
         return {"decisions": decisions}

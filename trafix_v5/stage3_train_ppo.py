@@ -70,6 +70,7 @@ sys.path.insert(0, str(_PROJECT_ROOT))
 
 from trafix_v5 import TraFixV5, NUM_JUNCTIONS
 from scenario_generator import ScenarioGenerator, ScenarioEnvironment
+from rule_governor import RuleGovernor, sample_governed, evaluate_governed
 
 try:
     from backend.ai.train_v2 import TrainConfig
@@ -174,6 +175,7 @@ def ppo_update(
     max_log_ratio: float = 2.0,
     value_clip_eps: float = 0.2,
     target_kl: float = 0.015,
+    governor: RuleGovernor = None,
 ) -> Dict[str, float]:
     """Runs ppo_epochs passes with ratio clamping, value clipping, KL early stop."""
 
@@ -215,8 +217,14 @@ def ppo_update(
             mb_ret     = returns[idx]            # [mb, J]
             mb_old_val = old_val_batch[idx]      # [mb]
 
-            # Evaluate under current policy
-            new_lp, ent, value = model.evaluate_actions(mb_obs, mb_acts)
+            # Evaluate under current policy (with governor mask if available)
+            if governor is not None:
+                logits_list, value = model.forward(mb_obs)
+                obs_last_batch = mb_obs[:, -1, :, :]  # [mb, J, obs_dim]
+                masked_logits = governor.apply_stateless_batch(logits_list, obs_last_batch)
+                new_lp, ent = evaluate_governed(masked_logits, mb_acts)
+            else:
+                new_lp, ent, value = model.evaluate_actions(mb_obs, mb_acts)
             # new_lp: [mb, J], ent: [mb, J], value: [mb, 1]
 
             # Clamp log-ratio before exp to prevent ratio explosion
@@ -384,6 +392,17 @@ def train(args: argparse.Namespace):
         seed=None,
     )
 
+    # Rule governor — shared instance, reset each episode
+    governor = RuleGovernor(
+        num_junctions=NUM_JUNCTIONS,
+        num_phases=NUM_PHASES,
+        min_green_s=float(env_cfg.decision_interval),  # at least one decision interval
+        max_green_s=90.0,
+        flicker_window=2,
+        flicker_penalty=3.0,
+        pressure_boost=1.0,
+    )
+
     reward_history = deque(maxlen=50)
     best_reward = -math.inf
 
@@ -416,6 +435,8 @@ def train(args: argparse.Namespace):
 
         model.train()
 
+        governor.reset()
+
         try:
             env.start(episode=episode)
             num_nodes = env.num_nodes
@@ -438,12 +459,16 @@ def train(args: argparse.Namespace):
                 window_tensor = torch.stack(list(window))           # [T, J, obs_dim]
                 obs_input = window_tensor.unsqueeze(0).to(device)   # [1, T, J, obs_dim]
 
-                # ── Select actions ──
+                # ── Select actions (governor-masked) ──
                 with torch.no_grad():
-                    actions, log_probs, value = model.get_action(obs_input)
+                    logits_list, value = model.forward(obs_input)
+                    obs_last = obs_input[0, -1]  # [J, obs_dim]
+                    masked_logits = governor.apply(logits_list, obs_last)
+                    actions, log_probs = sample_governed(masked_logits)
                     # actions: [1, J], log_probs: [1, J], value: [1, 1]
 
                 actions_1d = actions.squeeze(0)   # [J] for env
+                governor.update_state(actions_1d)
 
                 # ── Step environment ──
                 next_obs_list, done = env.step(actions_1d)
@@ -481,7 +506,7 @@ def train(args: argparse.Namespace):
                     ).unsqueeze(0).to(device)
 
                     with torch.no_grad():
-                        _, _, next_val = model.get_action(next_window)
+                        _, next_val = model.forward(next_window)
 
                     step_metrics = ppo_update(
                         model=model,
@@ -499,15 +524,18 @@ def train(args: argparse.Namespace):
                         max_log_ratio=args.max_log_ratio,
                         value_clip_eps=args.value_clip_eps,
                         target_kl=args.target_kl,
+                        governor=governor,
                     )
                     for k in ppo_metrics:
                         ppo_metrics[k] += step_metrics[k]
                     update_count += 1
                     buffer.clear()
 
-                # Track per-junction entropy
+                # Track per-junction entropy from masked distribution
                 with torch.no_grad():
-                    _, ent, _ = model.evaluate_actions(obs_input, actions)
+                    logits_list_ent, _ = model.forward(obs_input)
+                    masked_ent = governor.apply_stateless(logits_list_ent, obs_last)
+                    _, ent = evaluate_governed(masked_ent, actions)
                 episode_entropies.append(ent.squeeze(0).detach())  # [J]
 
                 prev_obs = next_obs_list
@@ -520,7 +548,7 @@ def train(args: argparse.Namespace):
                     list(window)[-(T_WINDOW - 1):] + [x_next.detach()]
                 ).unsqueeze(0).to(device)
                 with torch.no_grad():
-                    _, _, next_val = model.get_action(next_window)
+                    _, next_val = model.forward(next_window)
 
                 step_metrics = ppo_update(
                     model=model,
@@ -538,6 +566,7 @@ def train(args: argparse.Namespace):
                     max_log_ratio=args.max_log_ratio,
                     value_clip_eps=args.value_clip_eps,
                     target_kl=args.target_kl,
+                    governor=governor,
                 )
                 for k in ppo_metrics:
                     ppo_metrics[k] += step_metrics[k]
