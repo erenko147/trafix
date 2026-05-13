@@ -281,13 +281,15 @@ def ppo_update(
 #  Checkpoint kayıt
 # ══════════════════════════════════════════════════
 
-def save_checkpoint(model: TraFixV5, optimizer: optim.Optimizer, episode: int, path: Path):
+def save_checkpoint(model: TraFixV5, optimizer: optim.Optimizer, episode: int, path: Path,
+                    best_reward: float = -math.inf):
     path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
         {
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "episode": episode,
+            "best_reward": best_reward,
         },
         str(path),
     )
@@ -299,19 +301,24 @@ def save_checkpoint(model: TraFixV5, optimizer: optim.Optimizer, episode: int, p
 
 def train(args: argparse.Namespace):
     # ── Prerequisite checks ──
-    missing = []
-    if not STAGE1_CHECKPOINT.exists():
-        missing.append(f"  stage1_gru.pt missing: {STAGE1_CHECKPOINT}")
-    if not STAGE2_GATCONV_CHECKPOINT.exists():
-        missing.append(f"  stage2_gatconv.pt missing: {STAGE2_GATCONV_CHECKPOINT}")
-    if not STAGE2_TRUNK_CHECKPOINT.exists():
-        missing.append(f"  stage2_trunk.pt missing: {STAGE2_TRUNK_CHECKPOINT}")
-    if missing:
-        sys.exit(
-            "Stage 1 and Stage 2 checkpoints not found. "
-            "Run stage1_pretrain_gru.py and stage2_pretrain_gatconv.py first.\n"
-            + "\n".join(missing)
-        )
+    if args.resume:
+        resume_path = Path(args.resume)
+        if not resume_path.exists():
+            sys.exit(f"Resume checkpoint not found: {resume_path}")
+    else:
+        missing = []
+        if not STAGE1_CHECKPOINT.exists():
+            missing.append(f"  stage1_gru.pt missing: {STAGE1_CHECKPOINT}")
+        if not STAGE2_GATCONV_CHECKPOINT.exists():
+            missing.append(f"  stage2_gatconv.pt missing: {STAGE2_GATCONV_CHECKPOINT}")
+        if not STAGE2_TRUNK_CHECKPOINT.exists():
+            missing.append(f"  stage2_trunk.pt missing: {STAGE2_TRUNK_CHECKPOINT}")
+        if missing:
+            sys.exit(
+                "Stage 1 and Stage 2 checkpoints not found. "
+                "Run stage1_pretrain_gru.py and stage2_pretrain_gatconv.py first.\n"
+                + "\n".join(missing)
+            )
 
     CHECKPOINTS_DIR.mkdir(parents=True, exist_ok=True)
     logs_dir = _SCRIPT_DIR / "logs"
@@ -338,20 +345,6 @@ def train(args: argparse.Namespace):
     # ── Model ──
     model = TraFixV5(obs_dim=OBS_DIM, num_phases=NUM_PHASES).to(device)
 
-    # Load pretrained weights in order: GRU → GATConv → trunk
-    model.temporal_enc.load_state_dict(
-        torch.load(str(STAGE1_CHECKPOINT), map_location=device, weights_only=True)
-    )
-    model.graph_enc.load_state_dict(
-        torch.load(str(STAGE2_GATCONV_CHECKPOINT), map_location=device, weights_only=True)
-    )
-    model.trunk.load_state_dict(
-        torch.load(str(STAGE2_TRUNK_CHECKPOINT), map_location=device, weights_only=True)
-    )
-    logging.info("  Pretrained weights loaded: GRU, GATConv, trunk")
-    logging.info(f"  Actor heads and critic head: randomly initialized")
-    logging.info(f"  Total params: {sum(p.numel() for p in model.parameters()):,}")
-
     # ── Differential learning rates ──
     optimizer = optim.Adam(
         [
@@ -365,13 +358,41 @@ def train(args: argparse.Namespace):
     # Store base LRs for cosine decay
     base_lrs = [pg["lr"] for pg in optimizer.param_groups]
 
+    start_episode = 0
+    best_reward = -math.inf
+
+    if args.resume:
+        ckpt = torch.load(args.resume, map_location=device, weights_only=True)
+        model.load_state_dict(ckpt["model_state_dict"])
+        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+        start_episode = ckpt["episode"] + 1
+        best_reward = ckpt.get("best_reward", -math.inf)
+        logging.info(f"  Resumed from {args.resume} (episode {ckpt['episode']})")
+        logging.info(f"  Continuing from episode {start_episode}/{args.episodes}")
+    else:
+        # Load pretrained weights in order: GRU → GATConv → trunk
+        model.temporal_enc.load_state_dict(
+            torch.load(str(STAGE1_CHECKPOINT), map_location=device, weights_only=True)
+        )
+        model.graph_enc.load_state_dict(
+            torch.load(str(STAGE2_GATCONV_CHECKPOINT), map_location=device, weights_only=True)
+        )
+        model.trunk.load_state_dict(
+            torch.load(str(STAGE2_TRUNK_CHECKPOINT), map_location=device, weights_only=True)
+        )
+        logging.info("  Pretrained weights loaded: GRU, GATConv, trunk")
+        logging.info(f"  Actor heads and critic head: randomly initialized")
+
+    logging.info(f"  Total params: {sum(p.numel() for p in model.parameters()):,}")
+
     # ── Optional encoder freeze (warm start) ──
-    if args.freeze_episodes > 0:
+    # Only freeze if we haven't yet reached the unfreeze point
+    if args.freeze_episodes > 0 and start_episode < args.freeze_episodes:
         for p in model.temporal_enc.parameters():
             p.requires_grad_(False)
         for p in model.graph_enc.parameters():
             p.requires_grad_(False)
-        logging.info(f"  Pretrained encoders frozen for first {args.freeze_episodes} episodes")
+        logging.info(f"  Pretrained encoders frozen until episode {args.freeze_episodes}")
 
     # ── SUMO environment ──
     env_cfg = TrainConfig()
@@ -404,9 +425,8 @@ def train(args: argparse.Namespace):
     )
 
     reward_history = deque(maxlen=50)
-    best_reward = -math.inf
 
-    for episode in range(args.episodes):
+    for episode in range(start_episode, args.episodes):
         # ── Unfreeze pretrained encoders after warm-up ──
         if args.freeze_episodes > 0 and episode == args.freeze_episodes:
             for p in model.temporal_enc.parameters():
@@ -463,8 +483,14 @@ def train(args: argparse.Namespace):
                 with torch.no_grad():
                     logits_list, value = model.forward(obs_input)
                     obs_last = obs_input[0, -1]  # [J, obs_dim]
-                    masked_logits = governor.apply(logits_list, obs_last)
-                    actions, log_probs = sample_governed(masked_logits)
+                    # Sample with full governor (flicker penalty guides exploration)
+                    masked_full = governor.apply(logits_list, obs_last)
+                    actions, _ = sample_governed(masked_full)
+                    # Store log_probs under stateless governor so the IS ratio
+                    # exp(new_lp - old_lp) is consistent with ppo_update, which
+                    # also evaluates under the stateless distribution.
+                    masked_sl = governor.apply_stateless(logits_list, obs_last)
+                    log_probs, _ = evaluate_governed(masked_sl, actions)
                     # actions: [1, J], log_probs: [1, J], value: [1, 1]
 
                 actions_1d = actions.squeeze(0)   # [J] for env
@@ -543,18 +569,15 @@ def train(args: argparse.Namespace):
                 window.append(x_next.detach())
 
             # ── Flush remaining buffer ──
-            if len(buffer) > 1:
-                next_window = torch.stack(
-                    list(window)[-(T_WINDOW - 1):] + [x_next.detach()]
-                ).unsqueeze(0).to(device)
-                with torch.no_grad():
-                    _, next_val = model.forward(next_window)
+            if len(buffer) >= 1:
+                # Terminal state: bootstrap value is 0, not the model's prediction.
+                next_val = torch.zeros(1, device=device)
 
                 step_metrics = ppo_update(
                     model=model,
                     optimizer=optimizer,
                     buffer=buffer,
-                    next_value=next_val.squeeze(0),
+                    next_value=next_val,
                     clip_eps=args.clip_eps,
                     gamma=args.gamma,
                     gae_lambda=args.gae_lambda,
@@ -611,11 +634,11 @@ def train(args: argparse.Namespace):
         # ── Periodic checkpoint ──
         if (episode + 1) % 100 == 0:
             ckpt_path = CHECKPOINTS_DIR / f"stage3_ep{episode + 1}.pt"
-            save_checkpoint(model, optimizer, episode, ckpt_path)
+            save_checkpoint(model, optimizer, episode, ckpt_path, best_reward)
             logging.info(f"  → Checkpoint saved: {ckpt_path}")
 
     # ── Final checkpoint ──
-    save_checkpoint(model, optimizer, args.episodes - 1, FINAL_CHECKPOINT)
+    save_checkpoint(model, optimizer, args.episodes - 1, FINAL_CHECKPOINT, best_reward)
     logging.info(f"  Final model saved → {FINAL_CHECKPOINT}")
     logging.info(f"  Best episode reward: {best_reward:.6f}")
     print("Stage 3 complete. Final model saved.")
@@ -657,6 +680,8 @@ def parse_args() -> argparse.Namespace:
                         help="Freeze pretrained encoders for this many episodes (0=no freeze)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--gui", action="store_true")
+    parser.add_argument("--resume", type=str, default=None,
+                        help="Path to a stage3 checkpoint to resume from")
     return parser.parse_args()
 
 
