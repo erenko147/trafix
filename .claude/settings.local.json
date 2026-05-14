@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(Get-Process *)"
+      "PowerShell(Get-Process *)",
+      "Bash(python *)"
     ]
   }
 }

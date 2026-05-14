@@ -275,7 +275,7 @@ class CoordinatedPPOAgent(nn.Module):
 # ══════════════════════════════════════════════════
 
 _GREEN_WAVE_EDGES: List[Tuple[int, int]] = [(0, 1), (1, 2), (1, 3), (3, 4)]
-_PLATOON_THRESHOLD: int = 20
+_PLATOON_THRESHOLD: int = 5   # tüm 4 yön için daha düşük eşik (eski: 20)
 
 
 @dataclass
@@ -294,19 +294,25 @@ def _intersection_total(o: Dict) -> int:
 
 
 def _compute_green_wave(cur: List[Dict], prev: Optional[List[Dict]]) -> float:
-    """Global cross-junction green wave score (distributed evenly to all nodes)."""
+    """
+    Global cross-junction green wave score (distributed evenly to all nodes).
+
+    Tüm 4 model fazını (N=0, E=1, S=2, W=3) değerlendirir.
+    Kaynak kavşakta yeterli araç varsa ve downstream kavşak aynı
+    yeşil fazındaysa (aynı yön) platoon geçişi ödüllendirilir.
+    """
     score = 0.0
     for (src_id, dst_id) in _GREEN_WAVE_EDGES:
         src = cur[src_id]
         dst = cur[dst_id]
-        src_total    = _intersection_total(src)
-        src_phase    = src["current_phase"]
-        dst_phase    = dst["current_phase"]
-        src_is_green = src_phase in (0, 2)
-        dst_aligned  = dst_phase in (0, 2) and (dst_phase % 2 == src_phase % 2)
-        has_platoon  = src_total >= _PLATOON_THRESHOLD
+        src_total  = _intersection_total(src)
+        src_phase  = src["current_phase"]   # model space: 0=N, 1=E, 2=S, 3=W
+        dst_phase  = dst["current_phase"]
+        has_platoon = src_total >= _PLATOON_THRESHOLD
+        # Tüm model fazları yeşil fazdır; downstream aynı yön yeşilindeyse hizalı
+        dst_aligned = dst_phase == src_phase
 
-        if has_platoon and src_is_green and dst_aligned:
+        if has_platoon and dst_aligned:
             base = min(src_total / _PLATOON_THRESHOLD, 2.0)
             score += base
             if prev is not None:

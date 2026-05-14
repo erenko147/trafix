@@ -102,113 +102,128 @@ def main():
     intersections = build_intersection_map()
     tls_ids = sorted(list(intersections.keys()))
     
-    DECISION_INTERVAL = 10      # Eğitimle aynı: her 10 sn'de bir karar (train_v2.py decision_interval)
-    MIN_GREEN_TIME    = 10      # Bir green fazı en az 10 sn aktif kalmalı (araç geçişi için)
+    # Eğitimle (train_v2.py) aynı parametreler:
+    # Model action → SUMO green phase: action * 2  (0→0, 1→2, 2→4, 3→6)
+    # SUMO phase   → model phase:      sumo // 2   (0→0, 1→0, 2→1, 3→1, ...)
+    # Green fazlar: çift indeks (0, 2, 4, 6) | Sarı fazlar: tek indeks (1, 3, 5, 7)
+    DECISION_INTERVAL = 10
+    MIN_GREEN_TIME    = 10
+    YELLOW_STEPS      = 3   # train_v2.py ile aynı sarı geçiş süresi
 
     step = 0
-    # Her kavşak için son faz değişim zamanını takip et
     last_phase_change_step = {tls_id: -MIN_GREEN_TIME for tls_id in traci.trafficlight.getIDList()}
+    # Sarı geçiş yönetimi (train_v2.py apply_actions mantığı)
+    pending_targets:   dict = {}  # tls_id → hedef SUMO green faz
+    yellow_remaining:  dict = {}  # tls_id → kalan sarı adım sayısı
 
     try:
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.simulationStep()
             step += 1
 
-            # Eğitimle aynı karar aralığı: her 10 adımda bir (1 adım = 1 sn)
+            # Her adımda: bekleyen sarı geçişleri işle (train_v2.py adım döngüsü gibi)
+            for tls_id, rem in list(yellow_remaining.items()):
+                rem -= 1
+                if rem <= 0:
+                    try:
+                        traci.trafficlight.setPhase(tls_id, pending_targets.pop(tls_id))
+                    except Exception:
+                        pass
+                    yellow_remaining.pop(tls_id, None)
+                else:
+                    yellow_remaining[tls_id] = rem
+
+            # Karar aralığı dolmadıysa gözlem/API adımını atla
             if step % DECISION_INTERVAL != 0:
                 continue
-                
+
             batch_payload = {"step": step, "intersections": []}
 
             for i, tls_id in enumerate(tls_ids):
                 dirs = intersections[tls_id]
-                
-                # Araç sayıları
+
                 nc = int(traci.edge.getLastStepVehicleNumber(dirs["north"])) if dirs["north"] else 0
                 sc = int(traci.edge.getLastStepVehicleNumber(dirs["south"])) if dirs["south"] else 0
-                ec = int(traci.edge.getLastStepVehicleNumber(dirs["east"])) if dirs["east"] else 0
-                wc = int(traci.edge.getLastStepVehicleNumber(dirs["west"])) if dirs["west"] else 0
-                
-                # Kuyruk uzunlukları (Bekleme sürelerinden tahmini veya getWaitingTime)
+                ec = int(traci.edge.getLastStepVehicleNumber(dirs["east"]))  if dirs["east"]  else 0
+                wc = int(traci.edge.getLastStepVehicleNumber(dirs["west"]))  if dirs["west"]  else 0
+
                 total_wait = 0.0
                 for edge in dirs.values():
                     if edge:
                         try:
                             total_wait += float(traci.edge.getWaitingTime(edge))
-                        except:
+                        except Exception:
                             pass
-                
-                # Faz dönüşümleri
+
                 try:
                     curr_sumo_phase = int(traci.trafficlight.getPhase(tls_id))
-                    api_phase = curr_sumo_phase
+                    # Eğitimle uyumlu: SUMO 8-faz → model 4-faz (sarı fazlar önceki yeşile dahil)
+                    api_phase = curr_sumo_phase // 2
 
-                    # Eğitimle uyumlu: bu fazın ne kadardır aktif olduğunu (elapsed time) raporla
-                    # getCompleteRedYellowGreenDefinition -> programlı maksimum süre (eğitimde KULLANILMIYOR)
                     prog_duration = traci.trafficlight.getPhaseDuration(tls_id)
                     next_switch   = traci.trafficlight.getNextSwitch(tls_id)
                     sim_time      = traci.simulation.getTime()
                     elapsed       = prog_duration - max(0.0, next_switch - sim_time)
                     phase_duration = max(0.0, elapsed)
-                except:
-                    api_phase = 0
+                except Exception:
+                    api_phase      = 0
                     curr_sumo_phase = 0
                     phase_duration = 0.0
-                
-                payload = {
+
+                batch_payload["intersections"].append({
                     "intersection_id": i,
                     "north_count": nc,
                     "south_count": sc,
-                    "east_count": ec,
-                    "west_count": wc,
-                    "queue_length": min(200.0, total_wait / 10.0), # normalize
+                    "east_count":  ec,
+                    "west_count":  wc,
+                    "queue_length": min(200.0, total_wait / 10.0),
                     "current_phase": api_phase,
-                    "phase_duration": phase_duration
-                }
-                batch_payload["intersections"].append(payload)
-                
-            # API'ye Toplu Gönder
+                    "phase_duration": phase_duration,
+                })
+
             try:
-                # Update URL if API_URL points to /telemetry directly
-                # (Assumes we use /telemetry_batch now locally)
                 batch_url = API_URL.replace("/telemetry", "/telemetry_batch")
                 res = requests.post(batch_url, json=batch_payload, timeout=0.5)
                 if res.status_code == 200:
                     decisions = res.json().get("decisions", [])
                     for decision in decisions:
                         tls_idx = decision["intersection_id"]
-                        if tls_idx < len(tls_ids):
-                            tls_id = tls_ids[tls_idx]
-                            target_sumo_phase = decision["next_phase"]
-                            try:
-                                current_p = int(traci.trafficlight.getPhase(tls_id))
-                                if target_sumo_phase == current_p:
+                        if tls_idx >= len(tls_ids):
+                            continue
+                        tls_id = tls_ids[tls_idx]
+
+                        # Sarı geçiş devam ediyorsa bu kararı atla
+                        if yellow_remaining.get(tls_id, 0) > 0:
+                            continue
+
+                        # Model 4-faz → SUMO 8-faz green (0,2,4,6)
+                        target_sumo_phase = decision["next_phase"] * 2
+
+                        try:
+                            current_p    = int(traci.trafficlight.getPhase(tls_id))
+                            current_green = current_p & ~1  # çift faza yuvarla (yeşil)
+
+                            if target_sumo_phase == current_green:
+                                # Timer'ı sıfırla — SUMO'nun otomatik sarı geçişini engelle
+                                traci.trafficlight.setPhase(tls_id, current_green)
+                                continue
+
+                            # Minimum yeşil süre kontrolü (sadece yeşil fazlarda)
+                            if current_p % 2 == 0:
+                                if step - last_phase_change_step.get(tls_id, 0) < MIN_GREEN_TIME:
                                     continue
 
-                                # MİNİMUM YEŞİL SÜRE KONTROLÜ
-                                # Green fazları (0=NS Green, 2=EW Green) en az MIN_GREEN_TIME
-                                # saniye aktif kalmadan değiştirilemez. Yellow fazları (1, 3)
-                                # bu kısıttan muaf — zaten kısa sürelidir.
-                                green_phases = {0, 2}
-                                if current_p in green_phases:
-                                    time_in_phase = step - last_phase_change_step.get(tls_id, 0)
-                                    if time_in_phase < MIN_GREEN_TIME:
-                                        continue  # Henüz erken, bu adımı geç
+                            # Sarı geçişi başlat (train_v2.py apply_actions ile aynı)
+                            yellow_phase = current_green + 1
+                            traci.trafficlight.setPhase(tls_id, yellow_phase)
+                            pending_targets[tls_id]  = target_sumo_phase
+                            yellow_remaining[tls_id] = YELLOW_STEPS
+                            last_phase_change_step[tls_id] = step
+                        except Exception:
+                            pass
+            except Exception:
+                pass  # Backend kapalıysa SUMO kendi programıyla devam eder
 
-                                # GÜVENLİK YAMASI: Aniden Green -> Green geçişi kazalara sebep olur.
-                                if current_p == 0 and target_sumo_phase in [2, 3]:
-                                    target_sumo_phase = 1 # NS Yellow
-                                elif current_p == 2 and target_sumo_phase in [0, 1]:
-                                    target_sumo_phase = 3 # EW Yellow
-
-                                traci.trafficlight.setPhase(tls_id, target_sumo_phase)
-                                last_phase_change_step[tls_id] = step
-                            except:
-                                pass
-            except Exception as e:
-                pass # Bağlantı yoksa SUMO kendi bildiğini okumaya devam eder
-                
-            # SUMO GUI'nin çok hızlı akmasını engellemek için küçük bir gecikme
             time.sleep(0.05)
             
     except KeyboardInterrupt:

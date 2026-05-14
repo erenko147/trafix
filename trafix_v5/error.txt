@@ -1,0 +1,109 @@
+(.venv) PS X:\Yeni klasör\TraFixV5> python -u trafix_v5/stage1_pretrain_gru.py --episodes 300 && python -u trafix_v5/stage2_pretrain_gatconv.py --episodes 300 --offpeak-episodes 100 && python -u trafix_v5/stage3_train_ppo.py --episodes 1500 --freeze-episodes 50 > X:\trafix_v5\error2.txt
+2026-05-14 04:18:57,701 [INFO] ============================================================
+2026-05-14 04:18:57,701 [INFO]   TraFix v5 — Stage 1: GRU Pretraining
+2026-05-14 04:18:57,701 [INFO] ============================================================
+2026-05-14 04:18:57,701 [INFO]   obs_dim=10, T_window=10, episodes=300
+2026-05-14 04:18:57,750 [INFO]   Device: cuda
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J0' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J1' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J2' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J3' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Error: The tls 'J4' is not known.
+Quitting (on error).
+Traceback (most recent call last):
+  File "X:\Yeni klasör\TraFixV5\trafix_v5\stage1_pretrain_gru.py", line 256, in <module>
+    train(args)
+  File "X:\Yeni klasör\TraFixV5\trafix_v5\stage1_pretrain_gru.py", line 170, in train
+    env.start(episode=episode)
+  File "X:\Yeni klasör\TraFixV5\trafix_v5\scenario_generator.py", line 475, in start
+    _traci.start(sumo_cmd)
+  File "X:\SUMO\tools\traci\main.py", line 147, in start
+    result = init(sumoPort, numRetries, "localhost", label, sumoProcess, doSwitch, traceFile, traceGetters)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "X:\SUMO\tools\traci\main.py", line 119, in init
+    return con.getVersion()
+           ^^^^^^^^^^^^^^^^
+  File "X:\SUMO\tools\traci\connection.py", line 383, in getVersion
+    result = self._sendCmd(command, None, None)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "X:\SUMO\tools\traci\connection.py", line 232, in _sendCmd
+    return self._sendExact()
+           ^^^^^^^^^^^^^^^^^
+  File "X:\SUMO\tools\traci\connection.py", line 137, in _sendExact
+    raise FatalTraCIError("Connection closed by SUMO.")
+traci.exceptions.FatalTraCIError: Connection closed by SUMO.
