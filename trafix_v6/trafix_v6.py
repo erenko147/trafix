@@ -7,12 +7,14 @@ Changes from v5:
   OBS_DIM  = 20  (was 10) — 12 per-lane counts + queue + 6-phase one-hot + duration
   NUM_PHASES = 6  (was 4) — NS-through, N-left, S-left, EW-through, E-left, W-left
 
-Architecture unchanged:
+Architecture:
   1. GRU temporal encoder  — hidden_dim=128
   2. GATConv graph encoder — heads=4, out=32 each → 128 total
   3. Shared MLP trunk      — Linear(128→128)→ReLU→Linear(128→64)→ReLU
   4. Actor heads           — 5 × Linear(64→6), raw logits
-  5. Critic head           — Linear(64→1) on mean-pooled trunk output
+  5. Local critic heads    — 5 × Linear(64→1), per-junction value
+  6. Global critic head    — Linear(64→1) on mean-pooled trunk output
+     V_j = V_local_j + V_global  →  per-junction values [batch, J]
 """
 
 import torch
@@ -131,7 +133,11 @@ class TraFixV6(nn.Module):
         self.actor_heads = nn.ModuleList([
             nn.Linear(trunk_out, num_phases) for _ in range(NUM_JUNCTIONS)
         ])
-        self.critic_head = nn.Linear(trunk_out, 1)
+        # Hybrid critic: per-junction local + one global network-wide head
+        self.local_critics = nn.ModuleList([
+            nn.Linear(trunk_out, 1) for _ in range(NUM_JUNCTIONS)
+        ])
+        self.global_critic = nn.Linear(trunk_out, 1)
 
         self.register_buffer("edge_index", _make_chain_edge_index(NUM_JUNCTIONS))
 
@@ -144,8 +150,12 @@ class TraFixV6(nn.Module):
         g = self.graph_enc(h_flat, ei)
         g = g.reshape(B, NUM_JUNCTIONS, -1)
 
-        t = self.trunk(g)
-        v = self.critic_head(t.mean(dim=1))
+        t = self.trunk(g)                                           # [B, J, trunk_out]
+        local_v  = torch.stack(
+            [self.local_critics[j](t[:, j, :]) for j in range(NUM_JUNCTIONS)], dim=1
+        )                                                           # [B, J, 1]
+        global_v = self.global_critic(t.mean(dim=1)).unsqueeze(1)  # [B, 1, 1]
+        v = (local_v + global_v).squeeze(-1)                       # [B, J]
         return t, v
 
     def _batch_edge_index(self, edge_index: Tensor, batch_size: int) -> Tensor:
@@ -159,7 +169,7 @@ class TraFixV6(nn.Module):
         obs: [batch, T, J, obs_dim]
         Returns: (logits_list, value)
           logits_list: list of 5 tensors each [batch, 6]
-          value:       [batch, 1]
+          value:       [batch, J]  — per-junction (local + global)
         """
         if edge_index is None:
             edge_index = self.edge_index
@@ -198,7 +208,8 @@ class TraFixV6(nn.Module):
             f"  graph_enc    : {self.graph_enc.gat}\n"
             f"  trunk        : {self.trunk.net}\n"
             f"  actor_heads  : 5 x Linear({self.trunk_out}, {self.num_phases})\n"
-            f"  critic_head  : Linear({self.trunk_out}, 1)\n"
+            f"  local_critics: 5 x Linear({self.trunk_out}, 1)\n"
+            f"  global_critic: Linear({self.trunk_out}, 1)\n"
             f"  Total params : {total:,}  (trainable: {trainable:,})\n"
             f")"
         )
@@ -221,7 +232,7 @@ if __name__ == "__main__":
     for i, l in enumerate(logits_list):
         print(f"  logits[{i}]: {list(l.shape)}")
         assert l.shape == (BATCH, NUM_PHASES)
-    assert value.shape == (BATCH, 1)
+    assert value.shape == (BATCH, NUM_JUNCTIONS)
 
     actions, lp, v2 = model.get_action(obs)
     assert actions.shape == (BATCH, J)

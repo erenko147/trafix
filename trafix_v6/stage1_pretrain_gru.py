@@ -81,7 +81,7 @@ except ImportError:
 
 OBS_DIM = NUM_NODE_FEATURES          # 20
 NUM_PHASES = 6
-T_WINDOW = 10
+T_WINDOW = 30
 
 # Predict all 12 per-lane counts (indices 0-11 in the 20-dim obs)
 TRAFFIC_FEAT_DIM = 12

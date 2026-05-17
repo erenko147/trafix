@@ -81,7 +81,7 @@ except ImportError:
 
 OBS_DIM = NUM_NODE_FEATURES   # 20
 NUM_PHASES = 6
-T_WINDOW = 10
+T_WINDOW = 30
 QUEUE_FEAT_IDX = 12           # total queue / 200.0 (index 12 in 20-dim obs)
 
 # Chain 0-1-2-3-4 bidirectional neighbor lists

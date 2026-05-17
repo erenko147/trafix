@@ -13,7 +13,7 @@ Feature vector layout (20-dim, from parse_sumo_observations in trafix_v2.py):
   [3]  south_left/15   [4]  south_through/30  [5]  south_right/15
   [6]  east_left/15    [7]  east_through/30   [8]  east_right/15
   [9]  west_left/15    [10] west_through/30   [11] west_right/15
-  [12] queue/200       [13-18] phase one-hot (6 bits)   [19] duration/120
+  [12] queue/200       [13-18] phase one-hot (6 bits)   [19] min(duration/120, 3.0)
 """
 
 from __future__ import annotations

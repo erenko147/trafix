@@ -186,6 +186,7 @@ class SumoEnvironment:
         self._episode_count = 0
         self._pending_target: Dict[str, int] = {}        # tls_id → target green phase
         self._yellow_steps_remaining: Dict[str, int] = {}  # tls_id → steps until green
+        self._phase_held_since: Dict[str, int] = {}      # tls_id → step when current green started
 
     # ── SUMO Başlat / Kapat ──────────────────────
 
@@ -228,6 +229,7 @@ class SumoEnvironment:
         self._episode_count = episode
         self._pending_target = {}
         self._yellow_steps_remaining = {}
+        self._phase_held_since = {}
 
         # Trafik ışığı ID'lerini al
         self.tls_ids = sorted(traci.trafficlight.getIDList())
@@ -243,6 +245,9 @@ class SumoEnvironment:
         for _ in range(self.cfg.warmup_steps):
             traci.simulationStep()
             self._step_count += 1
+
+        # Initialise duration tracker after warmup so elapsed starts at 0
+        self._phase_held_since = {tls_id: self._step_count for tls_id in self.tls_ids}
 
     def close(self):
         """SUMO oturumunu kapat."""
@@ -267,7 +272,6 @@ class SumoEnvironment:
         Output format matches trafix_v2.parse_sumo_observations (20-dim).
         """
         observations = []
-        sim_time = traci.simulation.getTime()
 
         for idx, tls_id in enumerate(self.tls_ids):
             jx, jy = traci.junction.getPosition(tls_id)
@@ -304,12 +308,10 @@ class SumoEnvironment:
             sumo_phase = traci.trafficlight.getPhase(tls_id)
             model_phase = SUMO_TO_MODEL_PHASE.get(sumo_phase, 0)
 
-            try:
-                prog_duration = traci.trafficlight.getPhaseDuration(tls_id)
-                next_switch = traci.trafficlight.getNextSwitch(tls_id)
-                elapsed = max(0.0, prog_duration - max(0.0, next_switch - sim_time))
-            except Exception:
-                elapsed = 0.0
+            # Manual duration tracking — immune to setPhase timer resets
+            elapsed = float(
+                self._step_count - self._phase_held_since.get(tls_id, self._step_count)
+            )
 
             total_queue = sum(counts.values())
 
@@ -356,6 +358,7 @@ class SumoEnvironment:
             current_sumo_phase = traci.trafficlight.getPhase(tls_id)
 
             if target_sumo_phase == current_sumo_phase:
+                traci.trafficlight.setPhase(tls_id, current_sumo_phase)
                 continue
 
             self._pending_target[tls_id] = target_sumo_phase
@@ -381,6 +384,7 @@ class SumoEnvironment:
                 target = self._pending_target.pop(tls_id, None)
                 if target is not None:
                     traci.trafficlight.setPhase(tls_id, target)
+                    self._phase_held_since[tls_id] = self._step_count
 
     # ── Simülasyon Adımı ──────────────────────────
 

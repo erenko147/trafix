@@ -123,9 +123,10 @@ _V5_T_WINDOW = 10
 _v5_window: deque = deque(maxlen=_V5_T_WINDOW)
 _v5_governor = None
 
-_V6_T_WINDOW = 10
+_V6_T_WINDOW = 30
 _v6_window: deque = deque(maxlen=_V6_T_WINDOW)
 _v6_governor = None
+_last_batch_step: int = -1
 
 
 def load_model():
@@ -270,7 +271,17 @@ class TelemetryBatch(BaseModel):
 
 @app.post("/telemetry_batch")
 async def receive_telemetry_batch(batch: TelemetryBatch):
-    global last_decisions_cache
+    global last_decisions_cache, _last_batch_step
+
+    # Detect simulation restart (step counter reset) and clear stale window/governor state
+    if batch.step < _last_batch_step:
+        _v6_window.clear()
+        _v5_window.clear()
+        if _v6_governor is not None:
+            _v6_governor.reset()
+        if _v5_governor is not None:
+            _v5_governor.reset()
+    _last_batch_step = batch.step
 
     for data in batch.intersections:
         d = data.dict()
@@ -359,10 +370,10 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
                     "queue_length": round(data.queue_length, 1),
                 })
 
-            # Update governor state for anti-flicker
-            if _USE_V6 and _v6_governor is not None:
+            # Update governor state for anti-flicker (guard: must have all junctions)
+            if _USE_V6 and _v6_governor is not None and len(chosen_phases) == NUM_NODES:
                 _v6_governor.update_state(torch.tensor(chosen_phases, dtype=torch.long))
-            elif _USE_V5 and _v5_governor is not None:
+            elif _USE_V5 and _v5_governor is not None and len(chosen_phases) == NUM_NODES:
                 _v5_governor.update_state(torch.tensor(chosen_phases, dtype=torch.long))
 
         last_decisions_cache = decisions

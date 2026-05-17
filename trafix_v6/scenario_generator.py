@@ -9,6 +9,7 @@ ScenarioType variants:
   MORNING_PEAK  — heavy inbound (J0/J1/J2-side → J3/J4-side)
   EVENING_PEAK  — heavy outbound (J3/J4-side → J0/J1/J2-side)
   INCIDENT      — OFFPEAK base with one junction fully blocked for a window
+  PULSE         — near-zero quiet window then a directional traffic burst
 
 ScenarioEnvironment wraps SumoEnvironment with a per-episode --route-files
 override. Importing this module does NOT import traci; SUMO is only needed
@@ -54,6 +55,7 @@ class ScenarioType(Enum):
     MORNING_PEAK = "MORNING_PEAK"
     EVENING_PEAK = "EVENING_PEAK"
     INCIDENT = "INCIDENT"
+    PULSE = "PULSE"
 
 
 # ──────────────────────────────────────────────
@@ -100,17 +102,19 @@ _LOCAL_OD: List[Tuple[str, str]] = [
 
 _ALL_OD: List[Tuple[str, str]] = _MAIN_INBOUND_OD + _MAIN_OUTBOUND_OD + _LOCAL_OD
 
+# Weights order: OFFPEAK, MORNING_PEAK, EVENING_PEAK, INCIDENT, PULSE
 _CURRICULUM: List[Tuple[int, List[float]]] = [
-    (800, [0.20, 0.25, 0.25, 0.30]),
-    (500, [0.25, 0.30, 0.30, 0.15]),
-    (200, [0.40, 0.30, 0.30, 0.00]),
-    (0,   [1.00, 0.00, 0.00, 0.00]),
+    (800, [0.15, 0.20, 0.20, 0.25, 0.20]),
+    (500, [0.20, 0.25, 0.25, 0.15, 0.15]),
+    (200, [0.35, 0.25, 0.25, 0.00, 0.15]),
+    (0,   [0.85, 0.00, 0.00, 0.00, 0.15]),
 ]
 _SCENARIO_ORDER = [
     ScenarioType.OFFPEAK,
     ScenarioType.MORNING_PEAK,
     ScenarioType.EVENING_PEAK,
     ScenarioType.INCIDENT,
+    ScenarioType.PULSE,
 ]
 
 
@@ -150,6 +154,8 @@ class ScenarioGenerator:
             params = self._gen_evening_peak(rng, episode, episode_duration, self.flow_horizon)
         elif scenario_type == ScenarioType.INCIDENT:
             params = self._gen_incident(rng, episode, episode_duration, self.flow_horizon)
+        elif scenario_type == ScenarioType.PULSE:
+            params = self._gen_pulse(rng, episode, episode_duration, self.flow_horizon)
         else:
             raise ValueError(f"Unknown scenario type: {scenario_type}")
 
@@ -185,6 +191,12 @@ class ScenarioGenerator:
         elif scenario_type == ScenarioType.INCIDENT:
             return (f"ep{ep:04d} | INCIDENT | flow={params['base_flow']:.0f} | "
                     f"junction=J{params['incident_junction']} | onset={params['onset_step']}s | duration={dur}")
+        elif scenario_type == ScenarioType.PULSE:
+            od_names = ["INBOUND", "OUTBOUND", "ALL"]
+            return (f"ep{ep:04d} | PULSE | quiet=0-{params['quiet_end']}s"
+                    f" burst={params['quiet_end']}-{params['burst_end']}s"
+                    f" flow={params['burst_flow']:.0f} ods={od_names[params['od_choice']]}"
+                    f" | duration={dur}")
         return f"ep{ep:04d} | {scenario_type.value} | duration={dur}"
 
     def _gen_offpeak(self, rng, episode, duration, flow_horizon):
@@ -235,6 +247,31 @@ class ScenarioGenerator:
         return {"episode": episode, "episode_duration": duration, "base_flow": base_flow,
                 "incident_junction": incident_junction, "onset_step": onset_step,
                 "block_duration": block_duration, "flows": flows}
+
+    def _gen_pulse(self, rng, episode, duration, flow_horizon):
+        quiet_end  = int(rng.integers(60, 301))                   # 1–5 min quiet window
+        burst_dur  = int(rng.integers(120, 301))                  # 2–5 min burst
+        burst_end  = min(quiet_end + burst_dur, flow_horizon)
+        burst_flow = float(rng.uniform(600, 1000))                # veh/hr during burst
+        quiet_flow = float(rng.uniform(20, 80))                   # near-zero background
+
+        # Randomly pick which OD subset carries the burst
+        od_choice = int(rng.integers(0, 3))
+        burst_ods = [_MAIN_INBOUND_OD, _MAIN_OUTBOUND_OD, _ALL_OD][od_choice]
+
+        per_burst = burst_flow / len(burst_ods)
+        per_quiet = quiet_flow / len(_ALL_OD)
+
+        flows = []
+        if quiet_end > 0:
+            flows += [(f, t, 0, quiet_end, per_quiet) for f, t in _ALL_OD]
+        flows += [(f, t, quiet_end, burst_end, per_burst) for f, t in burst_ods]
+        if burst_end < flow_horizon:
+            flows += [(f, t, burst_end, flow_horizon, per_quiet) for f, t in _ALL_OD]
+
+        return {"episode": episode, "episode_duration": duration,
+                "quiet_end": quiet_end, "burst_end": burst_end,
+                "burst_flow": burst_flow, "od_choice": od_choice, "flows": flows}
 
     def _write_rou_xml(self, out_path, flows):
         for from_e, to_e, begin, end, rate in flows:
@@ -336,6 +373,16 @@ class ScenarioEnvironment:
         for _ in range(cfg.warmup_steps):
             _traci.simulationStep()
             self._env._step_count += 1
+
+        # Reset per-episode state that SumoEnvironment.start() normally handles
+        # but is bypassed here. Without this, _phase_held_since stays empty →
+        # phase_duration = 0 always → governor hard-mask blocks all switches →
+        # entropy = 0 → policy never updates.
+        self._env._pending_target = {}
+        self._env._yellow_steps_remaining = {}
+        self._env._phase_held_since = {
+            tls_id: self._env._step_count for tls_id in self._env.tls_ids
+        }
 
     def close(self):
         if self._env is not None:

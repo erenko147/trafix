@@ -95,7 +95,7 @@ except ImportError:
 
 OBS_DIM = NUM_NODE_FEATURES   # 20
 NUM_PHASES = 6
-T_WINDOW = 10
+T_WINDOW = 30
 
 CHECKPOINTS_DIR = _SCRIPT_DIR / "checkpoints"
 STAGE1_CHECKPOINT = CHECKPOINTS_DIR / "stage1_gru.pt"
@@ -154,7 +154,7 @@ def ppo_update(
     obs_batch     = torch.stack(buffer.obs_windows).to(device)
     actions_batch = torch.stack(buffer.actions).to(device)
     old_lp_batch  = torch.stack(buffer.log_probs).detach().to(device)
-    old_val_batch = torch.cat(buffer.values).to(device)
+    old_val_batch = torch.stack(buffer.values).to(device)   # [T, J]
 
     N = obs_batch.shape[0]
     all_indices = list(range(N))
@@ -194,8 +194,8 @@ def ppo_update(
             surr2 = torch.clamp(ratio, 1.0 - clip_eps, 1.0 + clip_eps) * mb_adv
             policy_loss = -torch.min(surr1, surr2).mean()
 
-            v_new = value.squeeze(-1)
-            ret_target = mb_ret.mean(dim=-1)
+            v_new = value                  # [batch, J]
+            ret_target = mb_ret            # [batch, J]
             v_clipped = mb_old_val + (v_new - mb_old_val).clamp(-value_clip_eps, value_clip_eps)
             vf_loss1 = (v_new - ret_target).pow(2)
             vf_loss2 = (v_clipped - ret_target).pow(2)
@@ -340,7 +340,7 @@ def train(args):
     env_cfg.warmup_steps = 50
     env_cfg.max_steps_per_episode = args.max_steps
     env_cfg.num_actions = NUM_PHASES
-    env_cfg.rollout_length = args.minibatch_size
+    env_cfg.rollout_length = args.rollout_length
     env = ScenarioEnvironment(env_cfg)
 
     generator = ScenarioGenerator(
@@ -417,9 +417,8 @@ def train(args):
                     logits_list, value = model.forward(obs_input)
                     obs_last = obs_input[0, -1]
                     masked_full = governor.apply(logits_list, obs_last)
-                    actions, _ = sample_governed(masked_full)
-                    masked_sl = governor.apply_stateless(logits_list, obs_last)
-                    log_probs, _ = evaluate_governed(masked_sl, actions)
+                    actions, log_probs = sample_governed(masked_full)
+                    _, ent = evaluate_governed(masked_full, actions)
 
                 actions_1d = actions.squeeze(0)
                 governor.update_state(actions_1d)
@@ -474,19 +473,20 @@ def train(args):
                     update_count += 1
                     buffer.clear()
 
-                with torch.no_grad():
-                    logits_list_ent, _ = model.forward(obs_input)
-                    masked_ent = governor.apply_stateless(logits_list_ent, obs_last)
-                    _, ent = evaluate_governed(masked_ent, actions)
                 episode_entropies.append(ent.squeeze(0).detach())
 
                 prev_obs = next_obs_list
                 prev_actions = actions_1d
                 window.append(x_next.detach())
 
-            # Flush remaining buffer
+            # Flush remaining buffer — compute proper bootstrap value from the
+            # last observed state (window already contains x_next as its last
+            # frame). Using zeros is wrong for truncated episodes (max_steps).
             if len(buffer) >= 1:
-                next_val = torch.zeros(1, device=device)
+                last_window = torch.stack(list(window)).unsqueeze(0).to(device)
+                with torch.no_grad():
+                    _, next_val = model.forward(last_window)
+                next_val = next_val.squeeze(0).detach()
                 step_metrics = ppo_update(
                     model=model, optimizer=optimizer, buffer=buffer,
                     next_value=next_val,

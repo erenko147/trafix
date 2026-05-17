@@ -39,6 +39,11 @@ _LANE_KEYS = [
     "west_left",  "west_through",  "west_right",
 ]
 
+_NS_KEYS = ["north_left", "north_through", "north_right",
+            "south_left", "south_through", "south_right"]
+_EW_KEYS = ["east_left",  "east_through",  "east_right",
+            "west_left",  "west_through",  "west_right"]
+
 # Per-lane normalisers: left/right lanes = 15 (single lane), through = 30
 _NORM = {
     "north_left":    15.0, "north_through": 30.0, "north_right":  15.0,
@@ -86,8 +91,9 @@ def parse_sumo_observations(
         one_hot[phase] = 1.0
         row.extend(one_hot)
 
-        # Index 19: phase duration / 120
-        row.append(o.get("phase_duration", 0.0) / 120.0)
+        # Index 19: phase duration / 120, capped at 3.0 (= 6 min) so long holds
+        # remain distinguishable and don't all collapse to 1.0
+        row.append(min(o.get("phase_duration", 0.0) / 120.0, 3.0))
 
         rows.append(row)
 
@@ -226,10 +232,11 @@ class RewardWeights:
     pressure:      float = -0.30
     queue:         float = -0.25
     throughput:    float =  0.25
-    fairness:      float = -0.10
+    fairness:      float =  0.00
     phase_penalty: float = -0.08
     wait_penalty:  float = -0.05
     green_wave:    float =  0.20
+    starvation:    float = -0.15
 
 
 def _intersection_total(o: Dict) -> int:
@@ -290,7 +297,8 @@ def compute_reward(
     """
     Per-intersection reward. Returns (N,) tensor.
 
-    Local signals: pressure, queue, throughput, fairness, phase_penalty, wait_penalty.
+    Local signals: pressure, queue, throughput, fairness, phase_penalty,
+                   wait_penalty, starvation.
     Global signal: green_wave bonus distributed uniformly.
     """
     cur  = sorted(current_obs,  key=lambda d: d["intersection_id"])
@@ -331,6 +339,24 @@ def compute_reward(
         if o.get("phase_duration", 0.0) > 60.0:
             wait = (o["phase_duration"] - 60.0) / 60.0
 
+        # 7. Directional starvation: penalise holding one through-direction while
+        #    the other has vehicles waiting. Grows with time past min-green (30s)
+        #    and with the fraction of total demand in the unserved direction.
+        #    Zero when total demand is zero, so quiet periods are not penalised.
+        starvation = 0.0
+        phase = int(o.get("current_phase", 0))
+        dur   = o.get("phase_duration", 0.0)
+        if dur > 30.0:
+            ns_q = sum(o.get(k, 0) for k in _NS_KEYS)
+            ew_q = sum(o.get(k, 0) for k in _EW_KEYS)
+            total_dir = ns_q + ew_q
+            if total_dir > 0:
+                excess = min((dur - 30.0) / 60.0, 2.0)
+                if phase in (0, 1, 2):        # NS side active — EW is unserved
+                    starvation = (ew_q / total_dir) * excess
+                else:                          # EW side active — NS is unserved
+                    starvation = (ns_q / total_dir) * excess
+
         r = (
             weights.pressure      * pressure
             + weights.queue       * queue
@@ -338,6 +364,7 @@ def compute_reward(
             + weights.fairness    * fairness
             + weights.phase_penalty * phase_change
             + weights.wait_penalty  * wait
+            + weights.starvation    * starvation
         )
         rewards.append(r)
 
@@ -380,11 +407,9 @@ def compute_gae(
 
     advantages = torch.stack(advantages_list)  # (T, N)
 
-    values_expanded = torch.stack([
-        torch.full((N,), v.item(), dtype=torch.float32, device=advantages.device)
-        for v in values
-    ])
-    returns = advantages + values_expanded
+    # Stack values directly — works for both scalar [1] and per-junction [J] tensors
+    values_stacked = torch.stack([v.to(advantages.device) for v in values])  # [T, N]
+    returns = advantages + values_stacked
 
     if advantages.numel() > 1 and advantages.std() > 0.01:
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)

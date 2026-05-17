@@ -142,7 +142,7 @@ def main():
     log.info(f"[SUMO] TraFix v6 live  API={API_URL}  log={_LOG_FILE}")
 
     sumo_bin = "sumo" if _args.no_gui else "sumo-gui"
-    traci.start([sumo_bin, "-c", sumo_cfg])
+    traci.start([sumo_bin, "-c", sumo_cfg, "--time-to-teleport", "-1"])
 
     intersection_map = build_intersection_map()
     tls_ids = sorted(intersection_map.keys())
@@ -169,6 +169,35 @@ def main():
     # Through phases need exposure or vehicles pile up unserved.
     STARVE_LIMIT = 8   # ~80 simulated seconds without any through phase
     decisions_since_through = {tls_id: 0 for tls_id in tls_ids}
+
+    # Direction-specific starvation: prevents one through-phase from monopolising
+    # when the other direction has vehicles waiting. Fires even if the AI keeps
+    # picking a through-phase — the original STARVE_LIMIT only catches left-turn
+    # monopolies. 10 decisions × 10-step interval = 100 simulated seconds.
+    DIRECTION_STARVE_LIMIT = 10
+    decisions_since_ns = {tls_id: 0 for tls_id in tls_ids}
+    decisions_since_ew = {tls_id: 0 for tls_id in tls_ids}
+
+    # Left-turn starvation: no governor override ever forces left-turn phases, so
+    # the model can starve them indefinitely. Track decisions since each left-turn
+    # phase was last served; force it when vehicles are waiting too long.
+    # 15 decisions × 10-step interval = 150 simulated seconds max wait.
+    LEFT_STARVE_LIMIT = 15
+    # phase → obs keys that measure demand for that movement
+    _LEFT_DEMAND_KEYS = {
+        1: ["north_left"],
+        2: ["south_left"],
+        4: ["east_left"],
+        5: ["west_left"],
+    }
+    decisions_since_left = {tls_id: {p: 0 for p in (1, 2, 4, 5)} for tls_id in tls_ids}
+
+    # Fixed-time fallback: if the backend fails for FALLBACK_THRESHOLD consecutive
+    # decision cycles, cycle NS-through / EW-through on a fixed timer so lights
+    # never freeze when the API is down.
+    FALLBACK_THRESHOLD = 3   # consecutive failures before fallback activates
+    FALLBACK_CYCLE     = 40  # simulated seconds per phase in fallback mode
+    api_consecutive_failures = 0
 
     try:
         while traci.simulation.getMinExpectedNumber() > 0:
@@ -202,13 +231,16 @@ def main():
                 try:
                     curr_sumo_phase = int(traci.trafficlight.getPhase(tls_id))
                     api_phase       = SUMO_TO_MODEL.get(curr_sumo_phase, 0)
-                    prog_duration   = traci.trafficlight.getPhaseDuration(tls_id)
-                    next_switch     = traci.trafficlight.getNextSwitch(tls_id)
-                    sim_time        = traci.simulation.getTime()
-                    elapsed         = prog_duration - max(0.0, next_switch - sim_time)
-                    phase_duration  = max(0.0, elapsed)
                 except Exception:
-                    api_phase, curr_sumo_phase, phase_duration = 0, 0, 0.0
+                    api_phase, curr_sumo_phase = 0, 0
+
+                # Track duration manually — setPhase() resets SUMO's internal
+                # timer every decision interval, so the SUMO-derived elapsed time
+                # never exceeds ~10s. last_phase_change_step is only updated on
+                # real switches, so this correctly reflects actual hold time.
+                phase_duration = float(
+                    step - last_phase_change_step.get(tls_id, -MIN_GREEN_THROUGH)
+                )
 
                 batch_payload["intersections"].append({
                     "intersection_id": i,
@@ -232,11 +264,14 @@ def main():
                         f"  q={item['queue_length']:.0f}"
                     )
 
+            api_ok = False
             try:
                 batch_url = API_URL.replace("/telemetry", "/telemetry_batch")
                 res = requests.post(batch_url, json=batch_payload, timeout=0.5)
 
                 if res.status_code == 200:
+                    api_ok = True
+                    api_consecutive_failures = 0
                     decisions     = res.json().get("decisions", [])
                     decision_count += 1
                     step_log_parts = []
@@ -274,6 +309,78 @@ def main():
                                 )
                                 model_phase = forced
                                 decisions_since_through[tls_id] = 0
+
+                        # Direction-specific starvation: if the AI keeps picking
+                        # NS-through while EW has vehicles (or vice-versa), force
+                        # the starved direction. This fires even during quiet periods
+                        # so the counters are already saturated when new cars arrive.
+                        if model_phase == 0:
+                            decisions_since_ns[tls_id] = 0
+                        else:
+                            decisions_since_ns[tls_id] += 1
+
+                        if model_phase == 3:
+                            decisions_since_ew[tls_id] = 0
+                        else:
+                            decisions_since_ew[tls_id] += 1
+
+                        obs_item = next(
+                            (o for o in batch_payload["intersections"]
+                             if o["intersection_id"] == tls_idx), None
+                        )
+                        if obs_item:
+                            ew_queue = (obs_item["east_through"] + obs_item["west_through"]
+                                        + obs_item["east_left"]  + obs_item["west_left"]
+                                        + obs_item["east_right"] + obs_item["west_right"])
+                            ns_queue = (obs_item["north_through"] + obs_item["south_through"]
+                                        + obs_item["north_left"]  + obs_item["south_left"]
+                                        + obs_item["north_right"] + obs_item["south_right"])
+
+                            if decisions_since_ew[tls_id] >= DIRECTION_STARVE_LIMIT and ew_queue > 0:
+                                log.info(
+                                    f"  [DIR OVERRIDE] {tls_id} forcing EW-through "
+                                    f"(starved {decisions_since_ew[tls_id]} decisions, ew_q={ew_queue})"
+                                )
+                                model_phase = 3
+                                decisions_since_ew[tls_id] = 0
+
+                            elif decisions_since_ns[tls_id] >= DIRECTION_STARVE_LIMIT and ns_queue > 0:
+                                log.info(
+                                    f"  [DIR OVERRIDE] {tls_id} forcing NS-through "
+                                    f"(starved {decisions_since_ns[tls_id]} decisions, ns_q={ns_queue})"
+                                )
+                                model_phase = 0
+                                decisions_since_ns[tls_id] = 0
+
+                        # Left-turn starvation: update counters then check
+                        for lp in (1, 2, 4, 5):
+                            if model_phase == lp:
+                                decisions_since_left[tls_id][lp] = 0
+                            else:
+                                decisions_since_left[tls_id][lp] += 1
+
+                        if model_phase not in (1, 2, 4, 5):
+                            obs_item = obs_item or next(
+                                (o for o in batch_payload["intersections"]
+                                 if o["intersection_id"] == tls_idx), None
+                            )
+                            if obs_item:
+                                # Find the most starved left-turn phase that has demand
+                                best_lp, best_wait = None, 0
+                                for lp, keys in _LEFT_DEMAND_KEYS.items():
+                                    demand = sum(obs_item.get(k, 0) for k in keys)
+                                    wait   = decisions_since_left[tls_id][lp]
+                                    if wait >= LEFT_STARVE_LIMIT and demand > 0:
+                                        if wait > best_wait:
+                                            best_lp, best_wait = lp, wait
+                                if best_lp is not None:
+                                    log.info(
+                                        f"  [LEFT OVERRIDE] {tls_id} forcing "
+                                        f"{PHASE_NAMES[best_lp]} "
+                                        f"(starved {best_wait} decisions)"
+                                    )
+                                    model_phase = best_lp
+                                    decisions_since_left[tls_id][best_lp] = 0
 
                         # Count this decision
                         phase_counts[tls_id][model_phase] += 1
@@ -337,7 +444,33 @@ def main():
                     log.info(f"step={step:>5} | " + "  ".join(step_log_parts))
 
             except Exception:
-                pass  # Backend offline
+                pass  # network error — handled below
+
+            if not api_ok:
+                api_consecutive_failures += 1
+                if api_consecutive_failures == FALLBACK_THRESHOLD:
+                    log.info(f"  [FALLBACK] Backend unreachable — switching to fixed-time cycling")
+                if api_consecutive_failures >= FALLBACK_THRESHOLD:
+                    cycle_pos = (step // FALLBACK_CYCLE) % 2
+                    fallback_phase = 0 if cycle_pos == 0 else 3
+                    target_green = MODEL_TO_SUMO_GREEN[fallback_phase]
+                    for tls_id in tls_ids:
+                        if yellow_remaining.get(tls_id, 0) > 0:
+                            continue
+                        try:
+                            current_p     = int(traci.trafficlight.getPhase(tls_id))
+                            current_green = current_p if current_p % 2 == 0 else current_p - 1
+                            if target_green == current_green:
+                                continue
+                            if step - last_phase_change_step.get(tls_id, 0) < MIN_GREEN_THROUGH:
+                                continue
+                            yellow_phase = current_green + 1
+                            traci.trafficlight.setPhase(tls_id, yellow_phase)
+                            pending_targets[tls_id]  = target_green
+                            yellow_remaining[tls_id] = YELLOW_STEPS
+                            last_phase_change_step[tls_id] = step
+                        except Exception:
+                            pass
 
             # Print summary table every 100 decisions
             if decision_count > 0 and decision_count % 100 == 0:

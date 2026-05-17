@@ -83,7 +83,7 @@ except ImportError:
 
 OBS_DIM    = NUM_NODE_FEATURES   # 20
 NUM_PHASES = 6
-T_WINDOW   = 10
+T_WINDOW   = 30
 
 CHECKPOINTS_DIR   = _SCRIPT_DIR / "checkpoints"
 DEFAULT_CKPT      = str(CHECKPOINTS_DIR / "trafix_v6_final.pt")
@@ -145,7 +145,7 @@ def ppo_update(
     obs_batch     = torch.stack(buffer.obs_windows).to(device)
     actions_batch = torch.stack(buffer.actions).to(device)
     old_lp_batch  = torch.stack(buffer.log_probs).detach().to(device)
-    old_val_batch = torch.cat(buffer.values).to(device)
+    old_val_batch = torch.stack(buffer.values).to(device)   # [T, J]
 
     N = obs_batch.shape[0]
     metrics = {"policy": 0.0, "value": 0.0, "entropy": 0.0, "total": 0.0}
@@ -184,8 +184,8 @@ def ppo_update(
             surr2 = torch.clamp(ratio, 1 - clip_eps, 1 + clip_eps) * mb_adv
             policy_loss = -torch.min(surr1, surr2).mean()
 
-            v_new      = value.squeeze(-1)
-            ret_target = mb_ret.mean(dim=-1)
+            v_new      = value          # [batch, J]
+            ret_target = mb_ret        # [batch, J]
             v_clipped  = mb_old_val + (v_new - mb_old_val).clamp(-0.2, 0.2)
             value_loss = 0.5 * torch.max(
                 (v_new - ret_target).pow(2), (v_clipped - ret_target).pow(2)
@@ -454,9 +454,7 @@ def finetune(args):
                     logits_list, value = model.forward(obs_input)
                     obs_last    = obs_input[0, -1]
                     masked_full = governor.apply(logits_list, obs_last)
-                    actions, _  = sample_governed(masked_full)
-                    masked_sl   = governor.apply_stateless(logits_list, obs_last)
-                    log_probs, _ = evaluate_governed(masked_sl, actions)
+                    actions, log_probs = sample_governed(masked_full)
 
                 actions_1d = actions.squeeze(0)
                 governor.update_state(actions_1d)
@@ -504,9 +502,12 @@ def finetune(args):
                 prev_obs, prev_actions = next_obs_list, actions_1d
                 window.append(x_next.detach())
 
-            # Flush
+            # Flush — use actual value estimate, not zeros (episode is truncated)
             if len(buffer) >= 1:
-                next_val = torch.zeros(1, device=device)
+                last_window = torch.stack(list(window)).unsqueeze(0).to(device)
+                with torch.no_grad():
+                    _, next_val = model.forward(last_window)
+                next_val = next_val.squeeze(0).detach()
                 step_metrics = ppo_update(
                     model=model, optimizer=optimizer, buffer=buffer,
                     next_value=next_val,
@@ -625,7 +626,7 @@ def parse_args():
                         help="Learning rate (keep low to avoid catastrophic forgetting)")
     parser.add_argument("--morning-fraction", type=float, default=0.70,
                         help="Fraction of episodes that are MORNING_PEAK (rest = OFFPEAK)")
-    parser.add_argument("--entropy-coef", type=float, default=0.005,
+    parser.add_argument("--entropy-coef", type=float, default=0.01,
                         help="Entropy coefficient")
     parser.add_argument("--eval-interval", type=int, default=50,
                         help="Eval across all scenario types every N episodes")

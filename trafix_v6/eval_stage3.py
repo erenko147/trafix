@@ -70,7 +70,7 @@ except ImportError:
 
 OBS_DIM    = NUM_NODE_FEATURES   # 20
 NUM_PHASES = 6
-T_WINDOW   = 10
+T_WINDOW   = 30
 
 CHECKPOINTS_DIR    = _SCRIPT_DIR / "checkpoints"
 DEFAULT_CHECKPOINT = str(CHECKPOINTS_DIR / "trafix_v6_final.pt")
