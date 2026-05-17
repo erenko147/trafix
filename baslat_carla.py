@@ -15,7 +15,7 @@ HERE   = os.path.dirname(os.path.abspath(__file__))
 PYTHON = sys.executable
 
 p = argparse.ArgumentParser()
-p.add_argument("--model",    choices=["v2","v3","simple","v5"], default="v5")
+p.add_argument("--model",    choices=["v2","v3","simple","v5","v6"], default="v6")
 p.add_argument("--port",     type=int, default=8000)
 p.add_argument("--sumo-gui", action="store_true", help="SUMO GUI penceresiyle aç")
 args = p.parse_args()

@@ -19,7 +19,12 @@ _FRONTEND = os.path.join(os.path.dirname(__file__), "..", "frontend")
 # AI model import
 # TRAFIX_MODEL_VERSION=v2 (default) → trafix_v2 + coordinated_agent_weights.pth
 # TRAFIX_MODEL_VERSION=v3           → trafix_v3 + coordinated_agent_weights_v3.pth
-_MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v2").strip().lower()
+_MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v6").strip().lower()
+
+# Temporal model class and dims — set per version block below
+_TraFixTemporalModel = None
+_V_OBS_DIM   = 10
+_V_NUM_PHASES = 4
 
 if _MODEL_VERSION == "v3":
     from backend.ai.trafix_v3 import CoordinatedPPOAgent, parse_sumo_observations
@@ -40,7 +45,21 @@ elif _MODEL_VERSION == "v5":
     _WEIGHT_FILENAME = "trafix_v5/checkpoints/trafix_v5_final.pt"
     _USE_GRAPH = False
     _USE_V5 = True
-    CoordinatedPPOAgent = None  # unused for v5
+    _TraFixTemporalModel = TraFixV5
+    _V_OBS_DIM   = 10
+    _V_NUM_PHASES = 4
+    CoordinatedPPOAgent = None
+elif _MODEL_VERSION == "v6":
+    import sys as _sys, os as _os
+    _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(__file__))))
+    from trafix_v6.trafix_v6 import TraFixV6, OBS_DIM as _V_OBS_DIM, NUM_PHASES as _V_NUM_PHASES
+    from trafix_v6.rule_governor import RuleGovernor
+    from backend.ai.trafix_v2 import parse_sumo_observations
+    _WEIGHT_FILENAME = "trafix_v6/checkpoints/stage3_ep1000.pt"
+    _USE_GRAPH = False
+    _USE_V5 = True
+    _TraFixTemporalModel = TraFixV6
+    CoordinatedPPOAgent = None
 else:  # v2 default
     from backend.ai.trafix_v2 import CoordinatedPPOAgent, parse_sumo_observations
     _WEIGHT_FILENAME = "coordinated_agent_weights.pth"
@@ -144,7 +163,7 @@ def load_model():
             os.path.join(project_root, _WEIGHT_FILENAME),
             _WEIGHT_FILENAME,
         ]
-        agent = TraFixV5(obs_dim=NUM_FEATURES, num_phases=NUM_ACTIONS)
+        agent = _TraFixTemporalModel(obs_dim=_V_OBS_DIM, num_phases=_V_NUM_PHASES)
         for path in weight_paths:
             abs_path = os.path.abspath(path)
             if os.path.exists(abs_path):
@@ -156,20 +175,20 @@ def load_model():
                     ai_agent = agent
                     _v5_governor = RuleGovernor(
                         num_junctions=NUM_NODES,
-                        num_phases=NUM_ACTIONS,
+                        num_phases=_V_NUM_PHASES,
                         min_green_s=10.0,
                         max_green_s=90.0,
                         flicker_window=2,
                         flicker_penalty=3.0,
                         pressure_boost=1.0,
                     )
-                    print(f"[OK] TraFixV5 modeli yuklendi: {abs_path}")
-                    print(f"[OK] RuleGovernor aktif (min_green=10s, max_green=90s)")
+                    print(f"[OK] TraFix{_MODEL_VERSION.upper()} modeli yuklendi: {abs_path}")
+                    print(f"[OK] RuleGovernor aktif (min_green=10s, max_green=90s, num_phases={_V_NUM_PHASES})")
                     return True
                 except RuntimeError as e:
-                    print(f"[WARN] V5 agirlik dosyasi uyumsuz: {abs_path} — {e}")
+                    print(f"[WARN] {_MODEL_VERSION.upper()} agirlik dosyasi uyumsuz: {abs_path} — {e}")
                     continue
-        print("[WARN] TraFixV5 agirlik dosyasi bulunamadi. Heuristic fallback aktif olacak.")
+        print(f"[WARN] TraFix{_MODEL_VERSION.upper()} agirlik dosyasi bulunamadi. Heuristic fallback aktif olacak.")
         return False
 
     agent = CoordinatedPPOAgent(
