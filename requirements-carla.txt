@@ -1,0 +1,15 @@
+# TraFix + CARLA entegrasyonu için ek bağımlılıklar
+# Ana bağımlılıklar için requirements-cpu.txt veya requirements-gpu.txt'i de kurun
+
+# CARLA Python API
+# NOT: carla paketi resmi PyPI'de bulunmayabilir.
+# Seçenek 1 — PythonAPI egg: CARLA kurulum dizinindeki .egg dosyasını PYTHONPATH'e ekleyin
+# Seçenek 2 — pip ile (bazı CARLA sürümleri için):
+carla>=0.9.13
+
+# Kamera frame'lerini JPEG'e çevirmek için
+Pillow>=10.0.0
+
+# Zaten requirements-cpu.txt'te var ama burada da belirtelim
+numpy>=1.24.0
+requests>=2.28.0

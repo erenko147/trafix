@@ -1,0 +1,8 @@
+Stop-Process -Name CarlaUE4 -Force
+
+
+
+
+& "C:\Users\Furkan\Downloads\CARLA_0.9.16\CarlaUE4.exe" 
+
+python3.12 baslat_carla.py --sumo-gui   

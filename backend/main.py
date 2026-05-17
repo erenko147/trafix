@@ -7,11 +7,14 @@ Dashboard için GET /state endpoint'i sunar.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from collections import deque
 import torch
 import os
 import logging
+
+_FRONTEND = os.path.join(os.path.dirname(__file__), "..", "frontend")
 
 # AI model import
 # TRAFIX_MODEL_VERSION=v2 (default) → trafix_v2 + coordinated_agent_weights.pth
@@ -369,3 +372,20 @@ async def get_last_decisions():
 @app.get("/state")
 async def get_state():
     return state_dict
+
+
+# ==========================================
+# HTML Sayfaları
+# ==========================================
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
+async def serve_dashboard():
+    path = os.path.join(_FRONTEND, "dashboard.html")
+    with open(path, encoding="utf-8") as f:
+        return HTMLResponse(f.read())
+
+
+@app.get("/architecture", response_class=HTMLResponse, include_in_schema=False)
+async def serve_architecture():
+    path = os.path.join(_FRONTEND, "index.html")
+    with open(path, encoding="utf-8") as f:
+        return HTMLResponse(f.read())

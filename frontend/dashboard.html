@@ -24,6 +24,120 @@
       display: flex; flex-direction: column; padding: 18px 24px; gap: 12px;
     }
 
+    /* ── CARLA 3D PANEL ── */
+    .carla-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: var(--bg); display: flex; flex-direction: column;
+      padding: 18px 24px; gap: 12px;
+      animation: panel-in .2s ease-out;
+    }
+    .carla-overlay.hidden { display: none; }
+
+    .carla-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0; padding-bottom: 14px; border-bottom: 1px solid var(--b1);
+    }
+    .carla-title { font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+    .carla-subtitle { font-size: 11px; color: var(--t3); margin-top: 2px; }
+    .carla-status-row { display: flex; align-items: center; gap: 10px; }
+    .carla-status-badge {
+      font-size: 10px; font-weight: 600; padding: 3px 10px;
+      border-radius: 5px; background: var(--s2); border: 1px solid var(--b1); color: var(--t2);
+    }
+    .carla-status-badge.connected { background: #0d2318; border-color: #22c55e44; color: var(--green); }
+    .carla-status-badge.error     { background: #250d0d; border-color: #ef444444; color: var(--red); }
+
+    .close-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: var(--s2); border: 1px solid var(--b1); border-radius: 6px;
+      padding: 5px 12px; font-size: 11px; color: var(--t2); cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .close-btn:hover { background: var(--b1); color: var(--text); }
+
+    .camera-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 8px; flex: 1; overflow-y: auto; align-content: start;
+      padding-right: 2px; min-height: 0;
+    }
+    .camera-grid::-webkit-scrollbar { width: 3px; }
+    .camera-grid::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 99px; }
+    .camera-cell {
+      background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
+      overflow: hidden; position: relative; aspect-ratio: 1;
+    }
+    .camera-cell-label {
+      position: absolute; top: 6px; left: 8px; z-index: 2;
+      font-size: 9px; font-weight: 700; color: #fff;
+      background: #00000088; border-radius: 3px; padding: 2px 6px;
+      backdrop-filter: blur(4px);
+    }
+    .camera-cell-phase {
+      position: absolute; top: 6px; right: 8px; z-index: 2;
+      font-size: 9px; font-weight: 600;
+      background: #00000088; border-radius: 3px; padding: 2px 6px;
+      backdrop-filter: blur(4px);
+    }
+    .camera-img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      background: #0a0a0a;
+    }
+
+    /* ── ROI çizim katmanı ── */
+    .roi-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 3;
+    }
+    .roi-canvas.editing { pointer-events: all; cursor: crosshair; }
+    .roi-toolbar {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 4;
+      display: flex; align-items: center; gap: 4px; padding: 6px 8px;
+      background: linear-gradient(transparent, #000000dd);
+      flex-wrap: wrap; min-height: 32px;
+    }
+    .roi-btn {
+      font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px;
+      border: 1px solid var(--b2); background: var(--s2); color: var(--t2);
+      cursor: pointer; transition: background .15s, color .15s; line-height: 1.4;
+    }
+    .roi-btn:hover { background: var(--b1); color: var(--text); }
+    .roi-btn-save  { background: #0d2318; border-color: #22c55e55; color: var(--green); }
+    .roi-btn-save:hover  { background: #0d231888; }
+    .roi-btn-clear { background: #250d0d; border-color: #ef444455; color: var(--red); }
+    .roi-btn-clear:hover { background: #250d0d88; }
+    .roi-hint { font-size: 10px; color: #00b4ff; margin-right: auto; }
+    .camera-placeholder {
+      width: 100%; height: 100%; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px;
+      color: var(--t3); font-size: 12px;
+    }
+    .camera-placeholder .cam-icon { font-size: 32px; opacity: .3; }
+    /* ── ROI Modal ── */
+    .roi-modal {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.88); display: flex;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+    .roi-modal.hidden { display: none; }
+    .roi-modal-inner {
+      background: var(--s1); border: 1px solid var(--b1); border-radius: var(--r);
+      display: flex; flex-direction: column;
+      width: 88vw; height: 92vh; overflow: hidden;
+      box-shadow: 0 24px 60px #000000cc;
+    }
+    .roi-modal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; border-bottom: 1px solid var(--b1);
+      flex-shrink: 0; gap: 12px; flex-wrap: wrap;
+    }
+    .roi-modal-wrap { flex: 1; position: relative; overflow: hidden; background: #080808; }
+    .roi-modal-img  { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .roi-modal-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair;
+    }
+
     /* ── HEADER ── */
     header {
       display: flex; align-items: center; justify-content: space-between;
@@ -232,6 +346,9 @@
     <span class="h-slogan">Smarter flow was always an option.</span>
   </div>
   <div class="h-right">
+    <button id="carla-btn" onclick="toggleCarla()" style="display:flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--t2);cursor:pointer;transition:background .2s,color .2s;" onmouseover="this.style.background='var(--b1)';this.style.color='var(--text)'" onmouseout="this.style.background='var(--s2)';this.style.color='var(--t2)'">
+      <span id="carla-btn-dot" style="width:6px;height:6px;border-radius:50%;background:var(--t3)"></span> 3D CARLA
+    </button>
     <a href="/architecture" style="display:flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--t2);text-decoration:none;transition:background .2s,color .2s;" onmouseover="this.style.background='var(--b1)';this.style.color='var(--text)'" onmouseout="this.style.background='var(--s2)';this.style.color='var(--t2)'">
       <span style="font-size:12px">⬡</span> Architecture
     </a>
@@ -714,9 +831,141 @@
     document.getElementById('status-text').textContent = on ? 'Canlı' : 'Bağlantı yok';
   }
 
-  /* ── Poll ── */
-  let activeController = null;
+  // ── CARLA 3D Kamera Paneli ─────────────────────────────────────────
+  const PHASE_LABELS = { 0:'NS Yeş', 1:'NS Sar', 2:'EW Yeş', 3:'EW Sar' };
+  const PHASE_COLORS = { 0:'#22c55e', 1:'#f59e0b', 2:'#22c55e', 3:'#f59e0b' };
+  const MAX_APPROACHES = 8;  // carla_cosim.py ile eşleşmeli
 
+  // ── CARLA panel durumu ───────────────────────────────────────────
+  let carlaVisible = false;
+  let carlaStatus  = null;
+
+  function toggleCarla() {
+    carlaVisible = !carlaVisible;
+    document.getElementById('carla-overlay').classList.toggle('hidden', !carlaVisible);
+    if (carlaVisible) refreshCarlaStatus();
+  }
+
+  async function refreshCarlaStatus() {
+    try {
+      const r = await fetch('/carla/status');
+      if (!r.ok) throw 0;
+      carlaStatus = await r.json();
+    } catch(_) { carlaStatus = null; }
+    _updateBadge();
+    _updateInfo();
+    const ids = (carlaStatus && carlaStatus.camera_ids) || [];
+    if (ids.length > 0) { _setActivePage(_currentPage, ids); _buildGrid(ids); }
+  }
+
+  function _updateBadge() {
+    const badge = document.getElementById('carla-badge');
+    const dot   = document.getElementById('carla-btn-dot');
+    if (!carlaStatus || !carlaStatus.connected) {
+      badge.textContent = 'Bağlantı yok'; badge.className = 'carla-status-badge error';
+      dot.style.background = 'var(--red)';
+    } else if (carlaStatus.error) {
+      badge.textContent = 'Hata'; badge.className = 'carla-status-badge error';
+      dot.style.background = 'var(--red)';
+    } else {
+      badge.textContent = 'Bağlı — ' + (carlaStatus.map || '?');
+      badge.className = 'carla-status-badge connected';
+      dot.style.background = 'var(--green)';
+    }
+  }
+
+  function _updateInfo() {
+    const si = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    si('ci-map',          (carlaStatus && carlaStatus.map)                  || '—');
+    si('ci-vehicles',     (carlaStatus && carlaStatus.num_vehicles)          ?? '—');
+    si('ci-kavşak',       (carlaStatus && carlaStatus.num_intersections)     ?? '—');
+    si('carla-cam-count', (carlaStatus && (carlaStatus.camera_ids || []).length) || '—');
+  }
+
+  // ── Dinamik kamera grid ───────────────────────────────────────────
+  const PAGE_SIZE   = 6;   // kaç kamera aynı anda işlenir
+  let _activeCamIds = [];
+  let _currentPage  = 0;
+
+  async function _setActivePage(page, allIds) {
+    _currentPage = page;
+    const start  = page * PAGE_SIZE;
+    const visible = allIds.slice(start, start + PAGE_SIZE);
+    try {
+      await fetch('/carla/active_cameras', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ camera_ids: visible }),
+      });
+    } catch(_) {}
+    return visible;
+  }
+
+  function _buildGrid(camIds) {
+    const grid = document.getElementById('camera-grid');
+    const incoming = new Set(camIds);
+
+    // Placeholder'ı kaldır
+    grid.querySelectorAll('[data-placeholder]').forEach(el => el.remove());
+
+    // Eski hücreleri kaldır
+    grid.querySelectorAll('[data-cam-id]').forEach(el => {
+      if (!incoming.has(+el.dataset.camId)) el.remove();
+    });
+
+    // Mevcut hücre ID'leri
+    const existing = new Set([...grid.querySelectorAll('[data-cam-id]')].map(el => +el.dataset.camId));
+
+    camIds.forEach(camId => {
+      if (existing.has(camId)) return;
+      const jIdx   = Math.floor(camId / MAX_APPROACHES);
+      const armIdx = camId % MAX_APPROACHES;
+      const label  = 'K' + (jIdx + 1) + ' Kol ' + (armIdx + 1);
+
+      const cell = document.createElement('div');
+      cell.className    = 'camera-cell';
+      cell.dataset.camId = camId;
+      cell.innerHTML = `
+        <span class="camera-cell-label">${label}</span>
+        <span class="camera-cell-phase" id="cam-phase-${camId}">—</span>
+        <div class="camera-placeholder" id="cam-ph-${camId}" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--t3);font-size:11px">
+          <span style="font-size:24px;opacity:.3">◉</span><span>Bağlanıyor…</span>
+        </div>
+        <img id="cam-img-${camId}" class="camera-img" style="display:none" alt="${label}"/>
+        <canvas id="roi-canvas-${camId}" class="roi-canvas" style="pointer-events:none"></canvas>
+        <div class="roi-toolbar" id="roi-toolbar-${camId}"></div>`;
+      grid.appendChild(cell);
+
+      // MJPEG stream başlat
+      const img = cell.querySelector('img');
+      img.src = '/camera/' + camId + '?t=' + Date.now();
+      img.style.display = 'block';
+      const ph = document.getElementById('cam-ph-' + camId);
+      if (ph) ph.style.display = 'none';
+
+      if (!roiState[camId]) roiState[camId] = { points: [] };
+      _loadRoi(camId);
+    });
+
+    _activeCamIds = camIds;
+  }
+
+  // Faz etiketlerini güncelle
+  function updateCameraPhaseLabels(data) {
+    _activeCamIds.forEach(camId => {
+      const el   = document.getElementById('cam-phase-' + camId);
+      if (!el) return;
+      const jIdx = Math.floor(camId / MAX_APPROACHES);
+      const d    = data[String(jIdx)];
+      if (!d) { el.textContent = '—'; return; }
+      const ph = d.current_phase ?? 0;
+      el.textContent = PHASE_LABELS[ph] || '—';
+      el.style.color = PHASE_COLORS[ph] || '#aaa';
+    });
+  }
+
+  // Poll — CARLA phase labels entegre
+  let activeController = null;
   async function poll() {
     if (activeController) activeController.abort();
     activeController = new AbortController();
@@ -729,11 +978,255 @@
       updateMap(latestData, busiestId);
       renderPanel(latestData);
       setOnline(true);
+      if (carlaVisible) updateCameraPhaseLabels(latestData);
     } catch (e) { if (e?.name !== 'AbortError') setOnline(false); }
   }
 
   poll();
   setInterval(poll, 1000);
+  setInterval(() => { if (carlaVisible) refreshCarlaStatus(); }, 5000);
+
+  // ── ROI Sistemi ───────────────────────────────────────────────────
+  const IMG_W = 640, IMG_H = 640;
+  const roiState = {};   // camId → { points }
+
+  async function _loadRoi(camId) {
+    try {
+      const r = await fetch('/camera/' + camId + '/roi');
+      if (!r.ok) return;
+      const data = await r.json();
+      roiState[camId] = { points: data.polygon || [] };
+    } catch(_) {}
+    _roiRenderSmall(camId);
+    _roiToolbar(camId);
+  }
+
+  // Küçük hücredeki canvas — sadece gösterim
+  function _roiRenderSmall(camId) {
+    const canvas = document.getElementById('roi-canvas-' + camId);
+    if (!canvas) return;
+    const pts = (roiState[camId] || {}).points || [];
+    const dw = canvas.offsetWidth, dh = canvas.offsetHeight;
+    if (!dw || !dh) return;
+    canvas.width = dw; canvas.height = dh;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, dw, dh);
+    if (pts.length < 2) return;
+    const sc = pts.map(([x, y]) => [x * dw / IMG_W, y * dh / IMG_H]);
+    if (pts.length >= 3) {
+      ctx.beginPath(); ctx.moveTo(...sc[0]);
+      sc.slice(1).forEach(p => ctx.lineTo(...p));
+      ctx.closePath(); ctx.fillStyle = 'rgba(0,180,255,0.15)'; ctx.fill();
+    }
+    ctx.beginPath(); ctx.moveTo(...sc[0]);
+    sc.slice(1).forEach(p => ctx.lineTo(...p));
+    if (pts.length >= 3) ctx.closePath();
+    ctx.strokeStyle = '#00b4ff'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 2]); ctx.stroke(); ctx.setLineDash([]);
+    sc.forEach(([x, y]) => {
+      ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#00b4ff'; ctx.fill();
+    });
+  }
+
+  // Küçük hücre toolbar
+  function _roiToolbar(camId) {
+    const tb  = document.getElementById('roi-toolbar-' + camId);
+    if (!tb) return;
+    const pts = (roiState[camId] || {}).points || [];
+    tb.innerHTML =
+      '<button class="roi-btn" onclick="openRoiModal(' + camId + ')">◈ ROI</button>' +
+      (pts.length >= 3
+        ? ' <button class="roi-btn roi-btn-clear" onclick="_deleteRoi(' + camId + ')">✕</button>'
+        : '');
+  }
+
+  window._deleteRoi = async function(camId) {
+    try { await fetch('/camera/' + camId + '/roi', { method: 'DELETE' }); } catch(_) {}
+    roiState[camId] = { points: [] };
+    _roiRenderSmall(camId); _roiToolbar(camId);
+  };
+
+  // ── ROI Modal ─────────────────────────────────────────────────────
+  let modalCamId = null;
+
+  window.openRoiModal = async function(camId) {
+    modalCamId = camId;
+    // Sunucudan güncel ROI'yi yükle
+    try {
+      const r    = await fetch('/camera/' + camId + '/roi');
+      const data = r.ok ? await r.json() : {};
+      roiState[camId] = { points: (data.polygon || []).map(p => [...p]) };
+    } catch(_) {
+      if (!roiState[camId]) roiState[camId] = { points: [] };
+    }
+    const jIdx  = Math.floor(camId / MAX_APPROACHES);
+    const arm   = camId % MAX_APPROACHES;
+    document.getElementById('roi-modal-title').textContent =
+      'K' + (jIdx + 1) + ' Kol ' + (arm + 1) + ' — ROI';
+    document.getElementById('roi-modal-img').src = '/camera/' + camId + '?t=' + Date.now();
+    document.getElementById('roi-modal').classList.remove('hidden');
+    const canvas = document.getElementById('roi-modal-canvas');
+    canvas.onclick      = _onModalClick;
+    canvas.oncontextmenu = e => { e.preventDefault(); undoRoiModal(); };
+    setTimeout(_roiModalRender, 80);
+  };
+
+  window.closeRoiModal = function() {
+    document.getElementById('roi-modal').classList.add('hidden');
+    document.getElementById('roi-modal-img').src = '';
+    modalCamId = null;
+  };
+
+  window.saveRoiModal = async function() {
+    if (modalCamId === null) return;
+    const pts = (roiState[modalCamId] || {}).points || [];
+    try {
+      await fetch('/camera/' + modalCamId + '/roi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ polygon: pts }),
+      });
+    } catch(_) {}
+    _roiRenderSmall(modalCamId);
+    _roiToolbar(modalCamId);
+    closeRoiModal();
+  };
+
+  window.undoRoiModal = function() {
+    if (modalCamId === null) return;
+    const s = roiState[modalCamId];
+    if (s && s.points.length > 0) { s.points.pop(); _roiModalRender(); }
+  };
+
+  window.clearRoiModal = function() {
+    if (modalCamId === null) return;
+    if (roiState[modalCamId]) roiState[modalCamId].points = [];
+    _roiModalRender();
+  };
+
+  function _modalImageRect() {
+    // Returns the actual pixel rect of the image inside the canvas overlay,
+    // accounting for object-fit:contain letterboxing.
+    const canvas = document.getElementById('roi-modal-canvas');
+    const img    = document.getElementById('roi-modal-img');
+    const cw = canvas.offsetWidth, ch = canvas.offsetHeight;
+    const natW = img.naturalWidth  || IMG_W;
+    const natH = img.naturalHeight || IMG_H;
+    const scale = Math.min(cw / natW, ch / natH);
+    const rw = natW * scale, rh = natH * scale;
+    return { offX: (cw - rw) / 2, offY: (ch - rh) / 2, scale };
+  }
+
+  function _onModalClick(e) {
+    if (modalCamId === null) return;
+    const canvas = document.getElementById('roi-modal-canvas');
+    const rect   = canvas.getBoundingClientRect();
+    const { offX, offY, scale } = _modalImageRect();
+    const x = Math.round((e.clientX - rect.left - offX) / scale);
+    const y = Math.round((e.clientY - rect.top  - offY) / scale);
+    if (x < 0 || x >= IMG_W || y < 0 || y >= IMG_H) return; // clicked letterbox
+    if (!roiState[modalCamId]) roiState[modalCamId] = { points: [] };
+    roiState[modalCamId].points.push([x, y]);
+    _roiModalRender();
+  }
+
+  function _roiModalRender() {
+    if (modalCamId === null) return;
+    const canvas = document.getElementById('roi-modal-canvas');
+    if (!canvas) return;
+    const pts = (roiState[modalCamId] || {}).points || [];
+    canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const cntEl = document.getElementById('roi-modal-count');
+    if (cntEl) cntEl.textContent = pts.length ? pts.length + ' köşe' : '';
+    if (pts.length === 0) return;
+
+    // Letterbox-aware: map 640x640 coords into actual rendered image area
+    const { offX, offY, scale } = _modalImageRect();
+    const sc = pts.map(([x, y]) => [x * scale + offX, y * scale + offY]);
+
+    // Dolgu
+    if (pts.length >= 3) {
+      ctx.beginPath(); ctx.moveTo(...sc[0]);
+      sc.slice(1).forEach(p => ctx.lineTo(...p));
+      ctx.closePath(); ctx.fillStyle = 'rgba(0,180,255,0.14)'; ctx.fill();
+    }
+    // Kenar
+    ctx.beginPath(); ctx.moveTo(...sc[0]);
+    sc.slice(1).forEach(p => ctx.lineTo(...p));
+    if (pts.length >= 3) ctx.closePath();
+    ctx.strokeStyle = '#00b4ff'; ctx.lineWidth = 2; ctx.stroke();
+    // Kapanış önizleme
+    if (pts.length >= 3) {
+      ctx.beginPath(); ctx.moveTo(...sc[sc.length - 1]); ctx.lineTo(...sc[0]);
+      ctx.strokeStyle = 'rgba(0,180,255,0.35)'; ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+    }
+    // Köşe noktaları + numaralar
+    sc.forEach(([x, y], idx) => {
+      ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2);
+      ctx.fillStyle = '#00b4ff'; ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Inter,sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(idx + 1, x, y);
+    });
+  }
 </script>
+
+<!-- ── CARLA 3D Overlay ─────────────────────────────────────────── -->
+<div id="carla-overlay" class="carla-overlay hidden">
+
+  <div class="carla-header">
+    <div>
+      <div class="carla-title">CARLA 3D Görünüm</div>
+      <div class="carla-subtitle">
+        <span id="carla-cam-count" style="color:var(--green);font-weight:700">—</span> kamera aktif
+        &nbsp;·&nbsp; Harita: <b id="ci-map">—</b>
+        &nbsp;·&nbsp; Araç: <b id="ci-vehicles">—</b>
+        &nbsp;·&nbsp; Kavşak: <b id="ci-kavşak">—</b>
+      </div>
+    </div>
+    <div class="carla-status-row">
+      <span id="carla-badge" class="carla-status-badge">Kontrol ediliyor…</span>
+      <button class="close-btn" onclick="toggleCarla()">← Geri</button>
+    </div>
+  </div>
+
+  <!-- Kamera grid — JS ile dinamik olarak doldurulur -->
+  <div class="camera-grid" id="camera-grid">
+    <div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--t3);font-size:12px">
+      CARLA bağlantısı bekleniyor…
+    </div>
+  </div>
+
+  <!-- ROI büyütme modalı — kamera üzerinde tıklayarak çizim -->
+  <div id="roi-modal" class="roi-modal hidden">
+    <div class="roi-modal-inner">
+      <div class="roi-modal-head">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
+          <span id="roi-modal-title" style="font-size:14px;font-weight:700;white-space:nowrap"></span>
+          <span style="font-size:10px;color:var(--t2)">Sol tık → köşe ekle &nbsp;·&nbsp; Sağ tık / ↩ → geri al &nbsp;·&nbsp; Kaydet → poligonu uygula</span>
+          <span id="roi-modal-count" style="font-size:11px;color:var(--t3);white-space:nowrap"></span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <button class="roi-btn" onclick="undoRoiModal()">↩ Geri Al</button>
+          <button class="roi-btn roi-btn-clear" onclick="clearRoiModal()">✕ Sıfırla</button>
+          <button class="roi-btn roi-btn-save" onclick="saveRoiModal()">✓ Kaydet</button>
+          <button class="close-btn" onclick="closeRoiModal()">İptal</button>
+        </div>
+      </div>
+      <div class="roi-modal-wrap">
+        <img id="roi-modal-img" class="roi-modal-img" alt=""/>
+        <canvas id="roi-modal-canvas" class="roi-modal-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /carla-overlay -->
+
 </body>
 </html>
