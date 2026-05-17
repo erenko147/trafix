@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2026-05-14T04:04:25.732472+03:00 by Eclipse SUMO netconvert 1.26.0
+<!-- generated on 2026-05-14T04:17:43.976798+03:00 by Eclipse SUMO netconvert 1.26.0
 <netconvertConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
@@ -422,7 +422,58 @@
     
     
 
-    <junction id="J0" type="traffic_light" x="160.00" y="380.00" incLanes="-E5_0 -E5_1 -E1_0 -E1_1 -E0_0 -E0_1 -E6_0 -E6_1" intLanes=":J0_0_0 :J0_1_0 :J0_1_1 :J0_16_0 :J0_4_0 :J0_5_0 :J0_5_1 :J0_17_0 :J0_8_0 :J0_9_0 :J0_9_1 :J0_18_0 :J0_12_0 :J0_13_0 :J0_13_1 :J0_19_0" shape="153.60,390.40 166.40,390.40 166.84,388.18 167.40,387.40 168.18,386.84 169.18,386.51 170.40,386.40 170.40,373.60 168.18,373.16 167.40,372.60 166.84,371.82 166.51,370.82 166.40,369.60 153.60,369.60 153.16,371.82 152.60,372.60 151.82,373.16 150.82,373.49 149.60,373.60 149.60,386.40 151.82,386.84 152.60,387.40 153.16,388.18 153.49,389.18">
+        <tlLogic id="J0" type="static" programID="0" offset="0">
+        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
+        <phase duration="3" state="yyyyrrrrrrrrrrrr"/>
+        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
+        <phase duration="3" state="rrrryyyyrrrrrrrr"/>
+        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
+        <phase duration="3" state="rrrrrrrryyyyrrrr"/>
+        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
+        <phase duration="3" state="rrrrrrrrrrrryyyy"/>
+    </tlLogic>
+    <tlLogic id="J1" type="static" programID="0" offset="0">
+        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
+        <phase duration="3" state="yyyyrrrrrrrrrrrr"/>
+        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
+        <phase duration="3" state="rrrryyyyrrrrrrrr"/>
+        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
+        <phase duration="3" state="rrrrrrrryyyyrrrr"/>
+        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
+        <phase duration="3" state="rrrrrrrrrrrryyyy"/>
+    </tlLogic>
+    <tlLogic id="J2" type="static" programID="0" offset="0">
+        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
+        <phase duration="3" state="yyyyrrrrrrrrrrrr"/>
+        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
+        <phase duration="3" state="rrrryyyyrrrrrrrr"/>
+        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
+        <phase duration="3" state="rrrrrrrryyyyrrrr"/>
+        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
+        <phase duration="3" state="rrrrrrrrrrrryyyy"/>
+    </tlLogic>
+    <tlLogic id="J3" type="static" programID="0" offset="0">
+        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
+        <phase duration="3" state="yyyyrrrrrrrrrrrr"/>
+        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
+        <phase duration="3" state="rrrryyyyrrrrrrrr"/>
+        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
+        <phase duration="3" state="rrrrrrrryyyyrrrr"/>
+        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
+        <phase duration="3" state="rrrrrrrrrrrryyyy"/>
+    </tlLogic>
+    <tlLogic id="J4" type="static" programID="0" offset="0">
+        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
+        <phase duration="3" state="yyyyrrrrrrrrrrrr"/>
+        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
+        <phase duration="3" state="rrrryyyyrrrrrrrr"/>
+        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
+        <phase duration="3" state="rrrrrrrryyyyrrrr"/>
+        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
+        <phase duration="3" state="rrrrrrrrrrrryyyy"/>
+    </tlLogic>
+
+    <junction id="J0" type="traffic_light" tl="J0" x="160.00" y="380.00" incLanes="-E5_0 -E5_1 -E1_0 -E1_1 -E0_0 -E0_1 -E6_0 -E6_1" intLanes=":J0_0_0 :J0_1_0 :J0_1_1 :J0_16_0 :J0_4_0 :J0_5_0 :J0_5_1 :J0_17_0 :J0_8_0 :J0_9_0 :J0_9_1 :J0_18_0 :J0_12_0 :J0_13_0 :J0_13_1 :J0_19_0" shape="153.60,390.40 166.40,390.40 166.84,388.18 167.40,387.40 168.18,386.84 169.18,386.51 170.40,386.40 170.40,373.60 168.18,373.16 167.40,372.60 166.84,371.82 166.51,370.82 166.40,369.60 153.60,369.60 153.16,371.82 152.60,372.60 151.82,373.16 150.82,373.49 149.60,373.60 149.60,386.40 151.82,386.84 152.60,387.40 153.16,388.18 153.49,389.18">
         <request index="0"  response="0000000000000000" foes="0000000001100000" cont="0"/>
         <request index="1"  response="1000000000000000" foes="1111100011100000" cont="0"/>
         <request index="2"  response="1000000010000000" foes="1111100011100000" cont="0"/>
@@ -440,7 +491,7 @@
         <request index="14" response="0000111100001110" foes="0000111110001110" cont="0"/>
         <request index="15" response="0000111001101110" foes="0000111001101110" cont="1"/>
     </junction>
-    <junction id="J1" type="traffic_light" x="160.00" y="160.00" incLanes="E0_0 E0_1 -E3_0 -E3_1 -E7_0 -E7_1 -E8_0 -E8_1" intLanes=":J1_0_0 :J1_1_0 :J1_1_1 :J1_16_0 :J1_4_0 :J1_5_0 :J1_5_1 :J1_17_0 :J1_8_0 :J1_9_0 :J1_9_1 :J1_18_0 :J1_12_0 :J1_13_0 :J1_13_1 :J1_19_0" shape="153.60,170.40 166.40,170.40 166.84,168.18 167.40,167.40 168.18,166.84 169.18,166.51 170.40,166.40 170.40,153.60 168.18,153.16 167.40,152.60 166.84,151.82 166.51,150.82 166.40,149.60 153.60,149.60 153.16,151.82 152.60,152.60 151.82,153.16 150.82,153.49 149.60,153.60 149.60,166.40 151.82,166.84 152.60,167.40 153.16,168.18 153.49,169.18">
+    <junction id="J1" type="traffic_light" tl="J1" x="160.00" y="160.00" incLanes="E0_0 E0_1 -E3_0 -E3_1 -E7_0 -E7_1 -E8_0 -E8_1" intLanes=":J1_0_0 :J1_1_0 :J1_1_1 :J1_16_0 :J1_4_0 :J1_5_0 :J1_5_1 :J1_17_0 :J1_8_0 :J1_9_0 :J1_9_1 :J1_18_0 :J1_12_0 :J1_13_0 :J1_13_1 :J1_19_0" shape="153.60,170.40 166.40,170.40 166.84,168.18 167.40,167.40 168.18,166.84 169.18,166.51 170.40,166.40 170.40,153.60 168.18,153.16 167.40,152.60 166.84,151.82 166.51,150.82 166.40,149.60 153.60,149.60 153.16,151.82 152.60,152.60 151.82,153.16 150.82,153.49 149.60,153.60 149.60,166.40 151.82,166.84 152.60,167.40 153.16,168.18 153.49,169.18">
         <request index="0"  response="0000000000000000" foes="0000000001100000" cont="0"/>
         <request index="1"  response="1000000000000000" foes="1111100011100000" cont="0"/>
         <request index="2"  response="1000000010000000" foes="1111100011100000" cont="0"/>
@@ -463,7 +514,7 @@
     <junction id="J12" type="dead_end" x="600.00" y="540.00" incLanes="E12_0 E12_1" intLanes="" shape="600.00,540.00 606.40,540.00 600.00,540.00"/>
     <junction id="J13" type="dead_end" x="600.00" y="220.00" incLanes="E13_0 E13_1" intLanes="" shape="600.00,220.00 593.60,220.00 600.00,220.00"/>
     <junction id="J14" type="dead_end" x="760.00" y="380.00" incLanes="E14_0 E14_1" intLanes="" shape="760.00,380.00 760.00,373.60 760.00,380.00"/>
-    <junction id="J2" type="traffic_light" x="380.00" y="380.00" incLanes="-E9_0 -E9_1 -E4_0 -E4_1 -E2_0 -E2_1 E1_0 E1_1" intLanes=":J2_0_0 :J2_1_0 :J2_1_1 :J2_16_0 :J2_4_0 :J2_5_0 :J2_5_1 :J2_17_0 :J2_8_0 :J2_9_0 :J2_9_1 :J2_18_0 :J2_12_0 :J2_13_0 :J2_13_1 :J2_19_0" shape="373.60,390.40 386.40,390.40 386.84,388.18 387.40,387.40 388.18,386.84 389.18,386.51 390.40,386.40 390.40,373.60 388.18,373.16 387.40,372.60 386.84,371.82 386.51,370.82 386.40,369.60 373.60,369.60 373.16,371.82 372.60,372.60 371.82,373.16 370.82,373.49 369.60,373.60 369.60,386.40 371.82,386.84 372.60,387.40 373.16,388.18 373.49,389.18">
+    <junction id="J2" type="traffic_light" tl="J2" x="380.00" y="380.00" incLanes="-E9_0 -E9_1 -E4_0 -E4_1 -E2_0 -E2_1 E1_0 E1_1" intLanes=":J2_0_0 :J2_1_0 :J2_1_1 :J2_16_0 :J2_4_0 :J2_5_0 :J2_5_1 :J2_17_0 :J2_8_0 :J2_9_0 :J2_9_1 :J2_18_0 :J2_12_0 :J2_13_0 :J2_13_1 :J2_19_0" shape="373.60,390.40 386.40,390.40 386.84,388.18 387.40,387.40 388.18,386.84 389.18,386.51 390.40,386.40 390.40,373.60 388.18,373.16 387.40,372.60 386.84,371.82 386.51,370.82 386.40,369.60 373.60,369.60 373.16,371.82 372.60,372.60 371.82,373.16 370.82,373.49 369.60,373.60 369.60,386.40 371.82,386.84 372.60,387.40 373.16,388.18 373.49,389.18">
         <request index="0"  response="0000000000000000" foes="0000000001100000" cont="0"/>
         <request index="1"  response="1000000000000000" foes="1111100011100000" cont="0"/>
         <request index="2"  response="1000000010000000" foes="1111100011100000" cont="0"/>
@@ -481,7 +532,7 @@
         <request index="14" response="0000111100001110" foes="0000111110001110" cont="0"/>
         <request index="15" response="0000111001101110" foes="0000111001101110" cont="1"/>
     </junction>
-    <junction id="J3" type="traffic_light" x="380.00" y="160.00" incLanes="E2_0 E2_1 -E10_0 -E10_1 -E11_0 -E11_1 E3_0 E3_1" intLanes=":J3_0_0 :J3_1_0 :J3_1_1 :J3_16_0 :J3_4_0 :J3_5_0 :J3_5_1 :J3_17_0 :J3_8_0 :J3_9_0 :J3_9_1 :J3_18_0 :J3_12_0 :J3_13_0 :J3_13_1 :J3_19_0" shape="373.60,170.40 386.40,170.40 386.84,168.18 387.40,167.40 388.18,166.84 389.18,166.51 390.40,166.40 390.40,153.60 388.18,153.16 387.40,152.60 386.84,151.82 386.51,150.82 386.40,149.60 373.60,149.60 373.16,151.82 372.60,152.60 371.82,153.16 370.82,153.49 369.60,153.60 369.60,166.40 371.82,166.84 372.60,167.40 373.16,168.18 373.49,169.18">
+    <junction id="J3" type="traffic_light" tl="J3" x="380.00" y="160.00" incLanes="E2_0 E2_1 -E10_0 -E10_1 -E11_0 -E11_1 E3_0 E3_1" intLanes=":J3_0_0 :J3_1_0 :J3_1_1 :J3_16_0 :J3_4_0 :J3_5_0 :J3_5_1 :J3_17_0 :J3_8_0 :J3_9_0 :J3_9_1 :J3_18_0 :J3_12_0 :J3_13_0 :J3_13_1 :J3_19_0" shape="373.60,170.40 386.40,170.40 386.84,168.18 387.40,167.40 388.18,166.84 389.18,166.51 390.40,166.40 390.40,153.60 388.18,153.16 387.40,152.60 386.84,151.82 386.51,150.82 386.40,149.60 373.60,149.60 373.16,151.82 372.60,152.60 371.82,153.16 370.82,153.49 369.60,153.60 369.60,166.40 371.82,166.84 372.60,167.40 373.16,168.18 373.49,169.18">
         <request index="0"  response="0000000000000000" foes="0000000001100000" cont="0"/>
         <request index="1"  response="1000000000000000" foes="1111100011100000" cont="0"/>
         <request index="2"  response="1000000010000000" foes="1111100011100000" cont="0"/>
@@ -499,7 +550,7 @@
         <request index="14" response="0000111100001110" foes="0000111110001110" cont="0"/>
         <request index="15" response="0000111001101110" foes="0000111001101110" cont="1"/>
     </junction>
-    <junction id="J4" type="traffic_light" x="600.00" y="380.00" incLanes="-E12_0 -E12_1 -E14_0 -E14_1 -E13_0 -E13_1 E4_0 E4_1" intLanes=":J4_0_0 :J4_1_0 :J4_1_1 :J4_16_0 :J4_4_0 :J4_5_0 :J4_5_1 :J4_17_0 :J4_8_0 :J4_9_0 :J4_9_1 :J4_18_0 :J4_12_0 :J4_13_0 :J4_13_1 :J4_19_0" shape="593.60,390.40 606.40,390.40 606.84,388.18 607.40,387.40 608.18,386.84 609.18,386.51 610.40,386.40 610.40,373.60 608.18,373.16 607.40,372.60 606.84,371.82 606.51,370.82 606.40,369.60 593.60,369.60 593.16,371.82 592.60,372.60 591.82,373.16 590.82,373.49 589.60,373.60 589.60,386.40 591.82,386.84 592.60,387.40 593.16,388.18 593.49,389.18">
+    <junction id="J4" type="traffic_light" tl="J4" x="600.00" y="380.00" incLanes="-E12_0 -E12_1 -E14_0 -E14_1 -E13_0 -E13_1 E4_0 E4_1" intLanes=":J4_0_0 :J4_1_0 :J4_1_1 :J4_16_0 :J4_4_0 :J4_5_0 :J4_5_1 :J4_17_0 :J4_8_0 :J4_9_0 :J4_9_1 :J4_18_0 :J4_12_0 :J4_13_0 :J4_13_1 :J4_19_0" shape="593.60,390.40 606.40,390.40 606.84,388.18 607.40,387.40 608.18,386.84 609.18,386.51 610.40,386.40 610.40,373.60 608.18,373.16 607.40,372.60 606.84,371.82 606.51,370.82 606.40,369.60 593.60,369.60 593.16,371.82 592.60,372.60 591.82,373.16 590.82,373.49 589.60,373.60 589.60,386.40 591.82,386.84 592.60,387.40 593.16,388.18 593.49,389.18">
         <request index="0"  response="0000000000000000" foes="0000000001100000" cont="0"/>
         <request index="1"  response="1000000000000000" foes="1111100011100000" cont="0"/>
         <request index="2"  response="1000000010000000" foes="1111100011100000" cont="0"/>
@@ -725,55 +776,4 @@
     <connection from=":J4_13" to="E14" fromLane="1" toLane="1" dir="s" state="M"/>
     <connection from=":J4_15" to="E12" fromLane="0" toLane="1" via=":J4_19_0" dir="l" state="m"/>
     <connection from=":J4_19" to="E12" fromLane="0" toLane="1" dir="l" state="M"/>
-
-    <tlLogic id="J0" type="static" programID="0" offset="0">
-        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
-        <phase duration="3" state="yyyyrrrrrrrrrrrr"/>
-        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
-        <phase duration="3" state="rrrryyyyrrrrrrrr"/>
-        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
-        <phase duration="3" state="rrrrrrrryyyyrrrr"/>
-        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
-        <phase duration="3" state="rrrrrrrrrrrryyyy"/>
-    </tlLogic>
-    <tlLogic id="J1" type="static" programID="0" offset="0">
-        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
-        <phase duration="3" state="yyyyrrrrrrrrrrrr"/>
-        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
-        <phase duration="3" state="rrrryyyyrrrrrrrr"/>
-        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
-        <phase duration="3" state="rrrrrrrryyyyrrrr"/>
-        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
-        <phase duration="3" state="rrrrrrrrrrrryyyy"/>
-    </tlLogic>
-    <tlLogic id="J2" type="static" programID="0" offset="0">
-        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
-        <phase duration="3" state="yyyyrrrrrrrrrrrr"/>
-        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
-        <phase duration="3" state="rrrryyyyrrrrrrrr"/>
-        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
-        <phase duration="3" state="rrrrrrrryyyyrrrr"/>
-        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
-        <phase duration="3" state="rrrrrrrrrrrryyyy"/>
-    </tlLogic>
-    <tlLogic id="J3" type="static" programID="0" offset="0">
-        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
-        <phase duration="3" state="yyyyrrrrrrrrrrrr"/>
-        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
-        <phase duration="3" state="rrrryyyyrrrrrrrr"/>
-        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
-        <phase duration="3" state="rrrrrrrryyyyrrrr"/>
-        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
-        <phase duration="3" state="rrrrrrrrrrrryyyy"/>
-    </tlLogic>
-    <tlLogic id="J4" type="static" programID="0" offset="0">
-        <phase duration="40" state="GGGgrrrrrrrrrrrr"/>
-        <phase duration="3" state="yyyyrrrrrrrrrrrr"/>
-        <phase duration="40" state="rrrrGGGgrrrrrrrr"/>
-        <phase duration="3" state="rrrryyyyrrrrrrrr"/>
-        <phase duration="40" state="rrrrrrrrGGGgrrrr"/>
-        <phase duration="3" state="rrrrrrrryyyyrrrr"/>
-        <phase duration="40" state="rrrrrrrrrrrrGGGg"/>
-        <phase duration="3" state="rrrrrrrrrrrryyyy"/>
-    </tlLogic>
 </net>

@@ -1,15 +1,28 @@
 """
-TraFix — Ağ Yeniden Oluşturucu
-================================
-Mevcut 5-kavşak topolojisini koruyarak yolları uzatır:
-  İç yollar (kavşaklar arası) : ~80m  →  ~200m
-  Fringe giriş/çıkış yolları  : ~40m  →  ~150m
+TraFix — Network Rebuilder v6
+==============================
+Builds 5-junction topology with 3 lanes per road and 12-phase TL programs.
 
-Çalıştır:
+Changes from v5:
+  - NUM_LANES = 3 (was 2)
+  - TL programs: 12 phases (6 green + 6 yellow transitions)
+  - State strings derived programmatically from SUMO getControlledLinks query
+
+Lane indexing (SUMO right-to-left):
+  Lane 0: rightmost = right turn (permissive)
+  Lane 1: middle    = through (protected)
+  Lane 2: leftmost  = left turn (protected)
+
+12 SUMO phases:
+  0/1   NS-through  green/yellow  (40s/3s)
+  2/3   N-left      green/yellow  (20s/3s)
+  4/5   S-left      green/yellow  (20s/3s)
+  6/7   EW-through  green/yellow  (40s/3s)
+  8/9   E-left      green/yellow  (20s/3s)
+  10/11 W-left      green/yellow  (20s/3s)
+
+Run:
   python sumo/rebuild_network.py
-
-netconvert çıktısı doğrudan sumo/map.net.xml üzerine yazar.
-Eski dosya sumo/map.net.xml.bak olarak saklanır.
 """
 
 import os
@@ -19,9 +32,10 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+_PROJECT_ROOT = HERE.parent
 
 
-# ── netconvert binary bul ─────────────────────────────────────────────────────
+# ── netconvert binary ─────────────────────────────────────────────────────────
 
 def find_netconvert() -> str:
     sumo_home = os.environ.get("SUMO_HOME", "")
@@ -41,22 +55,35 @@ def find_netconvert() -> str:
     found = shutil.which("netconvert") or shutil.which("netconvert.exe")
     if found:
         return found
-    sys.exit("HATA: netconvert bulunamadı. SUMO_HOME ortam değişkenini ayarlayın.")
+    sys.exit("HATA: netconvert bulunamadi. SUMO_HOME ortam degiskenini ayarlayin.")
 
 
-# ── Düğüm koordinatları ───────────────────────────────────────────────────────
+def _find_sumo_bin() -> str:
+    sumo_home = os.environ.get("SUMO_HOME", "")
+    candidates = []
+    if sumo_home:
+        candidates += [
+            Path(sumo_home) / "bin" / "sumo.exe",
+            Path(sumo_home) / "bin" / "sumo",
+        ]
+    candidates += [
+        Path("C:/Program Files (x86)/Eclipse/Sumo/bin/sumo.exe"),
+        Path("C:/Program Files/Eclipse/Sumo/bin/sumo.exe"),
+    ]
+    for c in candidates:
+        if c.exists():
+            return str(c)
+    found = shutil.which("sumo") or shutil.which("sumo.exe")
+    return found or "sumo"
+
+
+# ── Node coordinates ──────────────────────────────────────────────────────────
 #
-# Orijinal topoloji (100m aralıklı grid):
-#   J0(0,100) — J2(100,100) — J4(200,100)
+#   J0(0,220)  — J2(220,220) — J4(440,220)
 #       |              |
-#   J1(0,0)  — J3(100,0)
+#   J1(0,0)   — J3(220,0)
 #
-# Yeni topoloji (~220m aralıklı grid → iç yollar ~200m):
-#   J0(0,220) — J2(220,220) — J4(440,220)
-#       |               |
-#   J1(0,0)  — J3(220,0)
-#
-# Fringe düğümleri TL kavşağından 160m uzağa taşındı (→ yol ~150m)
+#   Fringe nodes 160m from TL junction (edge length ~150m)
 
 TL_NODES = {
     "J0": ( 0,   220),
@@ -67,24 +94,23 @@ TL_NODES = {
 }
 
 FRINGE_NODES = {
-    "J5":  (   0,  380),   # J0 kuzey
-    "J6":  (-160,  220),   # J0 batı
-    "J7":  (   0, -160),   # J1 güney
-    "J8":  (-160,    0),   # J1 batı
-    "J9":  ( 220,  380),   # J2 kuzey
-    "J10": ( 380,    0),   # J3 doğu
-    "J11": ( 220, -160),   # J3 güney
-    "J12": ( 440,  380),   # J4 kuzey
-    "J13": ( 440,   60),   # J4 güney
-    "J14": ( 600,  220),   # J4 doğu
+    "J5":  (   0,  380),   # J0 north
+    "J6":  (-160,  220),   # J0 west
+    "J7":  (   0, -160),   # J1 south
+    "J8":  (-160,    0),   # J1 west
+    "J9":  ( 220,  380),   # J2 north
+    "J10": ( 380,    0),   # J3 east
+    "J11": ( 220, -160),   # J3 south
+    "J12": ( 440,  380),   # J4 north
+    "J13": ( 440,   60),   # J4 south
+    "J14": ( 600,  220),   # J4 east
 }
 
-SPEED_MS = 13.89   # 50 km/h → m/s
-NUM_LANES = 2
+SPEED_MS = 13.89   # 50 km/h
+NUM_LANES = 3      # was 2 in v5
 
-# (id, from, to) — hem ileri hem geri yönler
 EDGES = [
-    # İç yollar
+    # Internal edges
     ("E0",   "J0",  "J1"),
     ("-E0",  "J1",  "J0"),
     ("E1",   "J0",  "J2"),
@@ -95,7 +121,7 @@ EDGES = [
     ("-E3",  "J3",  "J1"),
     ("E4",   "J2",  "J4"),
     ("-E4",  "J4",  "J2"),
-    # Fringe yollar
+    # Fringe edges
     ("E5",   "J0",  "J5"),
     ("-E5",  "J5",  "J0"),
     ("E6",   "J0",  "J6"),
@@ -119,36 +145,190 @@ EDGES = [
 ]
 
 
-# ── 8-fazlı TL programı ──────────────────────────────────────────────────────
-#
-# Netconvert 4 faz üretiyor (N+S birleşik, E+W birleşik).
-# Model 8 faz bekliyor: N / E / S / W her biri ayrı yeşil + sarı.
-# State string 16 karakter — her kavşakta 16 kontrollü bağlantı:
-#   0-3  → N yönü,  4-7  → E yönü,  8-11 → S yönü,  12-15 → W yönü
-#
-_8_PHASE_PROGRAM = [
-    ("40", "GGGgrrrrrrrrrrrr"),  # faz 0: N-yeşil
-    ("3",  "yyyyrrrrrrrrrrrr"),  # faz 1: N-sarı
-    ("40", "rrrrGGGgrrrrrrrr"),  # faz 2: E-yeşil
-    ("3",  "rrrryyyyrrrrrrrr"),  # faz 3: E-sarı
-    ("40", "rrrrrrrrGGGgrrrr"),  # faz 4: S-yeşil
-    ("3",  "rrrrrrrryyyyrrrr"),  # faz 5: S-sarı
-    ("40", "rrrrrrrrrrrrGGGg"),  # faz 6: W-yeşil
-    ("3",  "rrrrrrrrrrrryyyy"),  # faz 7: W-sarı
+# ── Lane type by SUMO lane index (0=rightmost) ────────────────────────────────
+
+_LANE_TYPE = {0: "right", 1: "through", 2: "left"}
+
+# ── 12-phase definitions ──────────────────────────────────────────────────────
+# Each entry: (duration_seconds, {(direction, lane_type): state_char})
+# Default char for any unspecified (direction, lane_type) is 'r'.
+
+_PHASE_DEFS = [
+    # Phase 0: NS-through green (40s)
+    (40, {("north", "through"): "G", ("south", "through"): "G",
+          ("north", "right"):   "g", ("south", "right"):   "g"}),
+    # Phase 1: NS-through yellow (3s)
+    (3,  {("north", "through"): "y", ("south", "through"): "y",
+          ("north", "right"):   "y", ("south", "right"):   "y"}),
+    # Phase 2: N-left green (20s)
+    (20, {("north", "left"):    "G", ("north", "right"):   "g"}),
+    # Phase 3: N-left yellow (3s)
+    (3,  {("north", "left"):    "y", ("north", "right"):   "y"}),
+    # Phase 4: S-left green (20s)
+    (20, {("south", "left"):    "G", ("south", "right"):   "g"}),
+    # Phase 5: S-left yellow (3s)
+    (3,  {("south", "left"):    "y", ("south", "right"):   "y"}),
+    # Phase 6: EW-through green (40s)
+    (40, {("east",  "through"): "G", ("west",  "through"): "G",
+          ("east",  "right"):   "g", ("west",  "right"):   "g"}),
+    # Phase 7: EW-through yellow (3s)
+    (3,  {("east",  "through"): "y", ("west",  "through"): "y",
+          ("east",  "right"):   "y", ("west",  "right"):   "y"}),
+    # Phase 8: E-left green (20s)
+    (20, {("east",  "left"):    "G", ("east",  "right"):   "g"}),
+    # Phase 9: E-left yellow (3s)
+    (3,  {("east",  "left"):    "y", ("east",  "right"):   "y"}),
+    # Phase 10: W-left green (20s)
+    (20, {("west",  "left"):    "G", ("west",  "right"):   "g"}),
+    # Phase 11: W-left yellow (3s)
+    (3,  {("west",  "left"):    "y", ("west",  "right"):   "y"}),
 ]
 
 
+# ── SUMO query: derive per-junction link classifications ──────────────────────
+
+def _ensure_traci_importable():
+    sumo_home = os.environ.get("SUMO_HOME", "")
+    tools_path = os.path.join(sumo_home, "tools") if sumo_home else ""
+    if tools_path and tools_path not in sys.path:
+        sys.path.insert(0, tools_path)
+    for candidate in [
+        "C:\\Program Files (x86)\\Eclipse\\Sumo\\tools",
+        "C:\\Program Files\\Eclipse\\Sumo\\tools",
+    ]:
+        if os.path.isdir(candidate) and candidate not in sys.path:
+            sys.path.insert(0, candidate)
+
+
+def _classify_from_lane(from_lane: str, jx: float, jy: float, traci) -> tuple:
+    """
+    Returns (direction, lane_type) for one controlled link's from_lane.
+    direction: north/south/east/west (from lane shape geometry)
+    lane_type: right/through/left (from lane index 0/1/2)
+    """
+    edge_id = from_lane.rsplit("_", 1)[0]
+    lane_idx = int(from_lane.rsplit("_", 1)[1])
+    lane_type = _LANE_TYPE.get(lane_idx, "through")
+
+    try:
+        # Use lane 0 of the edge for direction (always exists)
+        shape = traci.lane.getShape(f"{edge_id}_0")
+        if shape:
+            x0, y0 = shape[0]
+            dx, dy = x0 - jx, y0 - jy
+            if abs(dx) > abs(dy):
+                direction = "west" if dx < 0 else "east"
+            else:
+                direction = "south" if dy < 0 else "north"
+        else:
+            direction = "north"
+    except Exception:
+        direction = "north"
+
+    return direction, lane_type
+
+
+def _query_link_classifications(net_path: Path) -> dict:
+    """
+    Temporarily starts SUMO with the generated network and queries
+    getControlledLinks for each TL junction.
+
+    Returns {jid: [(direction, lane_type), ...]} for all links in order.
+    """
+    _ensure_traci_importable()
+
+    try:
+        import traci
+    except ImportError:
+        print("  [WARN] TraCI not importable — cannot derive state strings from query.")
+        return {}
+
+    # Write a minimal sumocfg with no route file so SUMO loads the net only
+    tmp_cfg = net_path.parent / "_tmp_query.sumocfg"
+    tmp_cfg.write_text(
+        f'<configuration>\n'
+        f'  <input>\n'
+        f'    <net-file value="{net_path.name}"/>\n'
+        f'  </input>\n'
+        f'</configuration>\n',
+        encoding="utf-8",
+    )
+
+    sumo_bin = _find_sumo_bin()
+    result = {}
+
+    try:
+        sumo_cmd = [sumo_bin, "-c", str(tmp_cfg), "--no-step-log", "--no-warnings",
+                    "--end", "1"]
+        traci.start(sumo_cmd)
+
+        for tls_id in TL_NODES:
+            jx, jy = traci.junction.getPosition(tls_id)
+            links = traci.trafficlight.getControlledLinks(tls_id)
+            classifications = []
+            for link in links:
+                if link:
+                    from_lane = link[0][0]
+                    cls = _classify_from_lane(from_lane, jx, jy, traci)
+                else:
+                    cls = ("north", "through")  # fallback for empty link slot
+                classifications.append(cls)
+            result[tls_id] = classifications
+            print(f"  [INFO] {tls_id}: {len(classifications)} controlled links")
+
+        traci.close()
+
+    except Exception as e:
+        print(f"  [WARN] SUMO link query failed: {e}")
+        try:
+            traci.close()
+        except Exception:
+            pass
+    finally:
+        tmp_cfg.unlink(missing_ok=True)
+
+    return result
+
+
+# ── State string builder ──────────────────────────────────────────────────────
+
+def _build_state_strings(classifications: list) -> list:
+    """
+    Given ordered [(direction, lane_type), ...] for a junction's controlled links,
+    returns [(duration_str, state_str), ...] for all 12 phases.
+    """
+    phases = []
+    for duration, green_map in _PHASE_DEFS:
+        state = "".join(
+            green_map.get((direction, lane_type), "r")
+            for direction, lane_type in classifications
+        )
+        phases.append((str(duration), state))
+    return phases
+
+
+# ── TL program injection ──────────────────────────────────────────────────────
+
 def fix_tl_programs(net_path: Path):
     """
-    Netconvert'in ürettiği 4-fazlı TL programlarını 8-fazlıya dönüştürür.
+    Replaces auto-generated TL programs with 12-phase programs.
+    State strings are derived from SUMO getControlledLinks query.
 
-    SUMO SAX parser event-driven çalışır: <tlLogic> mutlaka <junction> ve
-    <connection> elementlerinden ÖNCE gelmelidir, yoksa "tls not known" hatası.
+    SUMO SAX parser requires <tlLogic> blocks to appear BEFORE <junction>
+    elements in the XML file.
     """
     import re
+
+    print("\n  Deriving state strings from SUMO link query...")
+    classifications = _query_link_classifications(net_path)
+
+    if not classifications:
+        print("  [WARN] Link query returned no results — network may not have loaded.")
+        print("  [WARN] State strings cannot be derived. Check SUMO installation.")
+
     text = net_path.read_text(encoding="utf-8")
 
-    # 1. Mevcut tüm <tlLogic> bloklarını kaldır (4-faz veya önceki yamalar)
+    # 1. Remove all existing tlLogic blocks (from netconvert or previous runs)
     text = re.sub(
         r'\s*<tlLogic\b[^>]*>.*?</tlLogic>',
         '',
@@ -156,48 +336,66 @@ def fix_tl_programs(net_path: Path):
         flags=re.DOTALL,
     )
 
-    # 2. Junction'larda duplicate tl attribute varsa temizle, sonra tek ekle
+    # 2. Fix junction tl attributes — remove duplicates then add clean one
     for jid in TL_NODES:
-        # Önce varsa kaldır
         text = re.sub(
             rf'(<junction id="{jid}" type="traffic_light")(\s+tl="[^"]*")+',
             rf'\1',
             text,
         )
-        # Sonra tek seferde ekle
         text = re.sub(
             rf'(<junction id="{jid}" type="traffic_light")',
             rf'\1 tl="{jid}"',
             text,
         )
 
-    # 3. 8-fazlı blokları oluştur
-    phase_lines = "\n".join(
-        f'        <phase duration="{dur}" state="{state}"/>'
-        for dur, state in _8_PHASE_PROGRAM
-    )
-    new_blocks = "\n".join(
-        f'    <tlLogic id="{jid}" type="static" programID="0" offset="0">\n'
-        f'{phase_lines}\n'
-        f'    </tlLogic>'
-        for jid in TL_NODES
-    )
+    # 3. Build 12-phase tlLogic blocks for each junction
+    blocks = []
+    for jid in TL_NODES:
+        if jid in classifications and classifications[jid]:
+            phases = _build_state_strings(classifications[jid])
+            n_links = len(classifications[jid])
+        else:
+            # Fallback: all-red (shouldn't happen if SUMO is installed correctly)
+            phases = [(str(dur), "r" * 36) for dur, _ in _PHASE_DEFS]
+            n_links = 36
+            print(f"  [WARN] {jid}: using all-red fallback ({n_links} links assumed)")
 
-    # 4. <tlLogic> bloklarını ilk <junction> elementinden ÖNCE ekle
-    #    (SUMO SAX parser sıraya göre işler: tlLogic → junction → connection)
+        phase_lines = "\n".join(
+            f'        <phase duration="{dur}" state="{state}"/>'
+            for dur, state in phases
+        )
+        blocks.append(
+            f'    <tlLogic id="{jid}" type="static" programID="0" offset="0">\n'
+            f'{phase_lines}\n'
+            f'    </tlLogic>'
+        )
+
+        # Print state strings for verification
+        print(f"\n  {jid} ({n_links} links):")
+        for (dur, state), (_, phase_def) in zip(phases, _PHASE_DEFS):
+            phase_name = [
+                "NS-through", "NS-yellow", "N-left", "N-left-y",
+                "S-left", "S-left-y", "EW-through", "EW-yellow",
+                "E-left", "E-left-y", "W-left", "W-left-y",
+            ][len(blocks) * 0 + phases.index((dur, state))]
+            print(f"    P{phases.index((dur, state)):2d} ({phase_name:12s}): {state}")
+
+    new_blocks = "\n".join(blocks)
+
+    # 4. Insert tlLogic blocks BEFORE the first <junction> element
     first_junction = re.search(r'<junction\b', text)
     if first_junction:
         pos = first_junction.start()
         text = text[:pos] + new_blocks + "\n\n    " + text[pos:]
     else:
-        # Fallback: </net> öncesi
         text = text.replace("</net>", f"{new_blocks}\n</net>")
 
     net_path.write_text(text, encoding="utf-8")
-    print(f"  [OK] 8-fazlı TL programları <junction> öncesine yazıldı ({len(TL_NODES)} kavşak)")
+    print(f"\n  [OK] 12-phase TL programs written before <junction> ({len(TL_NODES)} junctions)")
 
 
-# ── XML yazıcılar ─────────────────────────────────────────────────────────────
+# ── XML writers ───────────────────────────────────────────────────────────────
 
 def write_nodes(path: Path):
     lines = ['<nodes>']
@@ -207,7 +405,7 @@ def write_nodes(path: Path):
         lines.append(f'    <node id="{nid}" x="{x}" y="{y}" type="dead_end"/>')
     lines.append('</nodes>')
     path.write_text("\n".join(lines), encoding="utf-8")
-    print(f"  [OK] {path.name} yazıldı")
+    print(f"  [OK] {path.name} written")
 
 
 def write_edges(path: Path):
@@ -219,59 +417,58 @@ def write_edges(path: Path):
         )
     lines.append('</edges>')
     path.write_text("\n".join(lines), encoding="utf-8")
-    print(f"  [OK] {path.name} yazıldı")
+    print(f"  [OK] {path.name} written")
 
 
-# ── Ana fonksiyon ─────────────────────────────────────────────────────────────
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
     netconvert = find_netconvert()
     print(f"  netconvert: {netconvert}")
+    print(f"  NUM_LANES : {NUM_LANES}")
 
-    nod_file  = HERE / "_tmp_nodes.nod.xml"
-    edg_file  = HERE / "_tmp_edges.edg.xml"
-    out_file  = HERE / "map.net.xml"
-    bak_file  = HERE / "map.net.xml.bak"
+    nod_file = HERE / "_tmp_nodes.nod.xml"
+    edg_file = HERE / "_tmp_edges.edg.xml"
+    out_file = HERE / "map.net.xml"
+    bak_file = HERE / "map.net.xml.bak"
 
     write_nodes(nod_file)
     write_edges(edg_file)
 
-    # Mevcut ağı yedekle
     if out_file.exists():
         shutil.copy(out_file, bak_file)
-        print(f"  [OK] Yedek: {bak_file.name}")
+        print(f"  [OK] Backup: {bak_file.name}")
 
+    # Cycle time: 40+3+20+3+20+3+40+3+20+3+20+3 = 178s
     cmd = [
         netconvert,
         "--node-files",       str(nod_file),
         "--edge-files",       str(edg_file),
         "--output-file",      str(out_file),
         "--tls.guess",        "true",
-        "--tls.cycle.time",   "166",       # 4×(40s yeşil+3s sarı) = 172 → netconvert 166 kullanıyor
+        "--tls.cycle.time",   "178",
         "--no-turnarounds",   "true",
         "--junctions.corner-detail", "5",
         "--no-warnings",      "true",
         "--log",              str(HERE / "_netconvert.log"),
     ]
 
-    print(f"\n  netconvert çalıştırılıyor...")
+    print(f"\n  Running netconvert...")
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
-        print("HATA:")
+        print("ERROR:")
         print(result.stdout[-2000:] if result.stdout else "")
         print(result.stderr[-2000:] if result.stderr else "")
         sys.exit(1)
 
-    # Geçici dosyaları temizle
     nod_file.unlink(missing_ok=True)
     edg_file.unlink(missing_ok=True)
 
-    # Netconvert'in 4-fazlı programını 8-fazlıya yükselt
+    # Replace auto-generated TL programs with derived 12-phase programs
     fix_tl_programs(out_file)
 
-    # Yeni yol uzunluklarını raporla
-    print(f"\n  [OK] {out_file.name} güncellendi. Yeni uzunluklar:")
+    print(f"\n  [OK] {out_file.name} updated. Road lengths:")
     _report_lengths(out_file)
 
 
@@ -286,24 +483,23 @@ def _report_lengths(net_path: Path):
         lane = edge.find("lane")
         if lane is None: continue
         length = float(lane.get("length", 0))
-        # Fringe: E5-E14 ve ters yönleri
         base = eid.lstrip("-")
         if base in {f"E{i}" for i in range(5, 15)}:
             fringe.append(length)
         else:
             internal.append(length)
     if internal:
-        print(f"    İç yollar   : min={min(internal):.1f}m  max={max(internal):.1f}m  "
-              f"ort={sum(internal)/len(internal):.1f}m")
+        print(f"    Internal edges : min={min(internal):.1f}m  max={max(internal):.1f}m  "
+              f"avg={sum(internal)/len(internal):.1f}m")
     if fringe:
-        print(f"    Fringe yollar: min={min(fringe):.1f}m  max={max(fringe):.1f}m  "
-              f"ort={sum(fringe)/len(fringe):.1f}m")
+        print(f"    Fringe edges   : min={min(fringe):.1f}m  max={max(fringe):.1f}m  "
+              f"avg={sum(fringe)/len(fringe):.1f}m")
 
 
 if __name__ == "__main__":
     print("=" * 55)
-    print("  TraFix — Ağ Yeniden Oluşturucu")
+    print("  TraFix — Network Rebuilder v6")
     print("=" * 55)
     main()
-    print("\n  Tamamlandı. Talebi yeniden oluşturmayı unutma:")
+    print("\n  Done. Regenerate traffic demand:")
     print("  python sumo/generate_demand.py")
