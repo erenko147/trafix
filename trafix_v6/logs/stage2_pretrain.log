@@ -47,3 +47,52 @@
 2026-05-16 23:36:33,427 [INFO]   Ep 400/400 [curriculum] | Loss: 0.049630 | Best: 0.006365 | LR: 1.00e-05 | Steps:  177 | 6.7s | ep0399 | EVENING_PEAK | main=1019 | side=212 | duration=418
 2026-05-16 23:36:33,427 [INFO]   Best GATConv saved → X:\Yeni klasör\TraFixV5\trafix_v6\checkpoints\stage2_gatconv.pt
 2026-05-16 23:36:33,427 [INFO]   Best Trunk   saved → X:\Yeni klasör\TraFixV5\trafix_v6\checkpoints\stage2_trunk.pt
+2026-05-17 23:30:17,929 [INFO] ============================================================
+2026-05-17 23:30:17,929 [INFO]   TraFix v6 — Stage 2: GATConv + Trunk Pretraining
+2026-05-17 23:30:17,930 [INFO] ============================================================
+2026-05-17 23:30:17,930 [INFO]   obs_dim=20, QUEUE_FEAT_IDX=12, T_window=30, episodes=400
+2026-05-17 23:30:17,930 [INFO]   Device: cuda
+2026-05-17 23:30:18,253 [INFO]   GRU loaded from X:\Yeni klasör\TraFixV5\trafix_v6\checkpoints\stage1_gru.pt and frozen.
+2026-05-17 23:30:18,253 [INFO]   Curriculum: OFFPEAK-only for first 200 episodes, then standard curriculum mix.
+2026-05-17 23:31:14,760 [INFO]   Ep  10/400 [OFFPEAK-only] | Loss: 0.015543 | Best: 0.010986 | LR: 3.00e-04 | Steps:  177 | 6.1s | ep0009 | OFFPEAK | flow=292 veh/hr | duration=377 steps
+2026-05-17 23:32:11,662 [INFO]   Ep  20/400 [OFFPEAK-only] | Loss: 0.019873 | Best: 0.010986 | LR: 3.00e-04 | Steps:  177 | 5.5s | ep0019 | OFFPEAK | flow=432 veh/hr | duration=385 steps
+2026-05-17 23:33:03,023 [INFO]   Ep  30/400 [OFFPEAK-only] | Loss: 0.013466 | Best: 0.010076 | LR: 1.50e-04 | Steps:  168 | 5.6s | ep0029 | OFFPEAK | flow=358 veh/hr | duration=491 steps
+2026-05-17 23:33:51,430 [INFO]   Ep  40/400 [OFFPEAK-only] | Loss: 0.011555 | Best: 0.008703 | LR: 1.50e-04 | Steps:  115 | 3.7s | ep0039 | OFFPEAK | flow=263 veh/hr | duration=311 steps
+2026-05-17 23:34:42,722 [INFO]   Ep  50/400 [OFFPEAK-only] | Loss: 0.017826 | Best: 0.008337 | LR: 1.50e-04 | Steps:  177 | 5.4s | ep0049 | OFFPEAK | flow=473 veh/hr | duration=447 steps
+2026-05-17 23:35:33,614 [INFO]   Ep  60/400 [OFFPEAK-only] | Loss: 0.011147 | Best: 0.008337 | LR: 1.50e-04 | Steps:  177 | 5.3s | ep0059 | OFFPEAK | flow=308 veh/hr | duration=362 steps
+2026-05-17 23:36:21,851 [INFO]   Ep  70/400 [OFFPEAK-only] | Loss: 0.007396 | Best: 0.007348 | LR: 7.50e-05 | Steps:  128 | 4.0s | ep0069 | OFFPEAK | flow=251 veh/hr | duration=395 steps
+2026-05-17 23:37:10,379 [INFO]   Ep  80/400 [OFFPEAK-only] | Loss: 0.009917 | Best: 0.007348 | LR: 7.50e-05 | Steps:  177 | 5.2s | ep0079 | OFFPEAK | flow=289 veh/hr | duration=354 steps
+2026-05-17 23:37:58,217 [INFO]   Ep  90/400 [OFFPEAK-only] | Loss: 0.014011 | Best: 0.006899 | LR: 3.75e-05 | Steps:  159 | 4.9s | ep0089 | OFFPEAK | flow=380 veh/hr | duration=393 steps
+2026-05-17 23:38:49,415 [INFO]   Ep 100/400 [OFFPEAK-only] | Loss: 0.016328 | Best: 0.006899 | LR: 1.87e-05 | Steps:  176 | 5.3s | ep0099 | OFFPEAK | flow=499 veh/hr | duration=378 steps
+2026-05-17 23:39:39,604 [INFO]   Ep 110/400 [OFFPEAK-only] | Loss: 0.010449 | Best: 0.006899 | LR: 1.87e-05 | Steps:  177 | 5.3s | ep0109 | OFFPEAK | flow=308 veh/hr | duration=446 steps
+2026-05-17 23:40:30,602 [INFO]   Ep 120/400 [OFFPEAK-only] | Loss: 0.013591 | Best: 0.006504 | LR: 1.00e-05 | Steps:  177 | 5.4s | ep0119 | OFFPEAK | flow=417 veh/hr | duration=498 steps
+2026-05-17 23:41:20,058 [INFO]   Ep 130/400 [OFFPEAK-only] | Loss: 0.013141 | Best: 0.006418 | LR: 1.00e-05 | Steps:  177 | 5.3s | ep0129 | OFFPEAK | flow=428 veh/hr | duration=460 steps
+2026-05-17 23:42:10,027 [INFO]   Ep 140/400 [OFFPEAK-only] | Loss: 0.012564 | Best: 0.006418 | LR: 1.00e-05 | Steps:  156 | 4.8s | ep0139 | OFFPEAK | flow=377 veh/hr | duration=440 steps
+2026-05-17 23:43:00,001 [INFO]   Ep 150/400 [OFFPEAK-only] | Loss: 0.012328 | Best: 0.006418 | LR: 1.00e-05 | Steps:  177 | 5.4s | ep0149 | OFFPEAK | flow=438 veh/hr | duration=321 steps
+2026-05-17 23:43:50,039 [INFO]   Ep 160/400 [OFFPEAK-only] | Loss: 0.009547 | Best: 0.006418 | LR: 1.00e-05 | Steps:  163 | 4.9s | ep0159 | OFFPEAK | flow=361 veh/hr | duration=360 steps
+2026-05-17 23:44:42,236 [INFO]   Ep 170/400 [OFFPEAK-only] | Loss: 0.009589 | Best: 0.006418 | LR: 1.00e-05 | Steps:  177 | 5.2s | ep0169 | OFFPEAK | flow=313 veh/hr | duration=331 steps
+2026-05-17 23:45:32,594 [INFO]   Ep 180/400 [OFFPEAK-only] | Loss: 0.008172 | Best: 0.006418 | LR: 1.00e-05 | Steps:  177 | 5.2s | ep0179 | OFFPEAK | flow=279 veh/hr | duration=371 steps
+2026-05-17 23:46:24,937 [INFO]   Ep 190/400 [OFFPEAK-only] | Loss: 0.014271 | Best: 0.006418 | LR: 1.00e-05 | Steps:  177 | 5.4s | ep0189 | OFFPEAK | flow=461 veh/hr | duration=341 steps
+2026-05-17 23:47:14,073 [INFO]   Ep 200/400 [OFFPEAK-only] | Loss: 0.009762 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 5.2s | ep0199 | OFFPEAK | flow=307 veh/hr | duration=390 steps
+2026-05-17 23:48:09,109 [INFO]   Ep 210/400 [curriculum] | Loss: 0.252182 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 6.0s | ep0209 | EVENING_PEAK | main=1155 | side=144 | duration=319
+2026-05-17 23:49:03,071 [INFO]   Ep 220/400 [curriculum] | Loss: 0.017308 | Best: 0.006179 | LR: 1.00e-05 | Steps:  162 | 4.9s | ep0219 | OFFPEAK | flow=371 veh/hr | duration=396 steps
+2026-05-17 23:49:50,874 [INFO]   Ep 230/400 [curriculum] | Loss: 0.087848 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 6.1s | ep0229 | MORNING_PEAK | main=1139 | side=221 | duration=498
+2026-05-17 23:50:41,254 [INFO]   Ep 240/400 [curriculum] | Loss: 0.015100 | Best: 0.006179 | LR: 1.00e-05 | Steps:  176 | 5.3s | ep0239 | OFFPEAK | flow=472 veh/hr | duration=402 steps
+2026-05-17 23:51:34,202 [INFO]   Ep 250/400 [curriculum] | Loss: 0.014323 | Best: 0.006179 | LR: 1.00e-05 | Steps:  163 | 4.9s | ep0249 | OFFPEAK | flow=345 veh/hr | duration=310 steps
+2026-05-17 23:52:29,676 [INFO]   Ep 260/400 [curriculum] | Loss: 0.009655 | Best: 0.006179 | LR: 1.00e-05 | Steps:  145 | 4.4s | ep0259 | OFFPEAK | flow=260 veh/hr | duration=347 steps
+2026-05-17 23:53:27,191 [INFO]   Ep 270/400 [curriculum] | Loss: 0.081053 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 6.2s | ep0269 | MORNING_PEAK | main=1025 | side=228 | duration=370
+2026-05-17 23:54:19,862 [INFO]   Ep 280/400 [curriculum] | Loss: 0.136580 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 6.2s | ep0279 | MORNING_PEAK | main=1163 | side=197 | duration=376
+2026-05-17 23:55:08,463 [INFO]   Ep 290/400 [curriculum] | Loss: 0.135876 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 6.0s | ep0289 | EVENING_PEAK | main=938 | side=151 | duration=320
+2026-05-17 23:56:01,460 [INFO]   Ep 300/400 [curriculum] | Loss: 0.058644 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 6.0s | ep0299 | MORNING_PEAK | main=998 | side=195 | duration=489
+2026-05-17 23:56:53,343 [INFO]   Ep 310/400 [curriculum] | Loss: 0.066601 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 6.0s | ep0309 | MORNING_PEAK | main=1002 | side=128 | duration=419
+2026-05-17 23:57:49,365 [INFO]   Ep 320/400 [curriculum] | Loss: 0.050656 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 5.8s | ep0319 | MORNING_PEAK | main=994 | side=139 | duration=444
+2026-05-17 23:58:36,435 [INFO]   Ep 330/400 [curriculum] | Loss: 0.021009 | Best: 0.006179 | LR: 1.00e-05 | Steps:   41 | 1.8s | ep0329 | PULSE | quiet=0-138s burst=138-332s flow=769 ods=ALL | duration=489
+2026-05-17 23:59:28,096 [INFO]   Ep 340/400 [curriculum] | Loss: 0.017510 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 5.4s | ep0339 | OFFPEAK | flow=483 veh/hr | duration=457 steps
+2026-05-18 00:00:26,288 [INFO]   Ep 350/400 [curriculum] | Loss: 0.090592 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 6.3s | ep0349 | MORNING_PEAK | main=1175 | side=210 | duration=334
+2026-05-18 00:01:16,271 [INFO]   Ep 360/400 [curriculum] | Loss: 0.052989 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 5.7s | ep0359 | EVENING_PEAK | main=954 | side=112 | duration=386
+2026-05-18 00:02:07,955 [INFO]   Ep 370/400 [curriculum] | Loss: 0.016562 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 5.4s | ep0369 | OFFPEAK | flow=470 veh/hr | duration=342 steps
+2026-05-18 00:03:00,734 [INFO]   Ep 380/400 [curriculum] | Loss: 0.045362 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 5.8s | ep0379 | EVENING_PEAK | main=881 | side=154 | duration=328
+2026-05-18 00:03:52,036 [INFO]   Ep 390/400 [curriculum] | Loss: 0.014949 | Best: 0.006179 | LR: 1.00e-05 | Steps:  177 | 5.3s | ep0389 | OFFPEAK | flow=452 veh/hr | duration=455 steps
+2026-05-18 00:04:41,766 [INFO]   Ep 400/400 [curriculum] | Loss: 0.029519 | Best: 0.006179 | LR: 1.00e-05 | Steps:   66 | 2.6s | ep0399 | PULSE | quiet=0-109s burst=109-247s flow=824 ods=OUTBOUND | duration=418
+2026-05-18 00:04:41,766 [INFO]   Best GATConv saved → X:\Yeni klasör\TraFixV5\trafix_v6\checkpoints\stage2_gatconv.pt
+2026-05-18 00:04:41,766 [INFO]   Best Trunk   saved → X:\Yeni klasör\TraFixV5\trafix_v6\checkpoints\stage2_trunk.pt

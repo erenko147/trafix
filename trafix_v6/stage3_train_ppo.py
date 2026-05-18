@@ -294,9 +294,10 @@ def train(args):
     optimizer = optim.Adam([
         {"params": model.temporal_enc.parameters(), "lr": 1e-4},
         {"params": model.graph_enc.parameters(),    "lr": 2e-4},
-        {"params": model.trunk.parameters(),        "lr": args.lr},
-        {"params": model.actor_heads.parameters(),  "lr": args.lr},
-        {"params": model.critic_head.parameters(),  "lr": args.lr},
+        {"params": model.trunk.parameters(),         "lr": args.lr},
+        {"params": model.actor_heads.parameters(),   "lr": args.lr},
+        {"params": model.local_critics.parameters(), "lr": args.lr},
+        {"params": model.global_critic.parameters(), "lr": args.lr},
     ])
     base_lrs = [pg["lr"] for pg in optimizer.param_groups]
 

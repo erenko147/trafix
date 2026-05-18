@@ -347,7 +347,8 @@ def finetune(args):
     trainable_params = (
         list(model.trunk.parameters())
         + list(model.actor_heads.parameters())
-        + list(model.critic_head.parameters())
+        + list(model.local_critics.parameters())
+        + list(model.global_critic.parameters())
     )
     n_trainable = sum(p.numel() for p in trainable_params)
     n_total     = sum(p.numel() for p in model.parameters())
