@@ -14,7 +14,7 @@ import os
 import logging
 from typing import List, Optional
 
-from backend.db import init_db, close_db, insert_traffic_events, compute_reward_inline, is_connected
+from backend.db import init_db, close_db, insert_traffic_events, compute_reward_inline, is_connected, get_pool
 
 # AI model import
 # TRAFIX_MODEL_VERSION=v2 (default) → trafix_v2 + coordinated_agent_weights.pth
@@ -441,7 +441,7 @@ async def db_status():
 @app.get("/db/recent")
 async def db_recent(limit: int = 50):
     """Son N olayı döner. DB bağlı değilse boş liste döner."""
-    from backend.db import _pool
+    _pool = get_pool()
     if _pool is None:
         return {"events": [], "db_connected": False}
     try:
@@ -471,7 +471,7 @@ async def db_recent(limit: int = 50):
 @app.get("/db/stats")
 async def db_stats():
     """Kavşak bazlı ortalama reward, toplam kayıt sayısı gibi istatistikler döner."""
-    from backend.db import _pool
+    _pool = get_pool()
     if _pool is None:
         return {"db_connected": False}
     try:

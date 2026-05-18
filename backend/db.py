@@ -132,6 +132,10 @@ def is_connected() -> bool:
     return _pool is not None
 
 
+def get_pool() -> Optional[asyncpg.Pool]:
+    return _pool
+
+
 # ─── Reward Hesaplama ──────────────────────────────────────────────────────
 
 def compute_reward_inline(
