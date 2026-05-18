@@ -12,6 +12,9 @@ from collections import deque
 import torch
 import os
 import logging
+from typing import List, Optional
+
+from backend.db import init_db, close_db, insert_traffic_events, compute_reward_inline, is_connected
 
 # AI model import
 # TRAFIX_MODEL_VERSION=v2 (default) → trafix_v2 + coordinated_agent_weights.pth
@@ -125,6 +128,10 @@ _V5_T_WINDOW = 10
 _v5_window: deque = deque(maxlen=_V5_T_WINDOW)
 _v5_governor: "RuleGovernor | None" = None
 
+# ─── Reward hesaplaması için önceki adım bilgisi ───────────────────────────
+_prev_obs_list: Optional[List[dict]] = None
+_prev_actions:  Optional[List[int]]  = None
+
 
 def load_model():
     """Eğitilmiş model ağırlıklarını diskten yükler."""
@@ -212,8 +219,15 @@ def load_model():
 
 @app.on_event("startup")
 async def startup_event():
-    """Sunucu başlarken modeli yüklemeye çalışır."""
+    """Sunucu başlarken modeli ve veritabanını hazırlar."""
     load_model()
+    await init_db()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Sunucu kapanırken DB bağlantı havuzunu serbest bırakır."""
+    await close_db()
 
 
 # ==========================================
@@ -229,8 +243,6 @@ def graph_builder() -> torch.Tensor:
     return torch.tensor(rows, dtype=torch.float32)
 
 
-from typing import List
-
 class TelemetryBatch(BaseModel):
     step: int
     intersections: List[Telemetry]
@@ -240,7 +252,7 @@ class TelemetryBatch(BaseModel):
 # ==========================================
 @app.post("/telemetry_batch")
 async def receive_telemetry_batch(batch: TelemetryBatch):
-    global last_decisions_cache
+    global last_decisions_cache, _prev_obs_list, _prev_actions
 
     # 1. Gelen veriyi state_dict'e kaydet
     # current_phase in the incoming data must be in 0–3 model-action space
@@ -249,9 +261,12 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
         state_dict[str(data.intersection_id)] = data.dict()
 
     decisions = []
+    decision_source = "heuristic"
 
     # ─── AI MODEL AKTİF ─────────────────────────────────
     if ai_agent is not None:
+        decision_source = "ai"
+
         # Build observation list from all known intersections
         obs_list = []
         for i in range(NUM_NODES):
@@ -319,11 +334,31 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
                 chosen_tensor = torch.tensor(chosen_phases, dtype=torch.long)
                 _v5_governor.update_state(chosen_tensor)
 
+        # ── Reward hesapla ve DB'ye kaydet ────────────────
+        reward_map = compute_reward_inline(
+            current_obs=obs_list,
+            previous_obs=_prev_obs_list,
+            current_actions=chosen_phases,
+            previous_actions=_prev_actions,
+        )
+        await insert_traffic_events(
+            step=batch.step,
+            decisions=decisions,
+            telemetry_map=state_dict,
+            decision_source=decision_source,
+            reward_map=reward_map,
+        )
+
+        # Sonraki adım için önceki durum bilgisini güncelle
+        _prev_obs_list = obs_list
+        _prev_actions  = chosen_phases
+
         last_decisions_cache = decisions
         return {"decisions": decisions}
 
     # ─── HEURİSTİC FALLBACK ─────────────────────────────
     # AI modeli yoksa matematiksel kural tabanlı karar
+    chosen_phases = []
     for data in batch.intersections:
         directions = {
             0: data.north_count,
@@ -343,6 +378,7 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
             # 2=East, 3=West -> Phase 2 (EW Green)
             next_phase = 0 if best_dir in [0, 1] else 2
 
+        chosen_phases.append(next_phase)
         decisions.append({
             "intersection_id": data.intersection_id,
             "next_phase": next_phase,
@@ -350,6 +386,26 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
             "total_vehicles": data.north_count + data.south_count + data.east_count + data.west_count,
             "queue_length": round(data.queue_length, 1),
         })
+
+    # ── Reward hesapla ve DB'ye kaydet (heuristic) ────────
+    heuristic_obs_list = [state_dict.get(str(d.intersection_id), {}) for d in batch.intersections]
+    reward_map = compute_reward_inline(
+        current_obs=[obs for obs in heuristic_obs_list if obs],
+        previous_obs=_prev_obs_list,
+        current_actions=chosen_phases,
+        previous_actions=_prev_actions,
+    )
+    await insert_traffic_events(
+        step=batch.step,
+        decisions=decisions,
+        telemetry_map=state_dict,
+        decision_source=decision_source,
+        reward_map=reward_map,
+    )
+
+    # Sonraki adım için önceki durum bilgisini güncelle
+    _prev_obs_list = [obs for obs in heuristic_obs_list if obs] or _prev_obs_list
+    _prev_actions  = chosen_phases
 
     last_decisions_cache = decisions
     return {"decisions": decisions}
@@ -369,3 +425,75 @@ async def get_last_decisions():
 @app.get("/state")
 async def get_state():
     return state_dict
+
+
+# ==========================================
+# GET /db/status — PostgreSQL Bağlantı Durumu
+# ==========================================
+@app.get("/db/status")
+async def db_status():
+    return {"connected": is_connected()}
+
+
+# ==========================================
+# GET /db/recent — Son Kayıtlar (Monitoring)
+# ==========================================
+@app.get("/db/recent")
+async def db_recent(limit: int = 50):
+    """Son N olayı döner. DB bağlı değilse boş liste döner."""
+    from backend.db import _pool
+    if _pool is None:
+        return {"events": [], "db_connected": False}
+    try:
+        async with _pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT id, created_at, step, intersection_id,
+                       current_phase, next_phase, confidence,
+                       decision_source, reward, queue_length
+                FROM   traffic_events
+                ORDER  BY created_at DESC
+                LIMIT  $1
+                """,
+                limit,
+            )
+        return {
+            "db_connected": True,
+            "events": [dict(r) for r in rows],
+        }
+    except Exception as exc:
+        return {"events": [], "db_connected": False, "error": str(exc)}
+
+
+# ==========================================
+# GET /db/stats — Özet İstatistikler
+# ==========================================
+@app.get("/db/stats")
+async def db_stats():
+    """Kavşak bazlı ortalama reward, toplam kayıt sayısı gibi istatistikler döner."""
+    from backend.db import _pool
+    if _pool is None:
+        return {"db_connected": False}
+    try:
+        async with _pool.acquire() as conn:
+            total = await conn.fetchval("SELECT COUNT(*) FROM traffic_events")
+            per_intersection = await conn.fetch(
+                """
+                SELECT intersection_id,
+                       COUNT(*)                        AS total_steps,
+                       ROUND(AVG(reward)::numeric, 4)  AS avg_reward,
+                       ROUND(AVG(queue_length)::numeric, 2) AS avg_queue,
+                       COUNT(*) FILTER (WHERE decision_source = 'ai')        AS ai_decisions,
+                       COUNT(*) FILTER (WHERE decision_source = 'heuristic') AS heuristic_decisions
+                FROM   traffic_events
+                GROUP  BY intersection_id
+                ORDER  BY intersection_id
+                """
+            )
+        return {
+            "db_connected": True,
+            "total_records": total,
+            "per_intersection": [dict(r) for r in per_intersection],
+        }
+    except Exception as exc:
+        return {"db_connected": False, "error": str(exc)}

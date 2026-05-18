@@ -5,3 +5,5 @@ torch==2.11.0
 torch-geometric==2.7.0
 numpy==2.4.3
 networkx==3.6.1
+asyncpg>=0.29.0
+python-dotenv>=1.0.0
