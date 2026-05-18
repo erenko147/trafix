@@ -20,8 +20,8 @@ HERE   = os.path.dirname(os.path.abspath(__file__))
 PYTHON = sys.executable
 
 parser = argparse.ArgumentParser(description="TraFix baslat")
-parser.add_argument("--model", choices=["v2", "v3", "simple", "v5"], default="v5",
-                    help="AI model versiyonu (varsayilan: v5)")
+parser.add_argument("--model", choices=["v2", "v3", "simple", "v5", "v6"], default="v6",
+                    help="AI model versiyonu (varsayilan: v6)")
 parser.add_argument("--port", type=int, default=8000,
                     help="Sunucu portu (varsayilan: 8000)")
 parser.add_argument("--no-gui", action="store_true",

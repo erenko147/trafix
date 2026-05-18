@@ -23,6 +23,13 @@ async def architecture():
     return FileResponse(os.path.join(BASE_DIR, "frontend", "index.html"))
 
 
+# Acil araç önceliği metrik ekranı (ayrı sayfa).
+# Ziyaret: http://localhost:8000/emergency
+@app.get("/emergency")
+async def emergency():
+    return FileResponse(os.path.join(BASE_DIR, "frontend", "emergency.html"))
+
+
 # Calıstırma kodu
 # cd /Users/bora/Desktop/trafix_4
 # uvicorn main:app --reload

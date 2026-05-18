@@ -3,14 +3,11 @@ TraFix v2 — Coordinated Multi-Intersection PPO Agent
 =====================================================
 GCN (spatial) + Multi-Head Attention (coordination) — GRU removed.
 
-Changes vs original:
-  • GRU removed — avoids stale-hidden-state PPO bug at 10s decision intervals
-  • Per-node (N,) rewards — fixes credit assignment (was single scalar broadcast)
-  • Fixed normalisation scales — counts/30, queue/150, phase one-hot, dur/120
-  • NUM_NODE_FEATURES: 7 → 10 (4 one-hot phase bits replace 1 raw phase int)
-  • compute_gae returns (T, N) advantages and (T, N) returns
-  • entropy_coef 0.02 → 0.005, value_coef 0.5 → 0.25
-  • Return normalisation added alongside advantage normalisation
+v6 updates:
+  • NUM_NODE_FEATURES: 10 → 20 (12 per-lane counts + queue + 6-phase one-hot + duration)
+  • parse_sumo_observations: 12 lane fields, normalised per-lane
+  • compute_reward: pressure/queue/throughput/fairness over 12 lanes
+  • _compute_green_wave: through phases are 0 (NS) and 3 (EW) in model space
 """
 
 import math
@@ -25,73 +22,90 @@ try:
     from torch_geometric.nn import GCNConv
 except ImportError:
     raise ImportError(
-        "torch_geometric kurulu değil. Lütfen çalıştır:\n"
+        "torch_geometric not found. Install with:\n"
         "  pip install torch-geometric"
     )
 
 
 # ══════════════════════════════════════════════════
-#  SUMO Veri İşleme
+#  SUMO Observation Parsing
 # ══════════════════════════════════════════════════
 
-# Raw SUMO field names (7 fields in → 10 features out after one-hot phase)
-FEATURE_ORDER = [
-    "north_count",
-    "south_count",
-    "east_count",
-    "west_count",
-    "queue_length",
-    "current_phase",
-    "phase_duration",
+# 12 per-lane keys in order (indices 0-11)
+_LANE_KEYS = [
+    "north_left", "north_through", "north_right",
+    "south_left", "south_through", "south_right",
+    "east_left",  "east_through",  "east_right",
+    "west_left",  "west_through",  "west_right",
 ]
 
-# Output feature count after preprocessing:
-#   [north/30, south/30, east/30, west/30, queue/150,
-#    phase_0, phase_1, phase_2, phase_3, duration/120]
-NUM_NODE_FEATURES = 10
+_NS_KEYS = ["north_left", "north_through", "north_right",
+            "south_left", "south_through", "south_right"]
+_EW_KEYS = ["east_left",  "east_through",  "east_right",
+            "west_left",  "west_through",  "west_right"]
+
+# Per-lane normalisers: left/right lanes = 15 (single lane), through = 30
+_NORM = {
+    "north_left":    15.0, "north_through": 30.0, "north_right":  15.0,
+    "south_left":    15.0, "south_through": 30.0, "south_right":  15.0,
+    "east_left":     15.0, "east_through":  30.0, "east_right":   15.0,
+    "west_left":     15.0, "west_through":  30.0, "west_right":   15.0,
+}
+
+# Output feature count:
+#   [0-11]  12 normalised per-lane counts
+#   [12]    total queue / 200
+#   [13-18] 6-bit phase one-hot
+#   [19]    phase duration / 120
+NUM_NODE_FEATURES = 20
 
 
 def parse_sumo_observations(
-    raw_obs: List[Dict],
+    obs_list: List[Dict],
     device: torch.device = torch.device("cpu"),
 ) -> torch.Tensor:
     """
-    SUMO intersection JSON list → (num_nodes, 10) normalised tensor.
+    Convert list of junction observation dicts to [J, 20] normalised tensor.
 
-    Fixed scales (not batch-max) preserve absolute magnitude:
-      vehicle counts : / 30.0   (clipped at 1.0)
-      queue length   : / 150.0  (clipped at 1.0)
-      phase          : one-hot 4-bit
-      phase duration : / 120.0  (clipped at 1.0)
+    Each dict must contain:
+      intersection_id, north_left, north_through, north_right,
+      south_left, south_through, south_right,
+      east_left, east_through, east_right,
+      west_left, west_through, west_right,
+      queue_length, current_phase (model space 0-5), phase_duration
     """
-    sorted_obs = sorted(raw_obs, key=lambda d: d["intersection_id"])
-
     rows = []
-    for obs in sorted_obs:
-        north    = min(obs["north_count"]  / 30.0,  1.0)
-        south    = min(obs["south_count"]  / 30.0,  1.0)
-        east     = min(obs["east_count"]   / 30.0,  1.0)
-        west     = min(obs["west_count"]   / 30.0,  1.0)
-        queue    = min(obs["queue_length"] / 150.0, 1.0)
+    for o in sorted(obs_list, key=lambda x: x["intersection_id"]):
+        row = []
 
-        # One-hot encode model phase (0–3)
-        phase = int(obs["current_phase"]) % 4
-        phase_oh = [0.0, 0.0, 0.0, 0.0]
-        phase_oh[phase] = 1.0
+        # Indices 0-11: per-lane counts normalised
+        for key in _LANE_KEYS:
+            row.append(o.get(key, 0) / _NORM[key])
 
-        duration = min(obs["phase_duration"] / 120.0, 1.0)
+        # Index 12: total queue / 200
+        row.append(o.get("queue_length", 0.0) / 200.0)
 
-        rows.append([north, south, east, west, queue] + phase_oh + [duration])
+        # Indices 13-18: 6-bit phase one-hot
+        one_hot = [0.0] * 6
+        phase = int(o.get("current_phase", 0)) % 6
+        one_hot[phase] = 1.0
+        row.extend(one_hot)
+
+        # Index 19: phase duration / 120, capped at 3.0 (= 6 min) so long holds
+        # remain distinguishable and don't all collapse to 1.0
+        row.append(min(o.get("phase_duration", 0.0) / 120.0, 3.0))
+
+        rows.append(row)
 
     return torch.tensor(rows, dtype=torch.float32, device=device)
 
 
 # ══════════════════════════════════════════════════
-#  Spatio GNN  (GCN only — GRU removed)
+#  Spatio GNN  (GCN — GRU removed)
 # ══════════════════════════════════════════════════
 
 class SpatioTemporalGNN(nn.Module):
-    """2-layer GCN with residual + LayerNorm. GRU removed."""
+    """2-layer GCN with residual + LayerNorm."""
 
     def __init__(self, num_node_features: int, hidden_dim: int):
         super().__init__()
@@ -100,20 +114,13 @@ class SpatioTemporalGNN(nn.Module):
         self.layer_norm = nn.LayerNorm(hidden_dim)
 
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
-        """
-        Args:
-            x          : (N, F)
-            edge_index : (2, E)
-        Returns:
-            features   : (N, H)
-        """
         h = F.relu(self.gcn1(x, edge_index))
         h = h + F.relu(self.gcn2(h, edge_index))
         return self.layer_norm(h)
 
 
 # ══════════════════════════════════════════════════
-#  Kavşaklar-Arası Koordinasyon Katmanı
+#  Cross-Intersection Coordination Layer
 # ══════════════════════════════════════════════════
 
 class IntersectionCoordinator(nn.Module):
@@ -122,48 +129,39 @@ class IntersectionCoordinator(nn.Module):
     def __init__(self, hidden_dim: int, num_heads: int = 4, dropout: float = 0.1):
         super().__init__()
         self.attn = nn.MultiheadAttention(
-            embed_dim=hidden_dim,
-            num_heads=num_heads,
-            dropout=dropout,
-            batch_first=True,
+            embed_dim=hidden_dim, num_heads=num_heads,
+            dropout=dropout, batch_first=True,
         )
         self.norm1 = nn.LayerNorm(hidden_dim)
         self.ffn = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim * 2),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.Linear(hidden_dim, hidden_dim * 2), nn.GELU(),
+            nn.Dropout(dropout), nn.Linear(hidden_dim * 2, hidden_dim),
             nn.Dropout(dropout),
         )
         self.norm2 = nn.LayerNorm(hidden_dim)
 
     def forward(self, node_features: torch.Tensor) -> torch.Tensor:
-        x = node_features.unsqueeze(0)        # (1, N, H)
+        x = node_features.unsqueeze(0)
         attn_out, _ = self.attn(x, x, x)
         x = self.norm1(x + attn_out)
         x = self.norm2(x + self.ffn(x))
-        return x.squeeze(0)                   # (N, H)
+        return x.squeeze(0)
 
 
 # ══════════════════════════════════════════════════
-#  PPO Aktör-Kritik Ajan (Koordineli)
+#  Coordinated PPO Agent
 # ══════════════════════════════════════════════════
 
 class CoordinatedPPOAgent(nn.Module):
-    """
-    Flow:  SUMO obs → GCN → Attention → Actor/Critic
-
-    • Actor  → (N, A)  per-intersection action probabilities
-    • Critic → (1,)    single global value (mean-pooled)
-    """
+    """Flow: SUMO obs → GCN → Attention → Actor/Critic"""
 
     def __init__(
         self,
-        num_node_features: int = NUM_NODE_FEATURES,   # 10
+        num_node_features: int = NUM_NODE_FEATURES,
         hidden_dim: int = 128,
-        num_actions: int = 4,
+        num_actions: int = 6,
         num_heads: int = 4,
-        entropy_coef: float = 0.005,
+        entropy_coef: float = 0.01,
         value_coef: float = 0.25,
         clip_eps: float = 0.2,
         max_grad_norm: float = 0.5,
@@ -180,102 +178,53 @@ class CoordinatedPPOAgent(nn.Module):
         self.coordinator = IntersectionCoordinator(hidden_dim, num_heads)
 
         self.actor = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim // 2), nn.ReLU(),
             nn.Linear(hidden_dim // 2, num_actions),
         )
         self.critic = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim // 2), nn.ReLU(),
             nn.Linear(hidden_dim // 2, 1),
         )
 
-    def forward(
-        self,
-        x: torch.Tensor,
-        edge_index: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Returns:
-            action_probs : (N, A)
-            state_value  : (1,)
-        """
-        features    = self.st_gnn(x, edge_index)
-        coordinated = self.coordinator(features)          # (N, H)
-
+    def forward(self, x, edge_index) -> Tuple[torch.Tensor, torch.Tensor]:
+        features = self.st_gnn(x, edge_index)
+        coordinated = self.coordinator(features)
         action_probs = F.softmax(self.actor(coordinated), dim=-1)
-
-        global_feat  = coordinated.mean(dim=0)            # (H,)
-        state_value  = self.critic(global_feat)            # (1,)
-
+        state_value = self.critic(coordinated.mean(dim=0))
         return action_probs, state_value
 
     @torch.no_grad()
-    def select_actions(
-        self,
-        x: torch.Tensor,
-        edge_index: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Returns:
-            actions     : (N,)
-            log_probs   : (N,)
-            state_value : (1,)
-        """
+    def select_actions(self, x, edge_index) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         probs, value = self.forward(x, edge_index)
-        dists     = Categorical(probs)
-        actions   = dists.sample()
+        dists = Categorical(probs)
+        actions = dists.sample()
         log_probs = dists.log_prob(actions)
         return actions, log_probs, value
 
-    def compute_ppo_loss(
-        self,
-        x: torch.Tensor,
-        edge_index: torch.Tensor,
-        old_actions: torch.Tensor,
-        old_log_probs: torch.Tensor,
-        advantages: torch.Tensor,   # (N,)
-        returns: torch.Tensor,      # (N,)
-    ) -> Dict[str, torch.Tensor]:
-        """
-        Clipped PPO objective + Value loss + Entropy bonus.
-
-        advantages and returns are (N,) — real per-node signals, no expand hack.
-        Value loss compares scalar critic against mean of per-node returns.
-        """
+    def compute_ppo_loss(self, x, edge_index, old_actions, old_log_probs,
+                         advantages, returns) -> Dict[str, torch.Tensor]:
         probs, value = self.forward(x, edge_index)
         dists = Categorical(probs)
-
-        new_log_probs = dists.log_prob(old_actions)   # (N,)
-        entropy       = dists.entropy().mean()
-
-        ratio  = torch.exp(new_log_probs - old_log_probs)
-        surr1  = ratio * advantages
-        surr2  = torch.clamp(ratio, 1 - self.clip_eps, 1 + self.clip_eps) * advantages
+        new_log_probs = dists.log_prob(old_actions)
+        entropy = dists.entropy().mean()
+        ratio = torch.exp(new_log_probs - old_log_probs)
+        surr1 = ratio * advantages
+        surr2 = torch.clamp(ratio, 1 - self.clip_eps, 1 + self.clip_eps) * advantages
         policy_loss = -torch.min(surr1, surr2).mean()
-
         value_loss = F.mse_loss(value.squeeze(), returns.mean())
-
-        total_loss = (
-            policy_loss
-            + self.value_coef * value_loss
-            - self.entropy_coef * entropy
-        )
-
+        total_loss = policy_loss + self.value_coef * value_loss - self.entropy_coef * entropy
         return {
-            "total":   total_loss,
-            "policy":  policy_loss.detach(),
-            "value":   value_loss.detach(),
-            "entropy": entropy.detach(),
+            "total": total_loss, "policy": policy_loss.detach(),
+            "value": value_loss.detach(), "entropy": entropy.detach(),
         }
 
 
 # ══════════════════════════════════════════════════
-#  Ödül Fonksiyonu  — Per-Node (N,) Tensor
+#  Reward Function — Per-Node (N,) Tensor
 # ══════════════════════════════════════════════════
 
 _GREEN_WAVE_EDGES: List[Tuple[int, int]] = [(0, 1), (1, 2), (1, 3), (3, 4)]
-_PLATOON_THRESHOLD: int = 20
+_PLATOON_THRESHOLD: int = 5
 
 
 @dataclass
@@ -283,31 +232,51 @@ class RewardWeights:
     pressure:      float = -0.30
     queue:         float = -0.25
     throughput:    float =  0.25
-    fairness:      float = -0.10
+    fairness:      float =  0.00
     phase_penalty: float = -0.08
     wait_penalty:  float = -0.05
     green_wave:    float =  0.20
+    starvation:    float = -0.15
 
 
 def _intersection_total(o: Dict) -> int:
-    return o["north_count"] + o["south_count"] + o["east_count"] + o["west_count"]
+    """Sum of all 12 per-lane vehicle counts."""
+    return sum(o.get(k, 0) for k in _LANE_KEYS)
 
 
 def _compute_green_wave(cur: List[Dict], prev: Optional[List[Dict]]) -> float:
-    """Global cross-junction green wave score (distributed evenly to all nodes)."""
+    """
+    Green wave bonus: reward through-phase alignment between adjacent junctions.
+    Through phases in model space: 0 = NS-through, 3 = EW-through.
+    """
     score = 0.0
     for (src_id, dst_id) in _GREEN_WAVE_EDGES:
         src = cur[src_id]
         dst = cur[dst_id]
-        src_total    = _intersection_total(src)
-        src_phase    = src["current_phase"]
-        dst_phase    = dst["current_phase"]
-        src_is_green = src_phase in (0, 2)
-        dst_aligned  = dst_phase in (0, 2) and (dst_phase % 2 == src_phase % 2)
-        has_platoon  = src_total >= _PLATOON_THRESHOLD
 
-        if has_platoon and src_is_green and dst_aligned:
-            base = min(src_total / _PLATOON_THRESHOLD, 2.0)
+        src_phase = src["current_phase"]  # model space 0-5
+        dst_phase = dst["current_phase"]
+
+        # Only through phases (0=NS, 3=EW) create meaningful green waves
+        src_is_through = src_phase in (0, 3)
+        dst_aligned = dst_phase == src_phase
+
+        # Through demand: NS-through uses north/south through counts; EW uses east/west
+        if src_phase == 0:
+            src_through_demand = (
+                src.get("north_through", 0) + src.get("south_through", 0)
+            )
+        elif src_phase == 3:
+            src_through_demand = (
+                src.get("east_through", 0) + src.get("west_through", 0)
+            )
+        else:
+            src_through_demand = 0
+
+        has_platoon = src_through_demand >= _PLATOON_THRESHOLD
+
+        if src_is_through and dst_aligned and has_platoon:
+            base = min(src_through_demand / _PLATOON_THRESHOLD, 2.0)
             score += base
             if prev is not None:
                 prev_q = prev[dst_id]["queue_length"]
@@ -328,9 +297,9 @@ def compute_reward(
     """
     Per-intersection reward. Returns (N,) tensor.
 
-    Each node's reward is computed from its own local signals:
-      pressure, queue, throughput, fairness, phase_penalty, wait_penalty.
-    Green wave is a global cross-junction bonus distributed uniformly.
+    Local signals: pressure, queue, throughput, fairness, phase_penalty,
+                   wait_penalty, starvation.
+    Global signal: green_wave bonus distributed uniformly.
     """
     cur  = sorted(current_obs,  key=lambda d: d["intersection_id"])
     prev = sorted(previous_obs, key=lambda d: d["intersection_id"]) \
@@ -338,13 +307,13 @@ def compute_reward(
 
     rewards = []
     for i, o in enumerate(cur):
-        # 1. Pressure
-        pressure = _intersection_total(o) / 40.0
+        # 1. Pressure: sum of 12 lanes / 60.0
+        pressure = _intersection_total(o) / 60.0
 
-        # 2. Queue
-        queue = o["queue_length"] / 100.0
+        # 2. Queue: total queue / 200.0
+        queue = o.get("queue_length", 0.0) / 200.0
 
-        # 3. Throughput — delta for this intersection only
+        # 3. Throughput: vehicle reduction at this intersection
         throughput = 0.0
         if prev is not None:
             prev_total = _intersection_total(prev[i])
@@ -352,21 +321,41 @@ def compute_reward(
             throughput = (prev_total - cur_total) / max(prev_total, 1.0)
             throughput = max(throughput, -1.0)
 
-        # 4. Fairness — directional variance at this intersection
-        counts = [o["north_count"], o["south_count"], o["east_count"], o["west_count"]]
-        mean_c = sum(counts) / 4.0
-        var_c  = sum((c - mean_c) ** 2 for c in counts) / 4.0
+        # 4. Fairness: std of 12 per-lane counts / max(mean, 1.0)
+        lane_counts = [o.get(k, 0) for k in _LANE_KEYS]
+        mean_c = sum(lane_counts) / 12.0
+        var_c  = sum((c - mean_c) ** 2 for c in lane_counts) / 12.0
         fairness = math.sqrt(var_c) / max(mean_c, 1.0)
 
-        # 5. Phase stability — did THIS intersection change phase
+        # 5. Phase stability
         phase_change = 0.0
         if previous_actions is not None:
-            phase_change = float(current_actions[i].item() != previous_actions[i].item())
+            phase_change = float(
+                current_actions[i].item() != previous_actions[i].item()
+            )
 
-        # 6. Wait penalty — this intersection's own duration
+        # 6. Wait penalty: fires when phase_duration > 60s
         wait = 0.0
-        if o["phase_duration"] > 60.0:
+        if o.get("phase_duration", 0.0) > 60.0:
             wait = (o["phase_duration"] - 60.0) / 60.0
+
+        # 7. Directional starvation: penalise holding one through-direction while
+        #    the other has vehicles waiting. Grows with time past min-green (30s)
+        #    and with the fraction of total demand in the unserved direction.
+        #    Zero when total demand is zero, so quiet periods are not penalised.
+        starvation = 0.0
+        phase = int(o.get("current_phase", 0))
+        dur   = o.get("phase_duration", 0.0)
+        if dur > 30.0:
+            ns_q = sum(o.get(k, 0) for k in _NS_KEYS)
+            ew_q = sum(o.get(k, 0) for k in _EW_KEYS)
+            total_dir = ns_q + ew_q
+            if total_dir > 0:
+                excess = min((dur - 30.0) / 60.0, 2.0)
+                if phase in (0, 1, 2):        # NS side active — EW is unserved
+                    starvation = (ew_q / total_dir) * excess
+                else:                          # EW side active — NS is unserved
+                    starvation = (ns_q / total_dir) * excess
 
         r = (
             weights.pressure      * pressure
@@ -375,6 +364,7 @@ def compute_reward(
             + weights.fairness    * fairness
             + weights.phase_penalty * phase_change
             + weights.wait_penalty  * wait
+            + weights.starvation    * starvation
         )
         rewards.append(r)
 
@@ -392,51 +382,38 @@ def compute_reward(
 # ══════════════════════════════════════════════════
 
 def compute_gae(
-    rewards: List[torch.Tensor],   # each (N,)
-    values: List[torch.Tensor],    # each scalar (1,) or ()
+    rewards: List[torch.Tensor],
+    values: List[torch.Tensor],
     next_value: torch.Tensor,
     gamma: float = 0.99,
     lam: float = 0.95,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     GAE-Lambda advantage estimation.
-
-    rewards and values can have different shapes: rewards are (N,),
-    values are scalars (critic output). Scalar values broadcast over N
-    in the delta calculation, yielding (N,) per-step advantages.
-
-    Returns:
-        advantages : (T, N)  — normalised
-        returns    : (T, N)  — normalised
+    Returns: advantages (T, N), returns (T, N) — both normalised.
     """
     N   = rewards[0].shape[0]
     gae = torch.zeros(N, dtype=torch.float32, device=rewards[0].device)
 
     values_ext = values + [next_value]
-
     advantages_list: List[torch.Tensor] = []
+
     for t in reversed(range(len(rewards))):
         v_next = values_ext[t + 1]
         v_curr = values_ext[t]
-        # Both v_next/v_curr are scalars → broadcast to (N,)
         delta = rewards[t] + gamma * v_next - v_curr
         gae   = delta + gamma * lam * gae
         advantages_list.insert(0, gae.clone())
 
     advantages = torch.stack(advantages_list)  # (T, N)
 
-    # Returns = unnormalised advantages + values (scalar broadcast to N)
-    values_expanded = torch.stack([
-        torch.full((N,), v.item(), dtype=torch.float32, device=advantages.device)
-        for v in values
-    ])  # (T, N)
-    returns = advantages + values_expanded
+    # Stack values directly — works for both scalar [1] and per-junction [J] tensors
+    values_stacked = torch.stack([v.to(advantages.device) for v in values])  # [T, N]
+    returns = advantages + values_stacked
 
-    # Advantage normalisation
     if advantages.numel() > 1 and advantages.std() > 0.01:
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
-    # Return normalisation
     if returns.numel() > 1 and returns.std() > 0.01:
         returns = (returns - returns.mean()) / (returns.std() + 1e-8)
 
@@ -444,7 +421,7 @@ def compute_gae(
 
 
 # ══════════════════════════════════════════════════
-#  Eğitim Döngüsü (Tek epoch)
+#  Training Step (Single Epoch)
 # ══════════════════════════════════════════════════
 
 def train_step(
@@ -453,22 +430,8 @@ def train_step(
     rollout: Dict,
     ppo_epochs: int = 4,
 ) -> Dict[str, float]:
-    """
-    Runs multiple PPO epochs over one rollout.
-
-    rollout keys:
-        observations : List[Tensor (N, F)]
-        edge_index   : Tensor (2, E)
-        actions      : List[Tensor (N,)]
-        log_probs    : List[Tensor (N,)]
-        rewards      : List[Tensor (N,)]   — per-node
-        values       : List[Tensor scalar]
-        next_value   : Tensor scalar
-    """
     advantages, returns = compute_gae(
-        rollout["rewards"],
-        rollout["values"],
-        rollout["next_value"],
+        rollout["rewards"], rollout["values"], rollout["next_value"],
     )
 
     total_metrics = {"total": 0.0, "policy": 0.0, "value": 0.0, "entropy": 0.0}
@@ -481,15 +444,13 @@ def train_step(
                 edge_index=rollout["edge_index"],
                 old_actions=rollout["actions"][t],
                 old_log_probs=rollout["log_probs"][t],
-                advantages=advantages[t],   # (N,) — real per-node signal
-                returns=returns[t],          # (N,)
+                advantages=advantages[t],
+                returns=returns[t],
             )
-
             optimizer.zero_grad()
             losses["total"].backward()
             nn.utils.clip_grad_norm_(agent.parameters(), agent.max_grad_norm)
             optimizer.step()
-
             for k in total_metrics:
                 total_metrics[k] += losses[k].item()
 

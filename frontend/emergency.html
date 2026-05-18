@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TraFix — Acil Araç Önceliği</title>
+<style>
+  :root{
+    --bg:#141414; --s1:#1e1e1e; --s2:#252525; --s3:#2c2c2c;
+    --b1:#303030; --b2:#3d3d3d;
+    --text:#f0f0f0; --t2:#808080; --t3:#424242;
+    --green:#22c55e; --amber:#f59e0b; --red:#ef4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font:13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+  header{display:flex;align-items:center;justify-content:space-between;
+    padding:14px 20px;border-bottom:1px solid var(--b1);background:var(--s1)}
+  .h-left{display:flex;flex-direction:column;gap:2px}
+  .h-wordmark{font-size:18px;font-weight:700;letter-spacing:.5px}
+  .h-slogan{font-size:11px;color:var(--t2)}
+  .nav{display:flex;align-items:center;gap:8px}
+  .nav a{display:flex;align-items:center;gap:5px;background:var(--s2);
+    border:1px solid var(--b1);border-radius:6px;padding:5px 11px;font-size:11px;
+    color:var(--t2);text-decoration:none;transition:.2s}
+  .nav a:hover{background:var(--b1);color:var(--text)}
+  .nav a.active{color:var(--text);border-color:var(--red)}
+  .wrap{padding:20px;max-width:1100px;margin:0 auto}
+  .cards{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .card{flex:1;min-width:200px;background:var(--s1);border:1px solid var(--b1);
+    border-radius:10px;padding:16px 18px}
+  .card .lbl{font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px}
+  .card .val{font-size:30px;font-weight:700;margin-top:6px}
+  .card .unit{font-size:11px;color:var(--t2);font-weight:400;margin-left:4px}
+  .panel{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden}
+  .panel-head{display:flex;align-items:center;gap:8px;padding:12px 16px;
+    border-bottom:1px solid var(--b1);font-size:13px;font-weight:600}
+  .panel-head .cnt{margin-left:auto;font-size:11px;color:var(--t2);font-weight:400}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  thead tr{text-align:left;color:var(--t2);border-bottom:1px solid var(--b1)}
+  th,td{padding:9px 14px}
+  tbody tr{border-bottom:1px solid var(--b1)}
+  tbody tr:last-child{border-bottom:none}
+  td.k{color:var(--text);font-weight:600}
+  .pill{padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+  .pill.ok{background:#0d2318;color:var(--green)}
+  .pill.bad{background:#250d0d;color:var(--red)}
+  .empty{padding:28px;text-align:center;color:var(--t2)}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green);
+    box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+  @keyframes blink{50%{opacity:.3}}
+  .foot{margin-top:14px;font-size:11px;color:var(--t3);text-align:center}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <span class="h-wordmark">Trafix</span>
+    <span class="h-slogan">Acil araç önceliği — performans metrikleri</span>
+  </div>
+  <div class="nav">
+    <a href="/">⬅ Dashboard</a>
+    <a href="/emergency" class="active">🚑 Acil Araç</a>
+    <a href="/architecture">⬡ Architecture</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="cards">
+    <div class="card">
+      <span class="lbl">Toplam Olay</span>
+      <div class="val"><span id="em-count">—</span></div>
+    </div>
+    <div class="card">
+      <span class="lbl">Ort. Geçiş Süresi</span>
+      <div class="val"><span id="em-avg-transit">—</span><span class="unit">adım (≈sn)</span></div>
+    </div>
+    <div class="card">
+      <span class="lbl">Toplam Bekleyen Araç</span>
+      <div class="val"><span id="em-total-waited">—</span></div>
+    </div>
+    <div class="card">
+      <span class="lbl">Toplam Bekleme</span>
+      <div class="val"><span id="em-total-wait">—</span><span class="unit">adım (≈sn)</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <span class="dot"></span>
+      <span>🚑 Acil Araç Olayları</span>
+      <span class="cnt" id="em-status">canlı</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Kavşak</th>
+            <th>Ambulans</th>
+            <th>Geldiği Yön</th>
+            <th>Başlangıç (adım)</th>
+            <th>Geçiş Süresi</th>
+            <th>Bekleyen Araç</th>
+            <th>Toplam Bekleme</th>
+            <th>Ort. Bekleme</th>
+            <th>Sonuç</th>
+          </tr>
+        </thead>
+        <tbody id="em-tbody">
+          <tr><td colspan="9" class="empty">Henüz acil araç olayı yok — simülasyonda ambulans geçince burada listelenir</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="foot">
+    1 adım ≈ 1 saniye (SUMO). Veri kaynağı: emergency_preemption.py → backend /emergency_metrics
+  </div>
+
+</div>
+
+<script>
+  const RESULT_LABEL = { cleared: 'Geçti', timeout: 'Sıkıştı' };
+
+  async function poll() {
+    const st = document.getElementById('em-status');
+    try {
+      const r = await fetch('/emergency_metrics');
+      if (!r.ok) { st.textContent = 'backend hata'; return; }
+      const d = await r.json();
+      const s = d.summary || {};
+      st.textContent = 'canlı';
+
+      document.getElementById('em-count').textContent        = s.count || 0;
+      document.getElementById('em-avg-transit').textContent  = s.count ? s.avg_transit_steps : '—';
+      document.getElementById('em-total-waited').textContent = s.count ? s.total_vehicles_waited : '—';
+      document.getElementById('em-total-wait').textContent   = s.count ? s.total_wait_steps : '—';
+
+      const tb  = document.getElementById('em-tbody');
+      const evs = (d.events || []).slice().reverse();   // en yeni üstte
+      if (!evs.length) {
+        tb.innerHTML = '<tr><td colspan="9" class="empty">Henüz acil araç olayı yok — simülasyonda ambulans geçince burada listelenir</td></tr>';
+        return;
+      }
+      tb.innerHTML = evs.map(e => {
+        const ok = e.result === 'cleared';
+        return `<tr>
+          <td class="k">${e.junction_name || e.tls_id}</td>
+          <td>${e.ambulance_id}</td>
+          <td>${e.approach_dir || e.approach_edge}<span style="color:var(--t3);font-size:10px;margin-left:5px">${e.approach_edge}</span></td>
+          <td>${e.start_step}</td>
+          <td class="k">${e.transit_steps} adım</td>
+          <td>${e.vehicles_waited}</td>
+          <td>${e.total_wait_steps} adım</td>
+          <td>${e.avg_wait_steps} adım</td>
+          <td><span class="pill ${ok ? 'ok' : 'bad'}">${RESULT_LABEL[e.result] || e.result}</span></td>
+        </tr>`;
+      }).join('');
+    } catch (_) {
+      st.textContent = 'backend kapalı';
+    }
+  }
+  poll();
+  setInterval(poll, 2000);
+</script>
+</body>
+</html>

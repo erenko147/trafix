@@ -16,7 +16,9 @@ import random
 import requests
 import json
 
-URL = "http://127.0.0.1:8000/telemetry"
+import sys
+_port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
+URL = f"http://127.0.0.1:{_port}/telemetry"
 
 def generate_random_telemetry(intersection_id, current_phase):
     """Bir kavsak icin mantikli sinirlarda rastgele veri uretir."""
