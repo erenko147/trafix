@@ -165,13 +165,18 @@ class TrainConfig:
 #  SUMO Ortam Arayüzü
 # ══════════════════════════════════════════════════
 
+MODEL_TO_SUMO_GREEN = {0: 0, 1: 2, 2: 4, 3: 6, 4: 8, 5: 10}
+SUMO_TO_MODEL_PHASE = {0:0,1:0, 2:1,3:1, 4:2,5:2, 6:3,7:3, 8:4,9:4, 10:5,11:5}
+LANE_TYPE = {0: "right", 1: "through", 2: "left"}
+
+
 class SumoEnvironment:
     """
     SUMO simülasyonunu TraCI ile yönetir.
     Her adımda kavşak gözlemlerini toplar ve faz değişikliklerini uygular.
     """
 
-    YELLOW_STEPS = 4   # fixed 4-second yellow before any green switch
+    YELLOW_STEPS = 3   # 3-second yellow transition (matches run_sumo_live.py)
 
     def __init__(self, cfg: TrainConfig):
         self.cfg = cfg
@@ -181,6 +186,7 @@ class SumoEnvironment:
         self._episode_count = 0
         self._pending_target: Dict[str, int] = {}        # tls_id → target green phase
         self._yellow_steps_remaining: Dict[str, int] = {}  # tls_id → steps until green
+        self._phase_held_since: Dict[str, int] = {}      # tls_id → step when current green started
 
     # ── SUMO Başlat / Kapat ──────────────────────
 
@@ -208,9 +214,10 @@ class SumoEnvironment:
 
         sumo_cmd = [
             sumo_binary,
-            "-c", cfg_path,    # mutlak yol kullan
+            "-c", cfg_path,
             "--step-length", str(self.cfg.sumo_step_length),
             "--waiting-time-memory", "1000",
+            "--time-to-teleport", "-1",   # disable teleportation — forces model to actually serve all lanes
             "--no-warnings", "true",
             "--random",
             "--seed", str(self.cfg.seed + episode),
@@ -222,6 +229,7 @@ class SumoEnvironment:
         self._episode_count = episode
         self._pending_target = {}
         self._yellow_steps_remaining = {}
+        self._phase_held_since = {}
 
         # Trafik ışığı ID'lerini al
         self.tls_ids = sorted(traci.trafficlight.getIDList())
@@ -237,6 +245,9 @@ class SumoEnvironment:
         for _ in range(self.cfg.warmup_steps):
             traci.simulationStep()
             self._step_count += 1
+
+        # Initialise duration tracker after warmup so elapsed starts at 0
+        self._phase_held_since = {tls_id: self._step_count for tls_id in self.tls_ids}
 
     def close(self):
         """SUMO oturumunu kapat."""
@@ -257,88 +268,77 @@ class SumoEnvironment:
 
     def get_observations(self) -> List[Dict]:
         """
-        Her kavşak için SUMO'dan gözlem toplar.
-        Çıktı formatı: trafix_v2.parse_sumo_observations ile uyumlu.
+        Collect per-lane vehicle counts for all 12 lanes per junction.
+        Output format matches trafix_v2.parse_sumo_observations (20-dim).
         """
         observations = []
 
         for idx, tls_id in enumerate(self.tls_ids):
-            obs = self._get_single_intersection_obs(idx, tls_id)
-            observations.append(obs)
+            jx, jy = traci.junction.getPosition(tls_id)
+
+            counts = {
+                "north_left": 0, "north_through": 0, "north_right": 0,
+                "south_left": 0, "south_through": 0, "south_right": 0,
+                "east_left":  0, "east_through":  0, "east_right":  0,
+                "west_left":  0, "west_through":  0, "west_right":  0,
+            }
+
+            controlled_links = traci.trafficlight.getControlledLinks(tls_id)
+            seen_lanes = set()
+
+            for link in controlled_links:
+                if not link:
+                    continue
+                from_lane = link[0][0]
+                if from_lane in seen_lanes:
+                    continue
+                seen_lanes.add(from_lane)
+
+                edge_id = from_lane.rsplit("_", 1)[0]
+                lane_idx = int(from_lane.rsplit("_", 1)[1])
+                lane_type = LANE_TYPE.get(lane_idx, "through")
+                direction = self._classify_edge_direction(edge_id, jx, jy)
+
+                if direction and lane_type:
+                    key = f"{direction}_{lane_type}"
+                    if key in counts:
+                        counts[key] += traci.lane.getLastStepVehicleNumber(from_lane)
+
+            # Phase info
+            sumo_phase = traci.trafficlight.getPhase(tls_id)
+            model_phase = SUMO_TO_MODEL_PHASE.get(sumo_phase, 0)
+
+            # Manual duration tracking — immune to setPhase timer resets
+            elapsed = float(
+                self._step_count - self._phase_held_since.get(tls_id, self._step_count)
+            )
+
+            total_queue = sum(counts.values())
+
+            observations.append({
+                "intersection_id": idx,
+                **counts,
+                "queue_length": min(total_queue * 1.5, 200.0),
+                "current_phase": model_phase,
+                "phase_duration": elapsed,
+            })
 
         return observations
 
-    def _get_single_intersection_obs(self, idx: int, tls_id: str) -> Dict:
-        """Tek bir kavşağın gözlemini toplar."""
-        # Kontrollü şeritler (kavşağa giren)
-        controlled_lanes = traci.trafficlight.getControlledLanes(tls_id)
-        unique_lanes = list(dict.fromkeys(controlled_lanes))  # sırayı koru, tekrarı kaldır
-
-        # Yön tahmini: şerit ID'sine veya indeksine göre gruplama
-        # SUMO'da şerit isimleri genellikle "edgeId_laneIndex" formatında
-        direction_counts = {"north": 0, "south": 0, "east": 0, "west": 0}
-        total_queue = 0.0
-
-        for i, lane in enumerate(unique_lanes):
-            vehicle_count = traci.lane.getLastStepVehicleNumber(lane)
-            queue = traci.lane.getLastStepHaltingNumber(lane) * \
-                    max(traci.lane.getLastStepLength(lane), 7.5)  # ortalama araç boyu
-
-            # Yön ataması — şerit indeksine göre 4'e böl
-            direction_idx = i % 4
-            dir_name = ["north", "south", "east", "west"][direction_idx]
-
-            # Daha akıllı yön tahmini: şerit açısından
-            try:
-                edge_id = traci.lane.getEdgeID(lane)
-                shape = traci.lane.getShape(lane)
-                if len(shape) >= 2:
-                    dx = shape[-1][0] - shape[0][0]
-                    dy = shape[-1][1] - shape[0][1]
-                    angle = math.degrees(math.atan2(dy, dx)) % 360
-
-                    if 45 <= angle < 135:
-                        dir_name = "north"
-                    elif 135 <= angle < 225:
-                        dir_name = "west"
-                    elif 225 <= angle < 315:
-                        dir_name = "south"
-                    else:
-                        dir_name = "east"
-            except Exception:
-                pass  # fallback: indeks tabanlı
-
-            direction_counts[dir_name] += vehicle_count
-            total_queue += queue
-
-        # Mevcut faz — convert SUMO 8-phase (0–7) to model space (0–3)
-        # SUMO phases: 0=N-green, 1=N-yellow, 2=E-green, 3=E-yellow,
-        #              4=S-green, 5=S-yellow, 6=W-green, 7=W-yellow
-        # Model actions: 0=N, 1=E, 2=S, 3=W  (maps to SUMO phase = action * 2)
-        # Yellow phases (odd) map to the preceding green: sumo_phase // 2
-        current_sumo_phase = traci.trafficlight.getPhase(tls_id)
-        model_phase = current_sumo_phase // 2   # 0→0, 1→0, 2→1, 3→1, 4→2, 5→2, 6→3, 7→3
-
-        # Faz süresi — bu faz ne zamandır aktif
+    def _classify_edge_direction(self, edge_id: str, jx: float, jy: float) -> str:
+        """Classify edge as north/south/east/west based on lane shape geometry."""
         try:
-            phase_duration = traci.trafficlight.getPhaseDuration(tls_id)
-            next_switch = traci.trafficlight.getNextSwitch(tls_id)
-            sim_time = traci.simulation.getTime()
-            elapsed = phase_duration - max(0, next_switch - sim_time)
-            phase_duration_val = max(0.0, elapsed)
+            shape = traci.lane.getShape(f"{edge_id}_0")
+            if not shape:
+                return ""
+            x0, y0 = shape[0]
+            dx, dy = x0 - jx, y0 - jy
+            if abs(dx) > abs(dy):
+                return "west" if dx < 0 else "east"
+            else:
+                return "south" if dy < 0 else "north"
         except Exception:
-            phase_duration_val = 0.0
-
-        return {
-            "intersection_id": idx,
-            "north_count": direction_counts["north"],
-            "south_count": direction_counts["south"],
-            "east_count": direction_counts["east"],
-            "west_count": direction_counts["west"],
-            "queue_length": total_queue,
-            "current_phase": model_phase,   # 0–3 model-action space
-            "phase_duration": phase_duration_val,
-        }
+            return ""
 
     # ── Aksiyon Uygulama ─────────────────────────
 
@@ -346,30 +346,30 @@ class SumoEnvironment:
         """
         Records desired target green phase per TLS and starts yellow transition.
 
-        Model action → target green SUMO phase:
-          0 → 0, 1 → 2, 2 → 4, 3 → 6
-
-        If a yellow transition is already in progress for a TLS the new action
-        is ignored so the running transition is never interrupted.
+        Model action (0-5) → target green SUMO phase via MODEL_TO_SUMO_GREEN dict.
+        Yellow transitions are never interrupted once started.
         """
         for i, tls_id in enumerate(self.tls_ids):
-            # Never interrupt an ongoing yellow transition
             if self._yellow_steps_remaining.get(tls_id, 0) > 0:
                 continue
 
-            model_action      = int(actions[i].item()) % 4
-            target_sumo_phase = model_action * 2          # 0, 2, 4, or 6
+            model_action = int(actions[i].item()) % 6
+            target_sumo_phase = MODEL_TO_SUMO_GREEN[model_action]
             current_sumo_phase = traci.trafficlight.getPhase(tls_id)
 
             if target_sumo_phase == current_sumo_phase:
+                traci.trafficlight.setPhase(tls_id, current_sumo_phase)
                 continue
 
-            # Start fixed-length yellow then switch to target green
             self._pending_target[tls_id] = target_sumo_phase
             self._yellow_steps_remaining[tls_id] = self.YELLOW_STEPS
 
-            yellow_phase = (current_sumo_phase if current_sumo_phase % 2 != 0
-                            else current_sumo_phase + 1)
+            # Yellow is always green+1 (even → odd)
+            yellow_phase = (
+                current_sumo_phase + 1
+                if current_sumo_phase % 2 == 0
+                else current_sumo_phase
+            )
             traci.trafficlight.setPhase(tls_id, yellow_phase)
 
     def _advance_transitions(self):
@@ -384,6 +384,7 @@ class SumoEnvironment:
                 target = self._pending_target.pop(tls_id, None)
                 if target is not None:
                     traci.trafficlight.setPhase(tls_id, target)
+                    self._phase_held_since[tls_id] = self._step_count
 
     # ── Simülasyon Adımı ──────────────────────────
 

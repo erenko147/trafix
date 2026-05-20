@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+
+    <!-- Acil arac tipi: daha hizli, kirmizi renkte gorunur -->
+    <vType id="emergency"
+           accel="4.0"
+           decel="6.0"
+           maxSpeed="70"
+           length="6"
+           minGap="2.0"
+           color="1,0,0"/>
+
+    <!-- ============================================================
+         TAM GERCEKCI ACIL DURUM SENARYOSU
+         - Once tek tek bagimsiz cagrilar (sirayla)
+         - Sonra buyuk bir olay: 2 ambulans AYNI ANDA sevk edilir
+         - En son tekrar tek bir bagimsiz cagri
+         Rota model/preemption tarafindan bilinmez; sadece SUMO aracin
+         kendisini surmek icin kullanir.
+         ============================================================ -->
+
+    <!-- 1) Ad. 30 — bagimsiz cagri: J7 -> J1 -> J0 -> J2 -> J4 -> J12 -->
+    <trip id="ambulans_0" type="emergency" depart="30"
+          from="-E7" to="E12" departSpeed="max"/>
+
+    <!-- 2) Ad. 90 — ayri bagimsiz cagri: J10 -> J3 -> J2 -> J0 -> J6 -->
+    <trip id="ambulans_1" type="emergency" depart="90"
+          from="-E10" to="E6" departSpeed="max"/>
+
+    <!-- ===== BUYUK OLAY: 2 ambulans AYNI ANDA (ad. 160) ===== -->
+    <!-- Farkli istasyonlardan ayni bolgeye (J2 cevresi) yonelirler.
+         Iki kavsak ayni anda preemption'a girer, digerleri AI'da kalir. -->
+
+    <!-- 3) Ad. 160 — bati istasyonu: J5 -> J0 -> J2 -> J4 -> J14 -->
+    <trip id="ambulans_2" type="emergency" depart="160"
+          from="-E5" to="E14" departSpeed="max"/>
+
+    <!-- 4) Ad. 160 — kuzey istasyonu: J11 -> J3 -> J2 -> J9 -->
+    <trip id="ambulans_3" type="emergency" depart="160"
+          from="-E11" to="E9" departSpeed="max"/>
+
+    <!-- 5) Ad. 230 — olay sonrasi ayri bir cagri, en uzun rota:
+         J14 -> J4 -> J2 -> J0 -> J1 -> J7 -->
+    <trip id="ambulans_4" type="emergency" depart="230"
+          from="-E14" to="E7" departSpeed="max"/>
+
+</routes>

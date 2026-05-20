@@ -1,6 +1,6 @@
 <configuration>
     <input>
         <net-file value="map.net.xml"/>
-        <route-files value="random_demand.rou.xml"/>
+        <route-files value="training_demand.rou.xml,emergency_test.rou.xml"/>
     </input>
 </configuration>

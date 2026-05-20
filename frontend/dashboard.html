@@ -232,6 +232,9 @@
     <span class="h-slogan">Smarter flow was always an option.</span>
   </div>
   <div class="h-right">
+    <a href="/emergency" style="display:flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--t2);text-decoration:none;transition:background .2s,color .2s;" onmouseover="this.style.background='var(--b1)';this.style.color='var(--text)'" onmouseout="this.style.background='var(--s2)';this.style.color='var(--t2)'">
+      <span style="font-size:12px">△</span> Acil Araç
+    </a>
     <a href="/architecture" style="display:flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--t2);text-decoration:none;transition:background .2s,color .2s;" onmouseover="this.style.background='var(--b1)';this.style.color='var(--text)'" onmouseout="this.style.background='var(--s2)';this.style.color='var(--t2)'">
       <span style="font-size:12px">⬡</span> Architecture
     </a>
@@ -273,61 +276,64 @@
     <div class="panel-label" id="map-label">Kavşak Haritası</div>
     <svg id="map-svg" viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
       <rect x="4" y="4" width="512" height="292" rx="10" fill="#181818" stroke="#252525" stroke-width="1"/>
-      <line class="edge" data-from="0" data-to="1" x1="188" y1="42"  x2="52"  y2="150"/>
-      <line class="edge" data-from="0" data-to="2" x1="188" y1="42"  x2="324" y2="150"/>
-      <line class="edge" data-from="1" data-to="3" x1="52"  y1="150" x2="188" y2="258"/>
-      <line class="edge" data-from="2" data-to="3" x1="324" y1="150" x2="188" y2="258"/>
-      <line class="edge" data-from="2" data-to="4" x1="324" y1="150" x2="460" y2="258"/>
+      <!-- Konumlar SUMO map.net.xml ile birebir: 2×2 grid + sağda K5.
+           K1=J0(160,380) K2=J1(160,160) K3=J2(380,380)
+           K4=J3(380,160) K5=J4(600,380). SUMO y yukarı → ekran y ters. -->
+      <line class="edge" data-from="0" data-to="1" x1="80"  y1="70"  x2="80"  y2="230"/>
+      <line class="edge" data-from="0" data-to="2" x1="80"  y1="70"  x2="270" y2="70"/>
+      <line class="edge" data-from="1" data-to="3" x1="80"  y1="230" x2="270" y2="230"/>
+      <line class="edge" data-from="2" data-to="3" x1="270" y1="70"  x2="270" y2="230"/>
+      <line class="edge" data-from="2" data-to="4" x1="270" y1="70"  x2="450" y2="70"/>
 
-      <circle id="pulse-0" class="pulse-ring" cx="188" cy="42"  r="27" stroke="#ef4444" style="display:none"/>
-      <circle id="pulse-1" class="pulse-ring" cx="52"  cy="150" r="27" stroke="#ef4444" style="display:none"/>
-      <circle id="pulse-2" class="pulse-ring" cx="324" cy="150" r="27" stroke="#ef4444" style="display:none"/>
-      <circle id="pulse-3" class="pulse-ring" cx="188" cy="258" r="27" stroke="#ef4444" style="display:none"/>
-      <circle id="pulse-4" class="pulse-ring" cx="460" cy="258" r="27" stroke="#ef4444" style="display:none"/>
+      <circle id="pulse-0" class="pulse-ring" cx="80"  cy="70"  r="27" stroke="#ef4444" style="display:none"/>
+      <circle id="pulse-1" class="pulse-ring" cx="80"  cy="230" r="27" stroke="#ef4444" style="display:none"/>
+      <circle id="pulse-2" class="pulse-ring" cx="270" cy="70"  r="27" stroke="#ef4444" style="display:none"/>
+      <circle id="pulse-3" class="pulse-ring" cx="270" cy="230" r="27" stroke="#ef4444" style="display:none"/>
+      <circle id="pulse-4" class="pulse-ring" cx="450" cy="70"  r="27" stroke="#ef4444" style="display:none"/>
 
-      <line x1="188" y1="32" x2="188" y2="52" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
-      <line x1="178" y1="42" x2="198" y2="42" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="80" y1="60" x2="80" y2="80" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="70" y1="70" x2="90" y2="70" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
       <g class="node-group" data-node-id="0">
-        <circle class="node-bg" id="nbg-0" cx="188" cy="42" r="25" fill="#1e1e1e"/>
-        <circle class="node-ring" id="nrg-0" cx="188" cy="42" r="25" stroke="#3d3d3d"/>
-        <text class="node-lbl" x="188" y="39" text-anchor="middle">K1</text>
-        <text class="node-sub" x="188" y="51" text-anchor="middle" id="ni-0">—</text>
+        <circle class="node-bg" id="nbg-0" cx="80" cy="70" r="25" fill="#1e1e1e"/>
+        <circle class="node-ring" id="nrg-0" cx="80" cy="70" r="25" stroke="#3d3d3d"/>
+        <text class="node-lbl" x="80" y="67" text-anchor="middle">K1</text>
+        <text class="node-sub" x="80" y="79" text-anchor="middle" id="ni-0">—</text>
       </g>
 
-      <line x1="52" y1="140" x2="52" y2="160" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
-      <line x1="42" y1="150" x2="62" y2="150" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="80" y1="220" x2="80" y2="240" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="70" y1="230" x2="90" y2="230" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
       <g class="node-group" data-node-id="1">
-        <circle class="node-bg" id="nbg-1" cx="52" cy="150" r="25" fill="#1e1e1e"/>
-        <circle class="node-ring" id="nrg-1" cx="52" cy="150" r="25" stroke="#3d3d3d"/>
-        <text class="node-lbl" x="52" y="147" text-anchor="middle">K2</text>
-        <text class="node-sub" x="52" y="159" text-anchor="middle" id="ni-1">—</text>
+        <circle class="node-bg" id="nbg-1" cx="80" cy="230" r="25" fill="#1e1e1e"/>
+        <circle class="node-ring" id="nrg-1" cx="80" cy="230" r="25" stroke="#3d3d3d"/>
+        <text class="node-lbl" x="80" y="227" text-anchor="middle">K2</text>
+        <text class="node-sub" x="80" y="239" text-anchor="middle" id="ni-1">—</text>
       </g>
 
-      <line x1="324" y1="140" x2="324" y2="160" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
-      <line x1="314" y1="150" x2="334" y2="150" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="270" y1="60" x2="270" y2="80" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="260" y1="70" x2="280" y2="70" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
       <g class="node-group" data-node-id="2">
-        <circle class="node-bg" id="nbg-2" cx="324" cy="150" r="25" fill="#1e1e1e"/>
-        <circle class="node-ring" id="nrg-2" cx="324" cy="150" r="25" stroke="#3d3d3d"/>
-        <text class="node-lbl" x="324" y="147" text-anchor="middle">K3</text>
-        <text class="node-sub" x="324" y="159" text-anchor="middle" id="ni-2">—</text>
+        <circle class="node-bg" id="nbg-2" cx="270" cy="70" r="25" fill="#1e1e1e"/>
+        <circle class="node-ring" id="nrg-2" cx="270" cy="70" r="25" stroke="#3d3d3d"/>
+        <text class="node-lbl" x="270" y="67" text-anchor="middle">K3</text>
+        <text class="node-sub" x="270" y="79" text-anchor="middle" id="ni-2">—</text>
       </g>
 
-      <line x1="188" y1="248" x2="188" y2="268" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
-      <line x1="178" y1="258" x2="198" y2="258" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="270" y1="220" x2="270" y2="240" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="260" y1="230" x2="280" y2="230" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
       <g class="node-group" data-node-id="3">
-        <circle class="node-bg" id="nbg-3" cx="188" cy="258" r="25" fill="#1e1e1e"/>
-        <circle class="node-ring" id="nrg-3" cx="188" cy="258" r="25" stroke="#3d3d3d"/>
-        <text class="node-lbl" x="188" y="255" text-anchor="middle">K4</text>
-        <text class="node-sub" x="188" y="267" text-anchor="middle" id="ni-3">—</text>
+        <circle class="node-bg" id="nbg-3" cx="270" cy="230" r="25" fill="#1e1e1e"/>
+        <circle class="node-ring" id="nrg-3" cx="270" cy="230" r="25" stroke="#3d3d3d"/>
+        <text class="node-lbl" x="270" y="227" text-anchor="middle">K4</text>
+        <text class="node-sub" x="270" y="239" text-anchor="middle" id="ni-3">—</text>
       </g>
 
-      <line x1="460" y1="248" x2="460" y2="268" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
-      <line x1="450" y1="258" x2="470" y2="258" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="450" y1="60" x2="450" y2="80" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
+      <line x1="440" y1="70" x2="460" y2="70" stroke="#ffffff14" stroke-width="1" pointer-events="none"/>
       <g class="node-group" data-node-id="4">
-        <circle class="node-bg" id="nbg-4" cx="460" cy="258" r="25" fill="#1e1e1e"/>
-        <circle class="node-ring" id="nrg-4" cx="460" cy="258" r="25" stroke="#3d3d3d"/>
-        <text class="node-lbl" x="460" y="255" text-anchor="middle">K5</text>
-        <text class="node-sub" x="460" y="267" text-anchor="middle" id="ni-4">—</text>
+        <circle class="node-bg" id="nbg-4" cx="450" cy="70" r="25" fill="#1e1e1e"/>
+        <circle class="node-ring" id="nrg-4" cx="450" cy="70" r="25" stroke="#3d3d3d"/>
+        <text class="node-lbl" x="450" y="67" text-anchor="middle">K5</text>
+        <text class="node-sub" x="450" y="79" text-anchor="middle" id="ni-4">—</text>
       </g>
     </svg>
     <div class="map-legend">
@@ -385,7 +391,18 @@
   let latestData   = {};
 
   /* ── Yardımcılar ── */
-  const totalVehicles = d => DIR_META.reduce((s, m) => s + (d[m.cnt] || 0), 0);
+  // v6 backend per-lane döndürür (north_left/through/right). Eski *_count
+  // alanları artık null geliyordu → tüm sayaçlar 0 görünüyordu. Bu helper
+  // per-lane'leri toplar, eski format varsa ona düşer (geriye uyum).
+  function dirCount(d, dir) {
+    if (!d) return 0;
+    const legacy = d[dir + '_count'];
+    if (legacy !== null && legacy !== undefined) return legacy;
+    return (d[dir + '_left']    || 0)
+         + (d[dir + '_through'] || 0)
+         + (d[dir + '_right']   || 0);
+  }
+  const totalVehicles = d => DIR_META.reduce((s, m) => s + dirCount(d, m.key), 0);
 
   function computeState(d) {
     const greenKey = GREEN_OF[d.current_phase] ?? '';
@@ -533,9 +550,9 @@
   function buildFocused(id, d) {
     const { greenKey, info, total, qPct } = computeState(d);
 
-    const arm = (key, label, cnt, areaClass) => {
+    const arm = (key, label, areaClass) => {
       const active = key === greenKey;
-      const count  = d[cnt] ?? 0;
+      const count  = dirCount(d, key);
       const pct    = Math.min(count / DMAX * 100, 100).toFixed(0);
       return `
         <div class="focus-arm ${areaClass} ${active ? 'active' : ''}" data-dir="${key}">
@@ -558,14 +575,14 @@
         </div>
 
         <div class="focus-cross">
-          ${arm('north','Kuzey','north_count','focus-arm-n')}
-          ${arm('west', 'Batı', 'west_count', 'focus-arm-w')}
+          ${arm('north','Kuzey','focus-arm-n')}
+          ${arm('west', 'Batı', 'focus-arm-w')}
           <div class="focus-center">
             <span class="focus-center-arrow">${DIR_ARROWS[greenKey] ?? '·'}</span>
             <span class="focus-center-phase" data-stat="phase">${(d.phase_duration ?? 0).toFixed(0)}s</span>
           </div>
-          ${arm('east', 'Doğu', 'east_count', 'focus-arm-e')}
-          ${arm('south','Güney','south_count','focus-arm-s')}
+          ${arm('east', 'Doğu', 'focus-arm-e')}
+          ${arm('south','Güney','focus-arm-s')}
         </div>
 
       </div>`;
@@ -575,14 +592,15 @@
   function buildCard(id, d) {
     const { greenKey, info, total, qPct } = computeState(d);
 
-    const bars = DIR_META.map(({ key, label, cnt }) => {
+    const bars = DIR_META.map(({ key, label }) => {
       const active = key === greenKey;
-      const pct    = Math.min((d[cnt] ?? 0) / DMAX * 100, 100).toFixed(0);
+      const cval   = dirCount(d, key);
+      const pct    = Math.min(cval / DMAX * 100, 100).toFixed(0);
       return `
         <div class="dir-row ${active ? 'active' : ''}" data-dir="${key}">
           <span class="dir-name">${label}</span>
           <div class="dir-track"><div class="dir-fill" style="width:${pct}%"></div></div>
-          <span class="dir-count">${d[cnt] ?? 0}</span>
+          <span class="dir-count">${cval}</span>
         </div>`;
     }).join('');
 
@@ -622,16 +640,17 @@
     const tag = focused.querySelector('.status-tag');
     if (tag) { tag.className = `status-tag ${info.tagCls}`; tag.textContent = info.label + ' Trafik'; }
 
-    DIR_META.forEach(({ key, cnt }) => {
+    DIR_META.forEach(({ key }) => {
       const arm = focused.querySelector(`.focus-arm[data-dir="${key}"]`);
       if (!arm) return;
       const active    = key === greenKey;
       const areaClass = [...arm.classList].find(c => /^focus-arm-[nsew]$/.test(c)) ?? '';
       arm.className   = `focus-arm ${areaClass}${active ? ' active' : ''}`;
+      const cval  = dirCount(d, key);
       const count = arm.querySelector('.arm-count');
-      if (count) count.textContent = d[cnt] ?? 0;
+      if (count) count.textContent = cval;
       const fill = arm.querySelector('.arm-bar-fill');
-      if (fill) fill.style.width = Math.min((d[cnt] ?? 0) / DMAX * 100, 100).toFixed(0) + '%';
+      if (fill) fill.style.width = Math.min(cval / DMAX * 100, 100).toFixed(0) + '%';
     });
 
     const totalEl = focused.querySelector('[data-stat="total"]');
@@ -654,14 +673,15 @@
     const tag = card.querySelector('.status-tag');
     if (tag) { tag.className = `status-tag ${info.tagCls}`; tag.textContent = info.label + ' Trafik'; }
 
-    DIR_META.forEach(({ key, cnt }) => {
+    DIR_META.forEach(({ key }) => {
       const row = card.querySelector(`.dir-row[data-dir="${key}"]`);
       if (!row) return;
       row.className = `dir-row${key === greenKey ? ' active' : ''}`;
+      const cval = dirCount(d, key);
       const fill = row.querySelector('.dir-fill');
-      if (fill) fill.style.width = Math.min((d[cnt] ?? 0) / DMAX * 100, 100).toFixed(0) + '%';
+      if (fill) fill.style.width = Math.min(cval / DMAX * 100, 100).toFixed(0) + '%';
       const count = row.querySelector('.dir-count');
-      if (count) count.textContent = d[cnt] ?? 0;
+      if (count) count.textContent = cval;
     });
 
     const totalEl = card.querySelector('[data-stat="total"]');
