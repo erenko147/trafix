@@ -1,0 +1,48 @@
+simulation_duration: 3600    # seconds (1 simulated hour)
+warmup_steps: 50             # steps before recording begins
+decision_interval: 10        # seconds between AI decisions
+flow_horizon: 3600           # seconds of vehicle insertion
+
+levels:
+  low:
+    description: "~30% network capacity — uniform OFFPEAK"
+    total_flow_veh_hr: 200
+    # per-OD rate = 200 / 66 ≈ 3.03 veh/hr
+
+  medium:
+    description: "~60% network capacity — uniform OFFPEAK"
+    total_flow_veh_hr: 500
+    # per-OD rate = 500 / 66 ≈ 7.58 veh/hr
+
+  high:
+    description: "~90%+ network capacity — directional morning-peak style"
+    main_inbound_flow_veh_hr: 600    # across 17 main inbound OD pairs
+    main_outbound_flow_veh_hr: 150   # across 15 main outbound OD pairs
+    local_flow_veh_hr: 200           # across 34 local OD pairs
+    # total ≈ 950 veh/hr
+
+# Test Type 2 — Scenario robustness at medium base load
+type2_scenarios:
+  morning_peak:
+    description: "Heavy inbound commute (J0/J1/J2 → J3/J4)"
+    main_inbound_veh_hr: 700
+    background_veh_hr: 200
+
+  evening_peak:
+    description: "Heavy outbound commute (J3/J4 → J0/J1/J2)"
+    main_outbound_veh_hr: 700
+    background_veh_hr: 200
+
+  incident:
+    description: "J2 fringe blocked 300–600 s, OFFPEAK base"
+    base_flow_veh_hr: 500
+    incident_junction: 2
+    incident_start_s: 300
+    incident_end_s: 600
+
+  pulse:
+    description: "Quiet 0–300 s, inbound burst 300–900 s, quiet after"
+    quiet_flow_veh_hr: 50
+    burst_flow_veh_hr: 600
+    burst_start_s: 300
+    burst_end_s: 900

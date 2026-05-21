@@ -4,7 +4,21 @@
       "PowerShell(Get-Process *)",
       "Bash(python *)",
       "WebSearch",
-      "PowerShell(Get-Content *)"
+      "PowerShell(Get-Content *)",
+      "PowerShell(sumo *)",
+      "PowerShell(cd \"X:\\\\Yeni klasör \\(2\\)\\\\trafix\"; $env:PYTHONPATH = \".\"; foreach \\($m in @\\(\"travel_time\",\"emissions\",\"waiting_time\",\"throughput\",\"network_speed\",\"teleports\",\"time_loss\",\"fuel_consumption\",\"pollutants\",\"stops_per_vehicle\",\"junction_fairness\",\"queue_length\"\\)\\) { Write-Host \"--- $m ---\"; .venv\\\\Scripts\\\\python.exe \"tests/metrics/$m.py\" 2>&1 })",
+      "PowerShell(cd \"X:\\\\Yeni klasör \\(2\\)\\\\trafix\"; $env:PYTHONPATH = \".\"; $pass = 0; $fail = 0; foreach \\($m in @\\(\"travel_time\",\"emissions\",\"waiting_time\",\"throughput\",\"network_speed\",\"teleports\",\"time_loss\",\"fuel_consumption\",\"pollutants\",\"stops_per_vehicle\",\"junction_fairness\",\"queue_length\"\\)\\) { $out = .venv\\\\Scripts\\\\python.exe \"tests/metrics/$m.py\" 2>&1; if \\($LASTEXITCODE -eq 0\\) { Write-Host \"[OK] $m\"; $pass++ } else { Write-Host \"[FAIL] $m`n$out\"; $fail++ } }; Write-Host \"`nResults: $pass passed, $fail failed\")",
+      "PowerShell(Get-ChildItem \"X:\\\\Yeni klasör \\(2\\)\\\\trafix\\\\tests\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object -ExpandProperty FullName | Sort-Object | ForEach-Object { $_.Replace\\(\"X:\\\\Yeni klasör \\(2\\)\\\\trafix\\\\tests\\\\\",\"tests/\"\\) })",
+      "PowerShell(cd \"X:\\\\Yeni klasör \\(2\\)\\\\trafix\"; .venv\\\\Scripts\\\\python.exe tests/runners/run_all.py --sim-duration 600 2>&1 | ForEach-Object { if \\($_ -match '\\\\[type|PASS|FAIL|###|CSV|Report|Chart|manifest|Done'\\) { $_ } })",
+      "Bash(.venv/Scripts/pip install *)",
+      "Bash(.venv/Scripts/python.exe -c \"import matplotlib; print\\(matplotlib.__version__\\)\")",
+      "Bash(.venv/Scripts/pip.exe install *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(echo \"---EXIT:$?\")",
+      "Bash(.venv/Scripts/python.exe -c \"import matplotlib; print\\('matplotlib', matplotlib.__version__\\)\")",
+      "Bash(pip install *)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(.venv/Scripts/python.exe -c \"import matplotlib; print\\('OK', matplotlib.__version__\\)\")"
     ]
   }
 }

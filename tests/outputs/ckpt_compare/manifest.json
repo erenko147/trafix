@@ -1,0 +1,128 @@
+[
+  {
+    "test_type": "type1",
+    "scenario": "low",
+    "controller": "baseline",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type1_low_baseline"
+  },
+  {
+    "test_type": "type1",
+    "scenario": "low",
+    "controller": "ep1000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type1_low_ep1000"
+  },
+  {
+    "test_type": "type1",
+    "scenario": "low",
+    "controller": "ep2000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type1_low_ep2000"
+  },
+  {
+    "test_type": "type1",
+    "scenario": "medium",
+    "controller": "baseline",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type1_medium_baseline"
+  },
+  {
+    "test_type": "type1",
+    "scenario": "medium",
+    "controller": "ep1000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type1_medium_ep1000"
+  },
+  {
+    "test_type": "type1",
+    "scenario": "medium",
+    "controller": "ep2000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type1_medium_ep2000"
+  },
+  {
+    "test_type": "type1",
+    "scenario": "high",
+    "controller": "baseline",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type1_high_baseline"
+  },
+  {
+    "test_type": "type1",
+    "scenario": "high",
+    "controller": "ep1000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type1_high_ep1000"
+  },
+  {
+    "test_type": "type1",
+    "scenario": "high",
+    "controller": "ep2000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type1_high_ep2000"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "morning_peak",
+    "controller": "baseline",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_morning_peak_baseline"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "morning_peak",
+    "controller": "ep1000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_morning_peak_ep1000"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "morning_peak",
+    "controller": "ep2000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_morning_peak_ep2000"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "evening_peak",
+    "controller": "baseline",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_evening_peak_baseline"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "evening_peak",
+    "controller": "ep1000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_evening_peak_ep1000"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "evening_peak",
+    "controller": "ep2000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_evening_peak_ep2000"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "incident",
+    "controller": "baseline",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_incident_baseline"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "incident",
+    "controller": "ep1000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_incident_ep1000"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "incident",
+    "controller": "ep2000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_incident_ep2000"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "pulse",
+    "controller": "baseline",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_pulse_baseline"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "pulse",
+    "controller": "ep1000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_pulse_ep1000"
+  },
+  {
+    "test_type": "type2",
+    "scenario": "pulse",
+    "controller": "ep2000",
+    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\ckpt_compare\\cc_type2_pulse_ep2000"
+  }
+]

@@ -1,0 +1,4 @@
+sumo_seed: 42
+python_seed: 42
+numpy_seed: 42
+torch_seed: 42

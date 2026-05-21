@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tripinfos>
+    <tripinfo id="v0" depart="0.00" departLane="E0_0" departPos="5.10" departSpeed="0.00"
+              departDelay="0.00" arrival="60.00" arrivalLane="E10_0" arrivalPos="90.00" arrivalSpeed="5.50"
+              duration="60.00" routeLength="600.00" waitingTime="15.00" waitingCount="3"
+              stopTime="0.00" timeLoss="10.00" rerouteNo="0" speedFactor="1.00" vtype="car">
+        <emissions CO2_abs="2000.00" CO_abs="300.00" HC_abs="12.00" PMx_abs="6.00" NOx_abs="40.00" fuel_abs="1.800" electricity_abs="0.00"/>
+    </tripinfo>
+    <tripinfo id="v1" depart="5.00" departLane="E2_0" departPos="5.10" departSpeed="0.00"
+              departDelay="0.00" arrival="75.00" arrivalLane="E12_0" arrivalPos="90.00" arrivalSpeed="4.50"
+              duration="70.00" routeLength="700.00" waitingTime="20.00" waitingCount="4"
+              stopTime="0.00" timeLoss="14.00" rerouteNo="0" speedFactor="1.00" vtype="car">
+        <emissions CO2_abs="2500.00" CO_abs="380.00" HC_abs="16.00" PMx_abs="8.00" NOx_abs="52.00" fuel_abs="2.300" electricity_abs="0.00"/>
+    </tripinfo>
+    <tripinfo id="v2" depart="10.00" departLane="E5_0" departPos="5.10" departSpeed="0.00"
+              departDelay="0.00" arrival="50.00" arrivalLane="E11_0" arrivalPos="90.00" arrivalSpeed="6.00"
+              duration="40.00" routeLength="400.00" waitingTime="5.00" waitingCount="1"
+              stopTime="0.00" timeLoss="4.00" rerouteNo="0" speedFactor="1.00" vtype="car">
+        <emissions CO2_abs="1200.00" CO_abs="180.00" HC_abs="7.00" PMx_abs="3.50" NOx_abs="22.00" fuel_abs="1.100" electricity_abs="0.00"/>
+    </tripinfo>
+</tripinfos>

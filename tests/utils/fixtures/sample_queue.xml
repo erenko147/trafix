@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/queue_file.xsd">
+    <data timestep="0.00">
+        <lanes>
+            <lane id="-E5_0" queueing_time="0.00" queueing_length="0.00" queueing_length_experimental="0.00"/>
+            <lane id="-E6_0" queueing_time="0.00" queueing_length="0.00" queueing_length_experimental="0.00"/>
+            <lane id="-E9_0" queueing_time="0.00" queueing_length="0.00" queueing_length_experimental="0.00"/>
+        </lanes>
+    </data>
+    <data timestep="1.00">
+        <lanes>
+            <lane id="-E5_0" queueing_time="5.00" queueing_length="2.00" queueing_length_experimental="2.00"/>
+            <lane id="-E6_0" queueing_time="3.00" queueing_length="1.00" queueing_length_experimental="1.00"/>
+            <lane id="-E9_0" queueing_time="0.00" queueing_length="0.00" queueing_length_experimental="0.00"/>
+        </lanes>
+    </data>
+    <data timestep="2.00">
+        <lanes>
+            <lane id="-E5_0" queueing_time="8.00" queueing_length="3.00" queueing_length_experimental="3.00"/>
+            <lane id="-E6_0" queueing_time="4.00" queueing_length="2.00" queueing_length_experimental="2.00"/>
+            <lane id="-E9_0" queueing_time="2.00" queueing_length="1.00" queueing_length_experimental="1.00"/>
+        </lanes>
+    </data>
+</data>

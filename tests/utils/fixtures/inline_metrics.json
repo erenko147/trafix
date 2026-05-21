@@ -1,0 +1,42 @@
+{
+  "stops": {
+    "total_vehicles": 3,
+    "total_stops": 8,
+    "avg_stops_per_vehicle": 2.6667
+  },
+  "junction_waiting": {
+    "J0": {
+      "approach_mean_wait_s": {"-E5": 12.5, "-E6": 8.3},
+      "variance": 4.41,
+      "std_dev": 2.1
+    },
+    "J1": {
+      "approach_mean_wait_s": {"-E7": 10.0, "-E8": 9.8},
+      "variance": 0.01,
+      "std_dev": 0.1
+    },
+    "J2": {
+      "approach_mean_wait_s": {"-E9": 5.5},
+      "variance": 0.0,
+      "std_dev": 0.0
+    },
+    "J3": {
+      "approach_mean_wait_s": {"-E10": 14.2, "-E11": 11.0},
+      "variance": 5.1,
+      "std_dev": 2.26
+    },
+    "J4": {
+      "approach_mean_wait_s": {"-E12": 8.0, "-E13": 7.5, "-E14": 9.0},
+      "variance": 0.39,
+      "std_dev": 0.62
+    }
+  },
+  "junction_queue": {
+    "J0": {"per_approach_mean_halting": {"-E5": 2.1, "-E6": 1.4}, "mean_halting_total": 3.5},
+    "J1": {"per_approach_mean_halting": {"-E7": 1.8, "-E8": 1.6}, "mean_halting_total": 3.4},
+    "J2": {"per_approach_mean_halting": {"-E9": 0.9}, "mean_halting_total": 0.9},
+    "J3": {"per_approach_mean_halting": {"-E10": 2.4, "-E11": 1.9}, "mean_halting_total": 4.3},
+    "J4": {"per_approach_mean_halting": {"-E12": 1.2, "-E13": 1.1, "-E14": 1.5}, "mean_halting_total": 3.8}
+  },
+  "network_fairness_variance": 1.99
+}
