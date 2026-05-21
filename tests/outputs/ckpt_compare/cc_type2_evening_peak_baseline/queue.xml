@@ -61367,6 +61367,7 @@
             <lane id="-E2_2" queueing_time="102.00" queueing_length="21.00" queueing_length_experimental="21.00"/>
             <lane id="-E4_0" queueing_time="17.00" queueing_length="28.50" queueing_length_experimental="28.50"/>
             <lane id="-E4_1" queueing_time="12.00" queueing_length="21.00" queueing_length_experimental="21.00"/>
+            <lane id="-E4_2" queueing_time="1.00" queueing_length="6.01" queueing_length_experimental="6.01"/>
         </lanes>
     </data>
     <data timestep="3597.00">
