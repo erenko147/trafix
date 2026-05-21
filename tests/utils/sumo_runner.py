@@ -306,8 +306,17 @@ def run_simulation(
         "--emissions.volumetric-fuel",    "true",
     ]
 
-    # ── Start simulation ──────────────────────────────────────────────────────
-    traci.start(cmd)
+    # ── Start simulation (retry once if SUMO port still lingering) ───────────
+    import time as _time
+    for _attempt in range(2):
+        try:
+            traci.start(cmd)
+            break
+        except Exception as _e:
+            if _attempt == 0:
+                _time.sleep(3)
+            else:
+                raise
 
     tls_ids = sorted(traci.trafficlight.getIDList())
 
@@ -410,6 +419,7 @@ def run_simulation(
         step += 1
 
     traci.close()
+    _time.sleep(1)   # let SUMO process fully exit before next simulation starts
 
     # ── Save inline metrics ───────────────────────────────────────────────────
     inline = tracker.results()

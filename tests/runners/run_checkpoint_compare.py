@@ -78,6 +78,15 @@ def main():
         for ctrl_name, ckpt_path in CONTROLLERS:
             done += 1
             run_id = f"cc_{test_type}_{level}_{ctrl_name}"
+            out_path = _OUTPUTS / run_id
+            # Skip if already completed (tripinfo.xml present from a previous run)
+            if (out_path / "tripinfo.xml").exists():
+                print(f"\n[{done}/{total}] {run_id} — skipping (already done)")
+                manifest.append(dict(
+                    test_type=test_type, scenario=level,
+                    controller=ctrl_name, output_dir=str(out_path),
+                ))
+                continue
             print(f"\n[{done}/{total}] {run_id}")
             mode = "baseline" if ctrl_name == "baseline" else "ai"
             out_dir = run_simulation(
