@@ -195,9 +195,13 @@ def _make_figures(data: Dict, charts_dir: Path):
     ax.set_xticklabels([_METRIC_LABEL[m].split(" (")[0] for m in key_metrics],
                        rotation=20, ha="right", fontsize=8)
     ax.set_ylabel("Mean % improvement vs baseline\n(positive = better)", fontsize=9)
-    ax.set_title("TraFix v6 — Average Improvement over Fixed-Timing Baseline\n"
-                 "ep1000 vs ep2000 (final), across all 7 scenarios",
-                 fontsize=11, fontweight="bold")
+    n_sc = len(scenarios)
+    ax.set_title(
+        f"TraFix v6 — Average Improvement over Fixed-Timing Baseline\n"
+        f"ep1000 vs ep2000 (final) — {n_sc} scenarios "
+        f"(in-distribution + unseen OOD)",
+        fontsize=11, fontweight="bold"
+    )
     ax.legend(fontsize=9)
     ax.yaxis.grid(True, linestyle="--", alpha=0.5)
     ax.set_axisbelow(True)
@@ -212,32 +216,48 @@ def _make_figures(data: Dict, charts_dir: Path):
 def _write_report(data: Dict, out_path: Path, sim_s: int):
     lines = [
         "# TraFix v6 — Checkpoint Comparison",
-        f"Simulation duration: {sim_s} s | Controllers: baseline · ep1000 · ep2000 (final)\n",
+        f"Simulation duration: {sim_s} s | Controllers: baseline · ep1000 · ep2000 (final)",
+        "",
+        "**In-distribution** = scenario types seen during training (type1/type2).",
+        "**Unseen (OOD)**     = flow levels, temporal patterns, or stressor combinations",
+        "never present in the training curriculum. These measure true generalisation.\n",
     ]
-    for sc in sorted(data.keys()):
-        ctrls = data[sc]
-        lines.append(f"\n## {sc.replace('_', ' ')}\n")
-        metrics = sorted(next(iter(ctrls.values())).keys())
-        header = "| Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |"
-        lines.append(header)
-        lines.append("|--------|----------|--------|--------|-----------|-----------|")
-        for metric in metrics:
-            bval = ctrls.get("baseline", {}).get(metric, 0.0)
-            v10  = ctrls.get("ep1000",   {}).get(metric, 0.0)
-            v20  = ctrls.get("ep2000",   {}).get(metric, 0.0)
-            lb   = _LOWER_BETTER.get(metric, True)
-            def pct(a):
-                if bval == 0: return 0.0
-                raw = (bval - a) / bval * 100.0
-                return raw if lb else -raw
-            p10, p20 = pct(v10), pct(v20)
-            s10 = f"{'✓' if p10 >= 0 else '✗'} {p10:+.1f}%"
-            s20 = f"{'✓' if p20 >= 0 else '✗'} {p20:+.1f}%"
-            lines.append(
-                f"| {metric} | {bval:.4g} | {v10:.4g} | {v20:.4g} | {s10} | {s20} |"
-            )
+
+    def _section(prefix: str, label: str):
+        keys = sorted(k for k in data if k.startswith(prefix))
+        if not keys:
+            return
+        lines.append(f"\n---\n## {label}\n")
+        for sc in keys:
+            ctrls = data[sc]
+            lines.append(f"\n### {sc.replace('_', ' ')}\n")
+            metrics = sorted(next(iter(ctrls.values())).keys())
+            lines.append("| Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |")
+            lines.append("|--------|----------|--------|--------|-----------|-----------|")
+            for metric in metrics:
+                bval = ctrls.get("baseline", {}).get(metric, 0.0)
+                v10  = ctrls.get("ep1000",   {}).get(metric, 0.0)
+                v20  = ctrls.get("ep2000",   {}).get(metric, 0.0)
+                lb   = _LOWER_BETTER.get(metric, True)
+                def pct(a, bv=bval, l=lb):
+                    if bv == 0: return 0.0
+                    raw = (bv - a) / bv * 100.0
+                    return raw if l else -raw
+                p10, p20 = pct(v10), pct(v20)
+                s10 = f"{'✓' if p10 >= 0 else '✗'} {p10:+.1f}%"
+                s20 = f"{'✓' if p20 >= 0 else '✗'} {p20:+.1f}%"
+                lines.append(
+                    f"| {metric} | {bval:.4g} | {v10:.4g} | {v20:.4g} | {s10} | {s20} |"
+                )
+
+    _section("type",   "In-Distribution Scenarios (training curriculum overlap)")
+    _section("unseen", "Unseen / Out-of-Distribution Scenarios (true generalisation test)")
+
     out_path.write_text("\n".join(lines), encoding="utf-8")
     print(f"  Report: {out_path}")
+    return  # original loop replaced above
+
+
 
 
 # ── CSV ───────────────────────────────────────────────────────────────────────

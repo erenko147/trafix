@@ -34,14 +34,25 @@ CONTROLLERS = [
 ]
 
 # ── Scenarios ─────────────────────────────────────────────────────────────────
+# type1/type2: in-distribution (overlap with training curriculum — kept for
+#              reference so we can compare in-dist vs OOD performance side-by-side)
+# unseen:      out-of-distribution — flow levels, temporal shapes, and spatial
+#              concentrations the model never encountered during training
 ALL_SCENARIOS = [
-    ("type1", "low",          "type1_low.rou.xml"),
-    ("type1", "medium",       "type1_medium.rou.xml"),
-    ("type1", "high",         "type1_high.rou.xml"),
-    ("type2", "morning_peak", "type2_morning_peak.rou.xml"),
-    ("type2", "evening_peak", "type2_evening_peak.rou.xml"),
-    ("type2", "incident",     "type2_incident.rou.xml"),
-    ("type2", "pulse",        "type2_pulse.rou.xml"),
+    ("type1",  "low",                  "type1_low.rou.xml"),
+    ("type1",  "medium",               "type1_medium.rou.xml"),
+    ("type1",  "high",                 "type1_high.rou.xml"),
+    ("type2",  "morning_peak",         "type2_morning_peak.rou.xml"),
+    ("type2",  "evening_peak",         "type2_evening_peak.rou.xml"),
+    ("type2",  "incident",             "type2_incident.rou.xml"),
+    ("type2",  "pulse",                "type2_pulse.rou.xml"),
+    # ── Unseen / OOD ──────────────────────────────────────────────────────────
+    ("unseen", "supersaturation",      "unseen_supersaturation.rou.xml"),
+    ("unseen", "stadium_exit",         "unseen_stadium_exit.rou.xml"),
+    ("unseen", "peak_plus_incident",   "unseen_peak_plus_incident.rou.xml"),
+    ("unseen", "oscillating",          "unseen_oscillating.rou.xml"),
+    ("unseen", "tidal_ramp",           "unseen_tidal_ramp.rou.xml"),
+    ("unseen", "bidirectional_peak",   "unseen_bidirectional_peak.rou.xml"),
 ]
 
 

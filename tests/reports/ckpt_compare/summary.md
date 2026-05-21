@@ -1,8 +1,16 @@
 # TraFix v6 — Checkpoint Comparison
 Simulation duration: 3600 s | Controllers: baseline · ep1000 · ep2000 (final)
 
+**In-distribution** = scenario types seen during training (type1/type2).
+**Unseen (OOD)**     = flow levels, temporal patterns, or stressor combinations
+never present in the training curriculum. These measure true generalisation.
 
-## type1 high
+
+---
+## In-Distribution Scenarios (training curriculum overlap)
+
+
+### type1 high
 
 | Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
 |--------|----------|--------|--------|-----------|-----------|
@@ -22,7 +30,7 @@ Simulation duration: 3600 s | Controllers: baseline · ep1000 · ep2000 (final)
 | vehicles_still_running | 38 | 28 | 23 | ✓ +26.3% | ✓ +39.5% |
 | waiting_time_s | 103.2 | 69.25 | 57.29 | ✓ +32.9% | ✓ +44.5% |
 
-## type1 low
+### type1 low
 
 | Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
 |--------|----------|--------|--------|-----------|-----------|
@@ -42,7 +50,7 @@ Simulation duration: 3600 s | Controllers: baseline · ep1000 · ep2000 (final)
 | vehicles_still_running | 61 | 64 | 62 | ✗ -4.9% | ✗ -1.6% |
 | waiting_time_s | 89.06 | 72.16 | 60.46 | ✓ +19.0% | ✓ +32.1% |
 
-## type1 medium
+### type1 medium
 
 | Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
 |--------|----------|--------|--------|-----------|-----------|
@@ -62,7 +70,7 @@ Simulation duration: 3600 s | Controllers: baseline · ep1000 · ep2000 (final)
 | vehicles_still_running | 4 | 0 | 0 | ✓ +100.0% | ✓ +100.0% |
 | waiting_time_s | 92.25 | 70.09 | 59.76 | ✓ +24.0% | ✓ +35.2% |
 
-## type2 evening peak
+### type2 evening peak
 
 | Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
 |--------|----------|--------|--------|-----------|-----------|
@@ -82,7 +90,7 @@ Simulation duration: 3600 s | Controllers: baseline · ep1000 · ep2000 (final)
 | vehicles_still_running | 27 | 21 | 17 | ✓ +22.2% | ✓ +37.0% |
 | waiting_time_s | 103.8 | 63.99 | 54.19 | ✓ +38.4% | ✓ +47.8% |
 
-## type2 incident
+### type2 incident
 
 | Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
 |--------|----------|--------|--------|-----------|-----------|
@@ -102,7 +110,7 @@ Simulation duration: 3600 s | Controllers: baseline · ep1000 · ep2000 (final)
 | vehicles_still_running | 9 | 5 | 1 | ✓ +44.4% | ✓ +88.9% |
 | waiting_time_s | 111.6 | 88.93 | 78.33 | ✓ +20.3% | ✓ +29.8% |
 
-## type2 morning peak
+### type2 morning peak
 
 | Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
 |--------|----------|--------|--------|-----------|-----------|
@@ -122,7 +130,7 @@ Simulation duration: 3600 s | Controllers: baseline · ep1000 · ep2000 (final)
 | vehicles_still_running | 81 | 71 | 66 | ✓ +12.3% | ✓ +18.5% |
 | waiting_time_s | 118.8 | 56.15 | 59.04 | ✓ +52.7% | ✓ +50.3% |
 
-## type2 pulse
+### type2 pulse
 
 | Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
 |--------|----------|--------|--------|-----------|-----------|
@@ -141,3 +149,127 @@ Simulation duration: 3600 s | Controllers: baseline · ep1000 · ep2000 (final)
 | travel_time_s | 163.1 | 135.9 | 124.2 | ✓ +16.7% | ✓ +23.9% |
 | vehicles_still_running | 0 | 0 | 0 | ✓ +0.0% | ✓ +0.0% |
 | waiting_time_s | 98.28 | 71.21 | 60.38 | ✓ +27.6% | ✓ +38.6% |
+
+---
+## Unseen / Out-of-Distribution Scenarios (true generalisation test)
+
+
+### unseen bidirectional peak
+
+| Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
+|--------|----------|--------|--------|-----------|-----------|
+| NOx_total_mg | 1.4e+05 | 1.214e+05 | 1.255e+05 | ✓ +13.3% | ✓ +10.4% |
+| arrived_vehicles | 1167 | 1166 | 1177 | ✗ -0.1% | ✓ +0.9% |
+| co2_per_vehicle_mg | 3.265e+05 | 2.873e+05 | 2.934e+05 | ✓ +12.0% | ✓ +10.2% |
+| fairness_variance | 714.8 | 428.8 | 452.3 | ✓ +40.0% | ✓ +36.7% |
+| fuel_per_vehicle_L | 0.1427 | 0.1255 | 0.1282 | ✓ +12.0% | ✓ +10.2% |
+| network_speed_ms | 3.836 | 4.662 | 4.544 | ✓ +21.5% | ✓ +18.5% |
+| queue_length | 6.697 | 4.996 | 5.23 | ✓ +25.4% | ✓ +21.9% |
+| stops_per_vehicle | 2.154 | 2.122 | 2.148 | ✓ +1.5% | ✓ +0.3% |
+| teleports | 0 | 0 | 0 | ✓ +0.0% | ✓ +0.0% |
+| throughput_veh_hr | 1167 | 1166 | 1177 | ✗ -0.1% | ✓ +0.9% |
+| time_loss_s | 118.8 | 92.04 | 96.21 | ✓ +22.5% | ✓ +19.0% |
+| total_departed | 1218 | 1218 | 1218 | ✓ -0.0% | ✓ -0.0% |
+| travel_time_s | 168.6 | 142 | 146.1 | ✓ +15.8% | ✓ +13.4% |
+| vehicles_still_running | 51 | 52 | 41 | ✗ -2.0% | ✓ +19.6% |
+| waiting_time_s | 100.3 | 74.3 | 78.34 | ✓ +25.9% | ✓ +21.9% |
+
+### unseen oscillating
+
+| Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
+|--------|----------|--------|--------|-----------|-----------|
+| NOx_total_mg | 1.079e+05 | 7.966e+04 | 7.816e+04 | ✓ +26.2% | ✓ +27.6% |
+| arrived_vehicles | 895 | 896 | 906 | ✓ +0.1% | ✓ +1.2% |
+| co2_per_vehicle_mg | 3.273e+05 | 2.476e+05 | 2.405e+05 | ✓ +24.4% | ✓ +26.5% |
+| fairness_variance | 445.8 | 120 | 631.4 | ✓ +73.1% | ✗ -41.6% |
+| fuel_per_vehicle_L | 0.143 | 0.1082 | 0.1051 | ✓ +24.4% | ✓ +26.5% |
+| network_speed_ms | 3.59 | 5.412 | 5.672 | ✓ +50.8% | ✓ +58.0% |
+| queue_length | 5.314 | 2.774 | 2.57 | ✓ +47.8% | ✓ +51.6% |
+| stops_per_vehicle | 2.094 | 1.883 | 1.758 | ✓ +10.1% | ✓ +16.1% |
+| teleports | 0 | 0 | 0 | ✓ +0.0% | ✓ +0.0% |
+| throughput_veh_hr | 895 | 896 | 906 | ✓ +0.1% | ✓ +1.2% |
+| time_loss_s | 122.6 | 70.61 | 66.4 | ✓ +42.4% | ✓ +45.8% |
+| total_departed | 921 | 921 | 921 | ✓ -0.0% | ✓ -0.0% |
+| travel_time_s | 170.8 | 118.7 | 114.6 | ✓ +30.5% | ✓ +32.9% |
+| vehicles_still_running | 26 | 25 | 15 | ✓ +3.8% | ✓ +42.3% |
+| waiting_time_s | 104.3 | 54.32 | 50.8 | ✓ +47.9% | ✓ +51.3% |
+
+### unseen peak plus incident
+
+| Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
+|--------|----------|--------|--------|-----------|-----------|
+| NOx_total_mg | 5.715e+04 | 4.321e+04 | 3.749e+04 | ✓ +24.4% | ✓ +34.4% |
+| arrived_vehicles | 411 | 425 | 421 | ✓ +3.4% | ✓ +2.4% |
+| co2_per_vehicle_mg | 3.771e+05 | 2.828e+05 | 2.5e+05 | ✓ +25.0% | ✓ +33.7% |
+| fairness_variance | 1810 | 497.7 | 101.6 | ✓ +72.5% | ✓ +94.4% |
+| fuel_per_vehicle_L | 0.1647 | 0.1236 | 0.1092 | ✓ +25.0% | ✓ +33.7% |
+| network_speed_ms | 3.58 | 5.322 | 6.179 | ✓ +48.7% | ✓ +72.6% |
+| queue_length | 2.952 | 1.536 | 1.122 | ✓ +48.0% | ✓ +62.0% |
+| stops_per_vehicle | 2.432 | 2.08 | 1.9 | ✓ +14.5% | ✓ +21.9% |
+| teleports | 0 | 0 | 0 | ✓ +0.0% | ✓ +0.0% |
+| throughput_veh_hr | 411 | 425 | 421 | ✓ +3.4% | ✓ +2.4% |
+| time_loss_s | 142.9 | 81.72 | 62.11 | ✓ +42.8% | ✓ +56.5% |
+| total_departed | 451 | 451 | 451 | ✓ -0.0% | ✓ -0.0% |
+| travel_time_s | 196.8 | 135.6 | 115.9 | ✓ +31.1% | ✓ +41.1% |
+| vehicles_still_running | 40 | 26 | 30 | ✓ +35.0% | ✓ +25.0% |
+| waiting_time_s | 122 | 62.94 | 45.19 | ✓ +48.4% | ✓ +62.9% |
+
+### unseen stadium exit
+
+| Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
+|--------|----------|--------|--------|-----------|-----------|
+| NOx_total_mg | 1.526e+05 | 1.111e+05 | 1.272e+05 | ✓ +27.2% | ✓ +16.7% |
+| arrived_vehicles | 1200 | 1275 | 1185 | ✓ +6.2% | ✗ -1.2% |
+| co2_per_vehicle_mg | 3.422e+05 | 2.413e+05 | 2.916e+05 | ✓ +29.5% | ✓ +14.8% |
+| fairness_variance | 3.773e+04 | 3178 | 1.621e+06 | ✓ +91.6% | ✗ -4197.6% |
+| fuel_per_vehicle_L | 0.1495 | 0.1054 | 0.1274 | ✓ +29.5% | ✓ +14.8% |
+| network_speed_ms | 2.877 | 4.7 | 3.352 | ✓ +63.3% | ✓ +16.5% |
+| queue_length | 8.686 | 4.324 | 7.309 | ✓ +50.2% | ✓ +15.9% |
+| stops_per_vehicle | 2.11 | 1.829 | 1.805 | ✓ +13.3% | ✓ +14.5% |
+| teleports | 0 | 0 | 0 | ✓ +0.0% | ✓ +0.0% |
+| throughput_veh_hr | 1200 | 1275 | 1185 | ✓ +6.2% | ✗ -1.2% |
+| time_loss_s | 144.8 | 77.14 | 110.1 | ✓ +46.7% | ✓ +23.9% |
+| total_departed | 1251 | 1302 | 1224 | ✓ +4.1% | ✗ -2.2% |
+| travel_time_s | 186.4 | 119.4 | 152.4 | ✓ +35.9% | ✓ +18.2% |
+| vehicles_still_running | 51 | 27 | 39 | ✓ +47.1% | ✓ +23.5% |
+| waiting_time_s | 124.1 | 60.43 | 93 | ✓ +51.3% | ✓ +25.1% |
+
+### unseen supersaturation
+
+| Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
+|--------|----------|--------|--------|-----------|-----------|
+| NOx_total_mg | 1.66e+05 | 1.41e+05 | 1.373e+05 | ✓ +15.1% | ✓ +17.3% |
+| arrived_vehicles | 1471 | 1482 | 1480 | ✓ +0.7% | ✓ +0.6% |
+| co2_per_vehicle_mg | 3.068e+05 | 2.628e+05 | 2.567e+05 | ✓ +14.4% | ✓ +16.3% |
+| fairness_variance | 1494 | 1065 | 1170 | ✓ +28.7% | ✓ +21.7% |
+| fuel_per_vehicle_L | 0.1341 | 0.1148 | 0.1121 | ✓ +14.4% | ✓ +16.3% |
+| network_speed_ms | 3.496 | 4.422 | 4.482 | ✓ +26.5% | ✓ +28.2% |
+| queue_length | 8.24 | 5.77 | 5.506 | ✓ +30.0% | ✓ +33.2% |
+| stops_per_vehicle | 1.958 | 1.953 | 1.906 | ✓ +0.2% | ✓ +2.6% |
+| teleports | 0 | 0 | 0 | ✓ +0.0% | ✓ +0.0% |
+| throughput_veh_hr | 1471 | 1482 | 1480 | ✓ +0.7% | ✓ +0.6% |
+| time_loss_s | 115 | 85.06 | 81.5 | ✓ +26.0% | ✓ +29.1% |
+| total_departed | 1518 | 1518 | 1518 | ✓ -0.0% | ✓ -0.0% |
+| travel_time_s | 159.2 | 129.8 | 125.9 | ✓ +18.5% | ✓ +20.9% |
+| vehicles_still_running | 47 | 36 | 38 | ✓ +23.4% | ✓ +19.1% |
+| waiting_time_s | 97.59 | 67.95 | 64.79 | ✓ +30.4% | ✓ +33.6% |
+
+### unseen tidal ramp
+
+| Metric | Baseline | ep1000 | ep2000 | ep1000 Δ% | ep2000 Δ% |
+|--------|----------|--------|--------|-----------|-----------|
+| NOx_total_mg | 1.082e+05 | 6.72e+04 | 7.493e+04 | ✓ +37.9% | ✓ +30.7% |
+| arrived_vehicles | 702 | 700 | 702 | ✗ -0.3% | ✓ -0.0% |
+| co2_per_vehicle_mg | 4.143e+05 | 2.662e+05 | 2.934e+05 | ✓ +35.7% | ✓ +29.2% |
+| fairness_variance | 1.718e+04 | 526.8 | 3.954e+04 | ✓ +96.9% | ✗ -130.1% |
+| fuel_per_vehicle_L | 0.181 | 0.1163 | 0.1282 | ✓ +35.7% | ✓ +29.2% |
+| network_speed_ms | 2.767 | 4.064 | 4.12 | ✓ +46.9% | ✓ +48.9% |
+| queue_length | 6.212 | 2.524 | 3.251 | ✓ +59.4% | ✓ +47.7% |
+| stops_per_vehicle | 2.749 | 2.082 | 2.162 | ✓ +24.2% | ✓ +21.3% |
+| teleports | 0 | 0 | 0 | ✓ +0.0% | ✓ +0.0% |
+| throughput_veh_hr | 702 | 700 | 702 | ✗ -0.3% | ✓ -0.0% |
+| time_loss_s | 177.2 | 83 | 99.88 | ✓ +53.2% | ✓ +43.6% |
+| total_departed | 702 | 702 | 702 | ✓ -0.0% | ✓ -0.0% |
+| travel_time_s | 225.3 | 130.5 | 147.5 | ✓ +42.1% | ✓ +34.5% |
+| vehicles_still_running | 0 | 2 | 0 | ✓ +0.0% | ✓ +0.0% |
+| waiting_time_s | 152 | 64.5 | 80.82 | ✓ +57.6% | ✓ +46.8% |
