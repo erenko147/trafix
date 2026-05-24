@@ -1,3 +1,29 @@
 
+# Python
 /.venv
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Model weights
+*.pt
+*.pth
+
+# Training outputs
+training_outputs/
+
+# SUMO runtime
+*.xml.bak
+telemetri_kaydi*.json
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
 TRAFIX_Mimari_Analiz_Raporu.docx
+logs/decisions_live.log
