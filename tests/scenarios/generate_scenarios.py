@@ -16,7 +16,7 @@ _HERE = Path(__file__).resolve().parent
 _PROJECT_ROOT = _HERE.parents[1]
 sys.path.insert(0, str(_PROJECT_ROOT))
 
-from trafix_v6.scenario_generator import (
+from training.scenario_generator import (
     _MAIN_INBOUND_OD, _MAIN_OUTBOUND_OD, _LOCAL_OD, _ALL_OD,
     _JUNCTION_FRINGE_IN,
 )

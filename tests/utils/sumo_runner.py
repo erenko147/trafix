@@ -266,8 +266,8 @@ def run_simulation(
 
     if mode == "ai":
         import torch
-        from trafix_v6.trafix_v6 import TraFixV6
-        from trafix_v6.rule_governor import RuleGovernor, sample_governed
+        from model.architecture import TraFixV6
+        from model.rule_governor import RuleGovernor, sample_governed
         from backend.ai.trafix_v2 import parse_sumo_observations
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -371,7 +371,7 @@ def run_simulation(
         # ── AI decision ───────────────────────────────────────────────────────
         if mode == "ai" and step >= next_decision:
             import torch
-            from trafix_v6.rule_governor import sample_governed
+            from model.rule_governor import sample_governed
             obs       = _get_observations(tls_ids, phase_held_since, step)
             x         = parse_obs(obs, device=device)
             window.append(x.detach())

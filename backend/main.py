@@ -1,10 +1,7 @@
 """
-TraFix Backend — FastAPI
-========================
-Receives telemetry, queries AI model, returns phase decisions.
-Supports model versions: v2, v3, simple, v5, v6.
-
-Set TRAFIX_MODEL_VERSION=v6 to use the 3-lane 6-phase model.
+TraFix Backend — FastAPI (TraFix V6)
+=====================================
+Receives telemetry, queries TraFixV6, returns phase decisions.
 """
 
 from fastapi import FastAPI
@@ -16,45 +13,12 @@ import os
 import logging
 from typing import List, Optional
 
-_MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v2").strip().lower()
+import sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-_USE_GRAPH = False
-_USE_V5    = False
-_USE_V6    = False
-
-if _MODEL_VERSION == "v3":
-    from backend.ai.trafix_v3 import CoordinatedPPOAgent, parse_sumo_observations
-    _WEIGHT_FILENAME = "coordinated_agent_weights_v3.pth"
-    _USE_GRAPH = True
-
-elif _MODEL_VERSION == "simple":
-    from backend.ai.trafix_simple import SimplePPOAgent as CoordinatedPPOAgent, parse_sumo_observations
-    _WEIGHT_FILENAME = "coordinated_agent_weights_simple.pth"
-
-elif _MODEL_VERSION == "v5":
-    import sys as _sys, os as _os
-    _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(__file__))))
-    from trafix_v5.trafix_v5 import TraFixV5
-    from trafix_v5.rule_governor import RuleGovernor
-    from backend.ai.trafix_v2 import parse_sumo_observations
-    _WEIGHT_FILENAME = "trafix_v5/checkpoints/trafix_v5_final.pt"
-    _USE_V5 = True
-    CoordinatedPPOAgent = None
-
-elif _MODEL_VERSION == "v6":
-    import sys as _sys, os as _os
-    _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(__file__))))
-    from trafix_v6.trafix_v6 import TraFixV6
-    from trafix_v6.rule_governor import RuleGovernor
-    from backend.ai.trafix_v2 import parse_sumo_observations
-    _WEIGHT_FILENAME = "trafix_v6/checkpoints/trafix_v6_final.pt"
-    _USE_V6 = True
-    CoordinatedPPOAgent = None
-
-else:  # v2 default
-    from backend.ai.trafix_v2 import CoordinatedPPOAgent, parse_sumo_observations
-    _WEIGHT_FILENAME = "coordinated_agent_weights.pth"
-    _USE_GRAPH = True
+from model.architecture import TraFixV6
+from model.rule_governor import RuleGovernor
+from backend.ai.trafix_v2 import parse_sumo_observations
 
 logger = logging.getLogger("trafix")
 
@@ -102,26 +66,16 @@ class Telemetry(BaseModel):
 
 # ── Model configuration ───────────────────────────────────────────────────────
 
-NUM_FEATURES = 20   # 12 per-lane + queue + 6-phase one-hot + duration
-HIDDEN_DIM   = 128
-NUM_ACTIONS  = 6    # 6 phases for v6
-NUM_NODES    = 5
-NUM_HEADS    = 4
+NUM_FEATURES  = 20   # 12 per-lane + queue + 6-phase one-hot + duration
+NUM_ACTIONS   = 6    # 6 phases
+NUM_NODES     = 5
 
-# Chain edge_index for 5 junctions
-edge_index = torch.tensor([
-    [0, 1, 1, 2, 1, 3, 2, 4, 3, 4],
-    [1, 0, 2, 1, 3, 1, 4, 2, 4, 3],
-], dtype=torch.long)
+_WEIGHT_FILENAME = "trafix_v6/checkpoints/trafix_v6_final.pt"
 
 # ── Model state ───────────────────────────────────────────────────────────────
 
 ai_agent = None
 last_decisions_cache: list = []
-
-_V5_T_WINDOW = 10
-_v5_window: deque = deque(maxlen=_V5_T_WINDOW)
-_v5_governor = None
 
 _V6_T_WINDOW = 30
 _v6_window: deque = deque(maxlen=_V6_T_WINDOW)
@@ -130,110 +84,42 @@ _last_batch_step: int = -1
 
 
 def load_model():
-    global ai_agent, _v5_governor, _v6_governor
+    global ai_agent, _v6_governor
 
-    base_dir = os.path.dirname(__file__)
-    project_root = os.path.dirname(base_dir)
-
-    print(f"[INFO] Model version: {_MODEL_VERSION.upper()} | Weight file: {_WEIGHT_FILENAME}")
-
-    # ── v6 ────────────────────────────────────────────────────────────────────
-    if _USE_V6:
-        weight_paths = [
-            os.path.join(project_root, _WEIGHT_FILENAME),
-            _WEIGHT_FILENAME,
-        ]
-        agent = TraFixV6(obs_dim=NUM_FEATURES, num_phases=NUM_ACTIONS)
-        for path in weight_paths:
-            abs_path = os.path.abspath(path)
-            if os.path.exists(abs_path):
-                try:
-                    ckpt = torch.load(abs_path, map_location="cpu", weights_only=True)
-                    state = ckpt.get("model_state_dict", ckpt)
-                    agent.load_state_dict(state)
-                    agent.eval()
-                    ai_agent = agent
-                    _v6_governor = RuleGovernor(
-                        num_junctions=NUM_NODES,
-                        num_phases=6,
-                        min_green_s=10.0,
-                        max_green_s=90.0,
-                        flicker_window=2,
-                        flicker_penalty=3.0,
-                        pressure_boost=1.0,
-                        pressure_thresh=0.35,
-                    )
-                    print(f"[OK] TraFixV6 loaded: {abs_path}")
-                    print(f"[OK] RuleGovernor active (6 phases, min_green_through=10s)")
-                    return True
-                except RuntimeError as e:
-                    print(f"[WARN] v6 weight mismatch: {abs_path} — {e}")
-                    continue
-        print("[WARN] TraFixV6 weights not found. Heuristic fallback active.")
-        return False
-
-    # ── v5 ────────────────────────────────────────────────────────────────────
-    if _USE_V5:
-        weight_paths = [
-            os.path.join(project_root, _WEIGHT_FILENAME),
-            _WEIGHT_FILENAME,
-        ]
-        agent = TraFixV5(obs_dim=NUM_FEATURES, num_phases=4)
-        for path in weight_paths:
-            abs_path = os.path.abspath(path)
-            if os.path.exists(abs_path):
-                try:
-                    ckpt = torch.load(abs_path, map_location="cpu", weights_only=True)
-                    state = ckpt.get("model_state_dict", ckpt)
-                    agent.load_state_dict(state)
-                    agent.eval()
-                    ai_agent = agent
-                    _v5_governor = RuleGovernor(
-                        num_junctions=NUM_NODES,
-                        num_phases=4,
-                        min_green_s=10.0,
-                        max_green_s=90.0,
-                        flicker_window=2,
-                        flicker_penalty=3.0,
-                        pressure_boost=1.0,
-                    )
-                    print(f"[OK] TraFixV5 loaded: {abs_path}")
-                    return True
-                except RuntimeError as e:
-                    print(f"[WARN] v5 weight mismatch: {abs_path} — {e}")
-                    continue
-        print("[WARN] TraFixV5 weights not found. Heuristic fallback active.")
-        return False
-
-    # ── v2/v3 ─────────────────────────────────────────────────────────────────
-    agent = CoordinatedPPOAgent(
-        num_node_features=NUM_FEATURES,
-        hidden_dim=HIDDEN_DIM,
-        num_actions=NUM_ACTIONS,
-        num_heads=NUM_HEADS,
-    )
+    project_root = os.path.dirname(os.path.dirname(__file__))
     weight_paths = [
-        os.path.join(base_dir, "ai", _WEIGHT_FILENAME),
-        os.path.join(base_dir, "..", _WEIGHT_FILENAME),
+        os.path.join(project_root, _WEIGHT_FILENAME),
         _WEIGHT_FILENAME,
     ]
+
+    agent = TraFixV6(obs_dim=NUM_FEATURES, num_phases=NUM_ACTIONS)
     for path in weight_paths:
         abs_path = os.path.abspath(path)
         if os.path.exists(abs_path):
             try:
-                sd = torch.load(abs_path, map_location="cpu", weights_only=True)
-                if isinstance(sd, dict) and "model_state_dict" in sd:
-                    sd = sd["model_state_dict"]
-                agent.load_state_dict(sd)
+                ckpt = torch.load(abs_path, map_location="cpu", weights_only=True)
+                state = ckpt.get("model_state_dict", ckpt)
+                agent.load_state_dict(state)
                 agent.eval()
                 ai_agent = agent
-                print(f"[OK] AI model loaded: {abs_path}")
+                _v6_governor = RuleGovernor(
+                    num_junctions=NUM_NODES,
+                    num_phases=6,
+                    min_green_s=10.0,
+                    max_green_s=90.0,
+                    flicker_window=2,
+                    flicker_penalty=3.0,
+                    pressure_boost=1.0,
+                    pressure_thresh=0.35,
+                )
+                print(f"[OK] TraFixV6 loaded: {abs_path}")
+                print(f"[OK] RuleGovernor active (6 phases, min_green_through=10s)")
                 return True
             except RuntimeError as e:
-                print(f"[WARN] Weight mismatch: {abs_path} — {e}")
+                print(f"[WARN] v6 weight mismatch: {abs_path} — {e}")
                 continue
 
-    print("[WARN] AI model weights not found. Heuristic fallback active.")
+    print("[WARN] TraFixV6 weights not found. Heuristic fallback active.")
     return False
 
 
@@ -242,7 +128,7 @@ async def startup_event():
     load_model()
 
 
-# ── Helper: build obs_list from state_dict ─────────────────────────────────
+# ── Helper: build obs_list from state_dict ────────────────────────────────────
 
 def _build_obs_list() -> list:
     obs_list = []
@@ -267,7 +153,7 @@ class TelemetryBatch(BaseModel):
     intersections: List[Telemetry]
 
 
-# ── POST /telemetry_batch ──────────────────────────────────────────────────────
+# ── POST /telemetry_batch ─────────────────────────────────────────────────────
 
 @app.post("/telemetry_batch")
 async def receive_telemetry_batch(batch: TelemetryBatch):
@@ -276,11 +162,8 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
     # Detect simulation restart (step counter reset) and clear stale window/governor state
     if batch.step < _last_batch_step:
         _v6_window.clear()
-        _v5_window.clear()
         if _v6_governor is not None:
             _v6_governor.reset()
-        if _v5_governor is not None:
-            _v5_governor.reset()
     _last_batch_step = batch.step
 
     for data in batch.intersections:
@@ -301,49 +184,22 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
         node_features = parse_sumo_observations(obs_list)  # [5, 20]
 
         with torch.no_grad():
-
-            # ── v6 ────────────────────────────────────────────────────────────
-            if _USE_V6:
-                from trafix_v6.rule_governor import sample_governed
-                if len(_v6_window) == 0:
-                    for _ in range(_V6_T_WINDOW):
-                        _v6_window.append(node_features.detach())
-                else:
+            if len(_v6_window) == 0:
+                for _ in range(_V6_T_WINDOW):
                     _v6_window.append(node_features.detach())
-
-                window_tensor = torch.stack(list(_v6_window)).unsqueeze(0)  # [1,T,5,20]
-                logits_list, _ = ai_agent(window_tensor)
-
-                obs_last = window_tensor[0, -1]
-                if _v6_governor is not None:
-                    logits_list = _v6_governor.apply(logits_list, obs_last)
-
-                action_probs = torch.stack(
-                    [torch.softmax(l, dim=-1).squeeze(0) for l in logits_list], dim=0
-                )
-
-            # ── v5 ────────────────────────────────────────────────────────────
-            elif _USE_V5:
-                from trafix_v5.rule_governor import sample_governed as _sg
-                if len(_v5_window) == 0:
-                    for _ in range(_V5_T_WINDOW):
-                        _v5_window.append(node_features.detach())
-                else:
-                    _v5_window.append(node_features.detach())
-                window_tensor = torch.stack(list(_v5_window)).unsqueeze(0)
-                logits_list, _ = ai_agent(window_tensor)
-                obs_last = window_tensor[0, -1]
-                if _v5_governor is not None:
-                    logits_list = _v5_governor.apply(logits_list, obs_last)
-                action_probs = torch.stack(
-                    [torch.softmax(l, dim=-1).squeeze(0) for l in logits_list], dim=0
-                )
-
-            # ── v2/v3 ─────────────────────────────────────────────────────────
-            elif _USE_GRAPH:
-                action_probs, _ = ai_agent(node_features, edge_index)
             else:
-                action_probs, _ = ai_agent(node_features)
+                _v6_window.append(node_features.detach())
+
+            window_tensor = torch.stack(list(_v6_window)).unsqueeze(0)  # [1,T,5,20]
+            logits_list, _ = ai_agent(window_tensor)
+
+            obs_last = window_tensor[0, -1]
+            if _v6_governor is not None:
+                logits_list = _v6_governor.apply(logits_list, obs_last)
+
+            action_probs = torch.stack(
+                [torch.softmax(l, dim=-1).squeeze(0) for l in logits_list], dim=0
+            )
 
             chosen_phases = []
             for data in batch.intersections:
@@ -370,25 +226,21 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
                     "queue_length": round(data.queue_length, 1),
                 })
 
-            # Update governor state for anti-flicker (guard: must have all junctions)
-            if _USE_V6 and _v6_governor is not None and len(chosen_phases) == NUM_NODES:
+            # Update governor state for anti-flicker
+            if _v6_governor is not None and len(chosen_phases) == NUM_NODES:
                 _v6_governor.update_state(torch.tensor(chosen_phases, dtype=torch.long))
-            elif _USE_V5 and _v5_governor is not None and len(chosen_phases) == NUM_NODES:
-                _v5_governor.update_state(torch.tensor(chosen_phases, dtype=torch.long))
 
         last_decisions_cache = decisions
         return {"decisions": decisions}
 
     # ── HEURISTIC FALLBACK ────────────────────────────────────────────────────
     for data in batch.intersections:
-        # Use through-lane counts for heuristic
         ns_demand = data.north_through + data.south_through
         ew_demand = data.east_through + data.west_through
 
         if data.phase_duration < 10.0 or (ns_demand == 0 and ew_demand == 0):
             next_phase = data.current_phase
         else:
-            # Phase 0 = NS-through, Phase 3 = EW-through
             next_phase = 0 if ns_demand >= ew_demand else 3
 
         total_veh = (
@@ -409,9 +261,7 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
     return {"decisions": decisions}
 
 
-# ── Acil araç metrikleri ──────────────────────────────────────────────────────
-# run_sumo_live.py (ayrı süreç) tamamlanan her preemption olayını buraya
-# POST eder; dashboard /emergency_metrics ile çekip tablo gösterir.
+# ── Emergency vehicle metrics ─────────────────────────────────────────────────
 
 emergency_events: deque = deque(maxlen=200)
 
