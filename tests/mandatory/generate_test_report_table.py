@@ -115,7 +115,10 @@ def make_table(rows, latency):
     n_data = len(rows)
 
     fig_h = 1.6 + n_data * 0.52 + 1.4   # header + rows + latency panel
-    fig, ax = plt.subplots(figsize=(13, fig_h))
+    fig, ax = plt.subplots(figsize=(14, fig_h))
+    ax.set_position([0, 0, 1, 1])        # axes fills whole figure
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
     ax.axis("off")
     fig.patch.set_facecolor("white")
 
@@ -127,24 +130,26 @@ def make_table(rows, latency):
 
     # ── Table coordinates ─────────────────────────────────────────────────────
     col_labels  = ["Category", "Test Suite / Description", "Total", "Pass", "Fail", "Status"]
-    col_widths  = [0.10,        0.50,                        0.07,   0.07,   0.06,   0.10]
-    col_x       = [0.02]
+    col_widths  = [0.12,        0.48,                        0.07,   0.07,   0.06,   0.10]
+    col_x       = [0.05]
     for w in col_widths[:-1]:
         col_x.append(col_x[-1] + w)
 
     row_h   = 0.052
-    table_t = 0.87                        # top of table (normalised figure coords)
+    table_t = 0.87
     header_y = table_t
 
     total_w = sum(col_widths)
 
+    # Use fig.add_artist so patches are never clipped by axes bounds
     def _rect(x, y, w, h, fc, ec="#cccccc", lw=0.5, **kw):
-        ax.add_patch(mpatches.FancyBboxPatch(
+        p = mpatches.FancyBboxPatch(
             (x, y - h), w, h,
             boxstyle="square,pad=0",
             facecolor=fc, edgecolor=ec, linewidth=lw,
-            transform=fig.transFigure, figure=fig, **kw
-        ))
+            transform=fig.transFigure, clip_on=False,
+        )
+        fig.add_artist(p)
 
     def _text(x, y, s, ha="center", color="black", size=9, bold=False, **kw):
         fig.text(x, y, s, ha=ha, va="center", fontsize=size,
