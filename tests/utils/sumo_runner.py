@@ -63,6 +63,10 @@ _MODEL_TO_SUMO_GREEN  = {0: 0, 1: 2, 2: 4, 3: 6, 4: 8, 5: 10}
 _SUMO_TO_MODEL_PHASE  = {0: 0, 1: 0, 2: 1, 3: 1, 4: 2, 5: 2,
                           6: 3, 7: 3, 8: 4, 9: 4, 10: 5, 11: 5}
 
+# Gridlock detection: flag if mean network speed < threshold for this many consecutive seconds
+_GRIDLOCK_SPEED_THRESHOLD = 0.5   # m/s
+_GRIDLOCK_DURATION_S      = 300   # simulated seconds
+
 
 # ── Observation helper (mirrors SumoEnvironment.get_observations) ─────────────
 
@@ -232,6 +236,8 @@ def run_simulation(
     checkpoint_path: str = _DEFAULT_CKPT,
     gui: bool = False,
     outputs_base: Optional[str] = None,
+    net_file: Optional[str] = None,
+    additional_files: Optional[str] = None,
 ) -> str:
     """
     Run one SUMO simulation and return the path to its output directory.
@@ -287,17 +293,19 @@ def run_simulation(
 
     # ── SUMO command ──────────────────────────────────────────────────────────
     sumo_bin = "sumo-gui" if gui else "sumo"
+    _net = net_file if net_file is not None else _NET_FILE
     cmd = [
         sumo_bin,
-        "--net-file",     _NET_FILE,
+        "--net-file",     _net,
         "--route-files",  route_file,
         "--seed",         str(seed),
         "--no-warnings",  "true",
         "--step-length",  "1.0",
         "--begin",        "0",
         "--end",          str(sim_duration),
-        "--waiting-time-memory",    "1000",
-        "--time-to-teleport",       "-1",    # disable teleportation — matches training conditions
+        "--waiting-time-memory",       "1000",
+        "--time-to-teleport",          "-1",
+        "--time-to-teleport.highways", "-1",
         "--tripinfo-output",    str(out_dir / "tripinfo.xml"),
         "--summary-output",     str(out_dir / "summary.xml"),
         "--queue-output",       str(out_dir / "queue.xml"),
@@ -305,6 +313,8 @@ def run_simulation(
         "--device.emissions.probability", "1.0",
         "--emissions.volumetric-fuel",    "true",
     ]
+    if additional_files is not None:
+        cmd += ["--additional-files", additional_files]
 
     # ── Start simulation (retry once if SUMO port still lingering) ───────────
     import time as _time
@@ -359,6 +369,11 @@ def run_simulation(
     # ── Inline metrics tracker ────────────────────────────────────────────────
     tracker = _InlineTracker(tls_ids, tls_incoming)
 
+    # ── Gridlock detection ────────────────────────────────────────────────────
+    _low_speed_streak = 0
+    _gridlock_detected = False
+    _gridlock_step     = None
+
     # ── Main loop ─────────────────────────────────────────────────────────────
     next_decision = step + decision_interval
 
@@ -367,6 +382,20 @@ def run_simulation(
             break
 
         tracker.update()
+
+        # Gridlock check: mean speed across all vehicles
+        veh_ids = traci.vehicle.getIDList()
+        if veh_ids:
+            mean_spd = sum(traci.vehicle.getSpeed(v) for v in veh_ids) / len(veh_ids)
+            if mean_spd < _GRIDLOCK_SPEED_THRESHOLD:
+                _low_speed_streak += 1
+                if _low_speed_streak >= _GRIDLOCK_DURATION_S and not _gridlock_detected:
+                    _gridlock_detected = True
+                    _gridlock_step     = step
+            else:
+                _low_speed_streak = 0
+        else:
+            _low_speed_streak = 0
 
         # ── AI decision ───────────────────────────────────────────────────────
         if mode == "ai" and step >= next_decision:
@@ -426,6 +455,19 @@ def run_simulation(
     (out_dir / "inline_metrics.json").write_text(
         json.dumps(inline, indent=2), encoding="utf-8"
     )
+
+    # ── Save gridlock status ──────────────────────────────────────────────────
+    gridlock_result = {
+        "gridlocked": _gridlock_detected,
+        "gridlock_step": _gridlock_step,
+        "threshold_speed_ms": _GRIDLOCK_SPEED_THRESHOLD,
+        "threshold_duration_s": _GRIDLOCK_DURATION_S,
+    }
+    (out_dir / "gridlock.json").write_text(
+        json.dumps(gridlock_result, indent=2), encoding="utf-8"
+    )
+    if _gridlock_detected:
+        print(f"[{run_id}] *** GRIDLOCK DETECTED at step {_gridlock_step} ***")
 
     print(f"[{run_id}] Done — outputs in {out_dir}")
     return str(out_dir)

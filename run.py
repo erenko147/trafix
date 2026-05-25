@@ -4,10 +4,10 @@ TraFix Backend Başlatıcı
 Model versiyonunu komut satırından seçerek sunucuyu başlatır.
 
 Kullanım:
-  python run.py                  # v2 modeli, port 8000
-  python run.py --model v3       # v3 (GConvGRU) modeli
-  python run.py --model v2 --port 8001
-  python run.py --model v3 --reload    # geliştirme modunda
+  python run.py                    # v6 modeli (varsayılan), port 8000
+  python run.py --model v6         # TraFix v6: GRU+GAT, 6 faz, 3 şerit
+  python run.py --model v6 --port 8001
+  python run.py --model v6 --reload    # geliştirme modunda
 """
 
 import argparse
@@ -20,9 +20,9 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument(
     "--model",
-    choices=["v2", "v3", "simple", "v5", "v6"],
+    choices=["v2", "v5", "v6"],
     default="v6",
-    help="AI model versiyonu: simple (demo), v2 (GCN+GRU), v3 (GConvGRU), v5 (GRU+GAT 4-phase), v6 (GRU+GAT 6-phase 3-lane)",
+    help="AI model versiyonu: v6 (GRU+GAT 6-faz 3-şerit, varsayılan), v5 (GRU+GAT 4-faz, eski), v2 (GCN+GRU 4-faz, eski)",
 )
 parser.add_argument("--host", default="127.0.0.1", help="Sunucu adresi")
 parser.add_argument("--port", type=int, default=8000, help="Port numarası")

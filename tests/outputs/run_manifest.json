@@ -3,84 +3,84 @@
     "scenario": "type1",
     "traffic_level": "low",
     "controller": "baseline",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type1_low_baseline"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type1_low_baseline"
   },
   {
     "scenario": "type1",
     "traffic_level": "low",
     "controller": "ai",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type1_low_ai"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type1_low_ai"
   },
   {
     "scenario": "type1",
     "traffic_level": "medium",
     "controller": "baseline",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type1_medium_baseline"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type1_medium_baseline"
   },
   {
     "scenario": "type1",
     "traffic_level": "medium",
     "controller": "ai",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type1_medium_ai"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type1_medium_ai"
   },
   {
     "scenario": "type1",
     "traffic_level": "high",
     "controller": "baseline",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type1_high_baseline"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type1_high_baseline"
   },
   {
     "scenario": "type1",
     "traffic_level": "high",
     "controller": "ai",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type1_high_ai"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type1_high_ai"
   },
   {
     "scenario": "type2",
     "traffic_level": "morning_peak",
     "controller": "baseline",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type2_morning_peak_baseline"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type2_morning_peak_baseline"
   },
   {
     "scenario": "type2",
     "traffic_level": "morning_peak",
     "controller": "ai",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type2_morning_peak_ai"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type2_morning_peak_ai"
   },
   {
     "scenario": "type2",
     "traffic_level": "evening_peak",
     "controller": "baseline",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type2_evening_peak_baseline"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type2_evening_peak_baseline"
   },
   {
     "scenario": "type2",
     "traffic_level": "evening_peak",
     "controller": "ai",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type2_evening_peak_ai"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type2_evening_peak_ai"
   },
   {
     "scenario": "type2",
     "traffic_level": "incident",
     "controller": "baseline",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type2_incident_baseline"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type2_incident_baseline"
   },
   {
     "scenario": "type2",
     "traffic_level": "incident",
     "controller": "ai",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type2_incident_ai"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type2_incident_ai"
   },
   {
     "scenario": "type2",
     "traffic_level": "pulse",
     "controller": "baseline",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type2_pulse_baseline"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type2_pulse_baseline"
   },
   {
     "scenario": "type2",
     "traffic_level": "pulse",
     "controller": "ai",
-    "output_dir": "X:\\Yeni klas\u00f6r (2)\\trafix\\tests\\outputs\\type2_pulse_ai"
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/type2_pulse_ai"
   }
 ]

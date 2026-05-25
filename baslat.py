@@ -7,11 +7,10 @@ TraFix - Tek tikla baslat
 2. SUMO simülasyonunu baslat    (sumo-gui ile)
 
 Kullanim:
-    python baslat.py
-    python baslat.py --model v5
-    python baslat.py --model v2
+    python baslat.py                          # v6 modeli (varsayilan)
+    python baslat.py --model v6               # TraFix v6: GRU+GAT, 6 faz, 3 serit
     python baslat.py --no-gui
-    python baslat.py --model v5 /yol/dosya.sumocfg
+    python baslat.py /yol/dosya.sumocfg
 """
 
 import sys, os, subprocess, time, threading, argparse
@@ -20,8 +19,8 @@ HERE   = os.path.dirname(os.path.abspath(__file__))
 PYTHON = sys.executable
 
 parser = argparse.ArgumentParser(description="TraFix baslat")
-parser.add_argument("--model", choices=["v2", "v3", "simple", "v5", "v6"], default="v6",
-                    help="AI model versiyonu (varsayilan: v6)")
+parser.add_argument("--model", choices=["v2", "v5", "v6"], default="v6",
+                    help="AI model versiyonu: v6 (varsayilan), v5 (eski 4-faz), v2 (eski GCN+GRU)")
 parser.add_argument("--port", type=int, default=8000,
                     help="Sunucu portu (varsayilan: 8000)")
 parser.add_argument("--no-gui", action="store_true",

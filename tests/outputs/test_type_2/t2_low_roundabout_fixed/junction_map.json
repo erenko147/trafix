@@ -1,0 +1,52 @@
+{
+  "J0_round": [
+    "-E0",
+    "-E1",
+    "-E5",
+    "-E6",
+    "rnd_J0_EN",
+    "rnd_J0_NW",
+    "rnd_J0_SE",
+    "rnd_J0_WS"
+  ],
+  "J1_round": [
+    "-E3",
+    "-E7",
+    "-E8",
+    "E0",
+    "rnd_J1_EN",
+    "rnd_J1_NW",
+    "rnd_J1_SE",
+    "rnd_J1_WS"
+  ],
+  "J2_round": [
+    "-E2",
+    "-E4",
+    "-E9",
+    "E1",
+    "rnd_J2_EN",
+    "rnd_J2_NW",
+    "rnd_J2_SE",
+    "rnd_J2_WS"
+  ],
+  "J3_round": [
+    "-E10",
+    "-E11",
+    "E2",
+    "E3",
+    "rnd_J3_EN",
+    "rnd_J3_NW",
+    "rnd_J3_SE",
+    "rnd_J3_WS"
+  ],
+  "J4_round": [
+    "-E12",
+    "-E13",
+    "-E14",
+    "E4",
+    "rnd_J4_EN",
+    "rnd_J4_NW",
+    "rnd_J4_SE",
+    "rnd_J4_WS"
+  ]
+}

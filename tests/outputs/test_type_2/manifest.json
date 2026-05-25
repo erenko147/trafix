@@ -1,0 +1,86 @@
+[
+  {
+    "controller": "roundabout_fixed",
+    "traffic_level": "low",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/test_type_2/t2_low_roundabout_fixed",
+    "demand_hash": "6a171d77ed03bda28f276a279b4d3eeeb74f66a77d60511d2089fd7bbb25e9e8",
+    "source": "fresh"
+  },
+  {
+    "controller": "standard_fixed",
+    "traffic_level": "low",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/ckpt_compare/cc_type1_low_baseline",
+    "demand_hash": "6a171d77ed03bda28f276a279b4d3eeeb74f66a77d60511d2089fd7bbb25e9e8",
+    "source": "reused"
+  },
+  {
+    "controller": "standard_ep1000",
+    "traffic_level": "low",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/ckpt_compare/cc_type1_low_ep1000",
+    "demand_hash": "6a171d77ed03bda28f276a279b4d3eeeb74f66a77d60511d2089fd7bbb25e9e8",
+    "source": "reused"
+  },
+  {
+    "controller": "standard_ep2000",
+    "traffic_level": "low",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/ckpt_compare/cc_type1_low_ep2000",
+    "demand_hash": "6a171d77ed03bda28f276a279b4d3eeeb74f66a77d60511d2089fd7bbb25e9e8",
+    "source": "reused"
+  },
+  {
+    "controller": "roundabout_fixed",
+    "traffic_level": "medium",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/test_type_2/t2_medium_roundabout_fixed",
+    "demand_hash": "ace730b236bc9a93aac13907030917a6f893776378705942baad1f4118a204b5",
+    "source": "fresh"
+  },
+  {
+    "controller": "standard_fixed",
+    "traffic_level": "medium",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/ckpt_compare/cc_type1_medium_baseline",
+    "demand_hash": "ace730b236bc9a93aac13907030917a6f893776378705942baad1f4118a204b5",
+    "source": "reused"
+  },
+  {
+    "controller": "standard_ep1000",
+    "traffic_level": "medium",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/ckpt_compare/cc_type1_medium_ep1000",
+    "demand_hash": "ace730b236bc9a93aac13907030917a6f893776378705942baad1f4118a204b5",
+    "source": "reused"
+  },
+  {
+    "controller": "standard_ep2000",
+    "traffic_level": "medium",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/ckpt_compare/cc_type1_medium_ep2000",
+    "demand_hash": "ace730b236bc9a93aac13907030917a6f893776378705942baad1f4118a204b5",
+    "source": "reused"
+  },
+  {
+    "controller": "roundabout_fixed",
+    "traffic_level": "high",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/test_type_2/t2_high_roundabout_fixed",
+    "demand_hash": "a1703ef5c24988da82815384304dc4f152f8a462e2d676dc892b61697738aaa5",
+    "source": "fresh"
+  },
+  {
+    "controller": "standard_fixed",
+    "traffic_level": "high",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/ckpt_compare/cc_type1_high_baseline",
+    "demand_hash": "a1703ef5c24988da82815384304dc4f152f8a462e2d676dc892b61697738aaa5",
+    "source": "reused"
+  },
+  {
+    "controller": "standard_ep1000",
+    "traffic_level": "high",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/ckpt_compare/cc_type1_high_ep1000",
+    "demand_hash": "a1703ef5c24988da82815384304dc4f152f8a462e2d676dc892b61697738aaa5",
+    "source": "reused"
+  },
+  {
+    "controller": "standard_ep2000",
+    "traffic_level": "high",
+    "output_dir": "/home/ekene/Projects/traf_gov_last/tests/outputs/ckpt_compare/cc_type1_high_ep2000",
+    "demand_hash": "a1703ef5c24988da82815384304dc4f152f8a462e2d676dc892b61697738aaa5",
+    "source": "reused"
+  }
+]

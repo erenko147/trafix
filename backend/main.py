@@ -1,13 +1,15 @@
 """
 TraFix Backend — FastAPI
 ========================
-Receives telemetry, queries AI model, returns phase decisions.
-Supports model versions: v2, v3, simple, v5, v6.
+Receives telemetry, queries the TraFix v6 AI model, and returns phase decisions.
 
-Set TRAFIX_MODEL_VERSION=v6 to use the 3-lane 6-phase model.
+Supported model versions (set via TRAFIX_MODEL_VERSION env var):
+  v6  — TraFix v6: GRU temporal encoder + GATConv graph encoder, 6 phases, 3-lane (default)
+  v5  — TraFix v5: GRU + GAT, 4 phases (legacy, kept for comparison)
+  v2  — TraFix v2: GCN + GRU + Attention, 4 phases (legacy observation parser)
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from collections import deque
@@ -15,23 +17,17 @@ import torch
 import os
 import logging
 from typing import List, Optional
+from concurrent.futures import ThreadPoolExecutor
 
-_MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v2").strip().lower()
+import backend.database as db
+
+_MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v6").strip().lower()
 
 _USE_GRAPH = False
 _USE_V5    = False
 _USE_V6    = False
 
-if _MODEL_VERSION == "v3":
-    from backend.ai.trafix_v3 import CoordinatedPPOAgent, parse_sumo_observations
-    _WEIGHT_FILENAME = "coordinated_agent_weights_v3.pth"
-    _USE_GRAPH = True
-
-elif _MODEL_VERSION == "simple":
-    from backend.ai.trafix_simple import SimplePPOAgent as CoordinatedPPOAgent, parse_sumo_observations
-    _WEIGHT_FILENAME = "coordinated_agent_weights_simple.pth"
-
-elif _MODEL_VERSION == "v5":
+if _MODEL_VERSION == "v5":
     import sys as _sys, os as _os
     _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(__file__))))
     from trafix_v5.trafix_v5 import TraFixV5
@@ -118,6 +114,8 @@ edge_index = torch.tensor([
 
 ai_agent = None
 last_decisions_cache: list = []
+_db_executor = ThreadPoolExecutor(max_workers=2)
+current_session_id: Optional[int] = None
 
 _V5_T_WINDOW = 10
 _v5_window: deque = deque(maxlen=_V5_T_WINDOW)
@@ -239,7 +237,22 @@ def load_model():
 
 @app.on_event("startup")
 async def startup_event():
+    global current_session_id
     load_model()
+    scenario = os.environ.get("TRAFIX_SCENARIO", "live")
+    db_url   = os.environ.get("DATABASE_URL", "dbname=trafix")
+    if db.init_db(db_url):
+        current_session_id = db.create_session(scenario)
+        print(f"[DB] Session started: id={current_session_id}")
+    else:
+        print("[DB] Running without database persistence.")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    if current_session_id is not None:
+        db.close_session(current_session_id)
+        print(f"[DB] Session closed: id={current_session_id}")
 
 
 # ── Helper: build obs_list from state_dict ─────────────────────────────────
@@ -270,7 +283,7 @@ class TelemetryBatch(BaseModel):
 # ── POST /telemetry_batch ──────────────────────────────────────────────────────
 
 @app.post("/telemetry_batch")
-async def receive_telemetry_batch(batch: TelemetryBatch):
+async def receive_telemetry_batch(batch: TelemetryBatch, background_tasks: BackgroundTasks):
     global last_decisions_cache, _last_batch_step
 
     # Detect simulation restart (step counter reset) and clear stale window/governor state
@@ -377,6 +390,11 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
                 _v5_governor.update_state(torch.tensor(chosen_phases, dtype=torch.long))
 
         last_decisions_cache = decisions
+        if current_session_id is not None:
+            tele_dicts = [d.dict() for d in batch.intersections]
+            background_tasks.add_task(
+                db.log_step, current_session_id, batch.step, decisions, tele_dicts
+            )
         return {"decisions": decisions}
 
     # ── HEURISTIC FALLBACK ────────────────────────────────────────────────────
@@ -406,6 +424,11 @@ async def receive_telemetry_batch(batch: TelemetryBatch):
         })
 
     last_decisions_cache = decisions
+    if current_session_id is not None:
+        tele_dicts = [d.dict() for d in batch.intersections]
+        background_tasks.add_task(
+            db.log_step, current_session_id, batch.step, decisions, tele_dicts
+        )
     return {"decisions": decisions}
 
 
@@ -421,9 +444,11 @@ class EmergencyEventBatch(BaseModel):
 
 
 @app.post("/emergency_event")
-async def receive_emergency_event(batch: EmergencyEventBatch):
+async def receive_emergency_event(batch: EmergencyEventBatch, background_tasks: BackgroundTasks):
     for ev in batch.events:
         emergency_events.append(ev)
+        if current_session_id is not None:
+            background_tasks.add_task(db.log_emergency, current_session_id, ev)
     return {"ok": True, "stored": len(batch.events)}
 
 
@@ -446,6 +471,14 @@ async def get_emergency_metrics():
             "total_wait_steps": total_wait_steps,
         },
     }
+
+
+@app.get("/db_summary")
+async def get_db_summary():
+    if current_session_id is None:
+        return {"db_connected": False}
+    summary = db.query_session_summary(current_session_id)
+    return {"db_connected": True, "session_id": current_session_id, **summary}
 
 
 @app.get("/last_decisions")

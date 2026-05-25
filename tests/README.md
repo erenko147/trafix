@@ -14,16 +14,30 @@ tests/
 │   ├── seeds.yaml              # Fixed RNG seeds (all = 42)
 │   └── traffic_levels.yaml     # Traffic load definitions
 ├── scenarios/
-│   ├── generate_scenarios.py   # Run once to create route files
+│   ├── generate_scenarios.py   # Run once to create type1/type2 route files
 │   ├── type1_low.rou.xml       # ~30% capacity, uniform OFFPEAK
 │   ├── type1_medium.rou.xml    # ~60% capacity, uniform OFFPEAK
 │   ├── type1_high.rou.xml      # ~90% capacity, directional
 │   ├── type2_morning_peak.rou.xml
 │   ├── type2_evening_peak.rou.xml
 │   ├── type2_incident.rou.xml
-│   └── type2_pulse.rou.xml
+│   ├── type2_pulse.rou.xml
+│   └── test_type_2_junction_comparison/
+│       ├── build_roundabout_net.py   # Run once to build Junction A network
+│       ├── low.rou.xml               # symlink → ../type1_low.rou.xml
+│       ├── medium.rou.xml            # symlink → ../type1_medium.rou.xml
+│       ├── high.rou.xml              # symlink → ../type1_high.rou.xml
+│       ├── junction_a_roundabout/    # Generated Turkish-style roundabout network
+│       │   ├── network.net.xml
+│       │   ├── tls_fixed.add.xml     # Webster 86 s TLS programs
+│       │   └── config.sumocfg
+│       └── junction_b_standard/
+│           ├── network.net.xml       # symlink → sumo/map.net.xml
+│           └── config.sumocfg
 ├── runners/
-│   └── run_all.py              # Main orchestrator
+│   ├── run_all.py              # Main orchestrator (Type 1 + Type 2 scenario)
+│   ├── run_checkpoint_compare.py  # 3-controller × 13 scenario comparison
+│   └── run_test_type_2.py      # Junction comparison (roundabout vs standard AI)
 ├── metrics/                    # One module per metric
 │   ├── travel_time.py
 │   ├── emissions.py
@@ -38,7 +52,9 @@ tests/
 │   ├── stops_per_vehicle.py
 │   └── junction_fairness.py
 ├── analysis/
-│   └── compare.py              # CSV, markdown report, bar charts
+│   ├── compare.py              # CSV, markdown report, bar charts (Type 1)
+│   ├── checkpoint_compare.py   # 3-controller checkpoint comparison
+│   └── junction_compare.py     # Test Type 2 junction comparison analysis
 ├── outputs/                    # Created at runtime — raw SUMO XML per run
 ├── reports/                    # Created at runtime — results.csv, summary.md
 │   └── charts/                 # PNG bar charts per metric
@@ -66,7 +82,17 @@ python tests/scenarios/generate_scenarios.py
 
 Route files are deterministic (no RNG). Re-running produces identical XML.
 
-### 3. Run the full suite
+### 3. Build the Test Type 2 roundabout network (one time only)
+
+```bash
+python tests/scenarios/test_type_2_junction_comparison/build_roundabout_net.py
+```
+
+Generates `junction_a_roundabout/network.net.xml` and `tls_fixed.add.xml`
+(Turkish-style 5-roundabout network with Webster 86 s TLS cycles), and
+creates route file symlinks pointing to the existing type1 route files.
+
+### 4. Run the full suite
 
 ```bash
 python tests/runners/run_all.py
@@ -74,6 +100,32 @@ python tests/runners/run_all.py
 
 This takes ~30–90 minutes depending on hardware (14 simulation runs × up to
 3 600 s each, plus 2 reproducibility-check runs).
+
+### 5. Run Test Type 2 — Junction Comparison
+
+```bash
+python tests/runners/run_test_type_2.py
+```
+
+Runs 12 simulations (2 checkpoints × 3 traffic levels × 2 junction types),
+then generates reports under `tests/reports/test_type_2/`.
+
+```bash
+# Quick smoke test (600 s simulation)
+python tests/runners/run_test_type_2.py --sim-duration 600
+
+# Skip simulations, re-run analysis only
+python tests/runners/run_test_type_2.py --analysis-only
+```
+
+| Output | Location |
+|--------|----------|
+| Flat CSV | `tests/reports/test_type_2/results.csv` |
+| 4-way summary | `tests/reports/test_type_2/summary.md` |
+| Fixed vs AI comparison | `tests/reports/test_type_2/comparison_fixed_vs_ai.md` |
+| Cross-checkpoint (ep1000 vs ep2000) | `tests/reports/test_type_2/comparison_1000_vs_2000.md` |
+| Charts | `tests/reports/test_type_2/charts/*.png` |
+| Gridlock log | `tests/reports/test_type_2/gridlock_report.md` (if any) |
 
 ### 4. Shorter runs
 
@@ -117,7 +169,7 @@ python tests/runners/run_all.py --type1-only --gui
 For each level: **baseline** (SUMO fixed timing) vs **AI v6** (TraFix v6
 GRU+GATConv actor-critic, 6 phases, RuleGovernor).
 
-### Test Type 2 — Scenario Robustness (medium base load)
+### Test Type 2 (scenarios) — Scenario Robustness (medium base load)
 
 | Scenario | Description |
 |----------|-------------|
@@ -125,6 +177,25 @@ GRU+GATConv actor-critic, 6 phases, RuleGovernor).
 | `evening_peak` | Heavy outbound commute (J3/J4 → J0/J1/J2), 700 veh/hr main flow |
 | `incident` | J2 fringe blocked 300–600 s (road closure simulation) |
 | `pulse` | Quiet → sudden 600 veh/hr inbound burst → quiet |
+
+### Test Type 2 (junction) — Roundabout vs Standard Intersection
+
+Compares two different junction architectures on the same three traffic loads:
+
+| Controller | Description |
+|-----------|-------------|
+| `roundabout_fixed` | 5 Turkish-style roundabouts, Webster 86 s fixed-timing TLS — **new simulation** |
+| `standard_fixed`   | 5 standard cross-intersections, SUMO built-in fixed timing — **reused from Type 1** |
+| `standard_ep1000`  | 5 standard cross-intersections, AI TraFix v6 @ ep1000 — **reused from ckpt compare** |
+| `standard_ep2000`  | 5 standard cross-intersections, AI TraFix v6 @ ep2000 — **reused from ckpt compare** |
+
+Route files are shared (symlinks to `type1_{low,medium,high}.rou.xml`), so demand is
+identical across all controllers. Standard-network runs are reused from prior test runs
+(`tests/outputs/ckpt_compare/cc_type1_*`) — only the 3 roundabout simulations are new.
+
+Gridlock detection: if mean network speed falls below 0.5 m/s for ≥ 300
+consecutive simulated seconds, the run is flagged as GRIDLOCKED in
+`gridlock.json` and highlighted in reports.
 
 ---
 
