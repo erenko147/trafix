@@ -359,10 +359,18 @@
   const QMAX = 200.0; // Kuyruk uzunluğu maksimumu (metre) — sözleşme: 0.0–200.0
   const DMAX = 50;    // Yön başına maksimum araç sayısı — sözleşme: 0–50
 
-  // Faz tablosu — hangi faz numarası hangi yönü yeşil yapar
-  // 0=Kuzey yeşil, 1=Güney yeşil, 2=Doğu yeşil, 3=Batı yeşil
-  const GREEN_OF    = { 0:'north', 1:'south', 2:'east', 3:'west' };
-  const DIR_ARROWS  = { north:'↑', south:'↓', west:'←', east:'→' };
+  // Faz tablosu — hangi faz hangi yön(ler)i yeşil yapar (v6: 6 faz)
+  // 0=NS Düz, 1=Kuzey Sol, 2=Güney Sol, 3=DG Düz, 4=Doğu Sol, 5=Batı Sol
+  const GREEN_DIRS = {
+    0: ['north','south'],  // NS-through
+    1: ['north'],          // N-left
+    2: ['south'],          // S-left
+    3: ['east','west'],    // EW-through
+    4: ['east'],           // E-left
+    5: ['west'],           // W-left
+  };
+  const PHASE_ARROWS = { 0:'↕', 1:'↑', 2:'↓', 3:'↔', 4:'→', 5:'←' };
+  const PHASE_NAMES  = { 0:'NS Düz', 1:'K-Sol', 2:'G-Sol', 3:'DG Düz', 4:'D-Sol', 5:'B-Sol' };
 
   // Yön metadata — API'den gelen alan adları ve Türkçe karşılıkları
   const DIR_META = [
@@ -405,11 +413,11 @@
   const totalVehicles = d => DIR_META.reduce((s, m) => s + dirCount(d, m.key), 0);
 
   function computeState(d) {
-    const greenKey = GREEN_OF[d.current_phase] ?? '';
-    const info     = qlInfo(d.queue_length);
-    const total    = totalVehicles(d);
-    const qPct     = Math.min(d.queue_length / QMAX * 100, 100).toFixed(1);
-    return { greenKey, info, total, qPct };
+    const greenDirs = GREEN_DIRS[d.current_phase] ?? [];
+    const info      = qlInfo(d.queue_length);
+    const total     = totalVehicles(d);
+    const qPct      = Math.min(d.queue_length / QMAX * 100, 100).toFixed(1);
+    return { greenDirs, info, total, qPct };
   }
 
   function qlInfo(q) {
@@ -548,10 +556,10 @@
 
   /* ── Focused view ── */
   function buildFocused(id, d) {
-    const { greenKey, info, total, qPct } = computeState(d);
+    const { greenDirs, info, total, qPct } = computeState(d);
 
     const arm = (key, label, areaClass) => {
-      const active = key === greenKey;
+      const active = greenDirs.includes(key);
       const count  = dirCount(d, key);
       const pct    = Math.min(count / DMAX * 100, 100).toFixed(0);
       return `
@@ -578,8 +586,8 @@
           ${arm('north','Kuzey','focus-arm-n')}
           ${arm('west', 'Batı', 'focus-arm-w')}
           <div class="focus-center">
-            <span class="focus-center-arrow">${DIR_ARROWS[greenKey] ?? '·'}</span>
-            <span class="focus-center-phase" data-stat="phase">${(d.phase_duration ?? 0).toFixed(0)}s</span>
+            <span class="focus-center-arrow">${PHASE_ARROWS[d.current_phase] ?? '·'}</span>
+            <span class="focus-center-phase" data-stat="phase">${PHASE_NAMES[d.current_phase] ?? ''} ${(d.phase_duration ?? 0).toFixed(0)}s</span>
           </div>
           ${arm('east', 'Doğu', 'focus-arm-e')}
           ${arm('south','Güney','focus-arm-s')}
@@ -590,10 +598,10 @@
 
   /* ── Normal kart ── */
   function buildCard(id, d) {
-    const { greenKey, info, total, qPct } = computeState(d);
+    const { greenDirs, info, total, qPct } = computeState(d);
 
     const bars = DIR_META.map(({ key, label }) => {
-      const active = key === greenKey;
+      const active = greenDirs.includes(key);
       const cval   = dirCount(d, key);
       const pct    = Math.min(cval / DMAX * 100, 100).toFixed(0);
       return `
@@ -634,7 +642,7 @@
   function updateFocused(id, d) {
     const focused = document.querySelector('.focused');
     if (!focused) return;
-    const { greenKey, info, total, qPct } = computeState(d);
+    const { greenDirs, info, total, qPct } = computeState(d);
 
     focused.className = `focused ${info.cardCls}`;
     const tag = focused.querySelector('.status-tag');
@@ -643,7 +651,7 @@
     DIR_META.forEach(({ key }) => {
       const arm = focused.querySelector(`.focus-arm[data-dir="${key}"]`);
       if (!arm) return;
-      const active    = key === greenKey;
+      const active    = greenDirs.includes(key);
       const areaClass = [...arm.classList].find(c => /^focus-arm-[nsew]$/.test(c)) ?? '';
       arm.className   = `focus-arm ${areaClass}${active ? ' active' : ''}`;
       const cval  = dirCount(d, key);
@@ -656,9 +664,9 @@
     const totalEl = focused.querySelector('[data-stat="total"]');
     if (totalEl) totalEl.textContent = total;
     const centerArrow = focused.querySelector('.focus-center-arrow');
-    if (centerArrow) centerArrow.textContent = DIR_ARROWS[greenKey] ?? '·';
+    if (centerArrow) centerArrow.textContent = PHASE_ARROWS[d.current_phase] ?? '·';
     const centerPhase = focused.querySelector('[data-stat="phase"]');
-    if (centerPhase) centerPhase.textContent = (d.phase_duration ?? 0).toFixed(0) + 's';
+    if (centerPhase) centerPhase.textContent = (PHASE_NAMES[d.current_phase] ?? '') + ' ' + (d.phase_duration ?? 0).toFixed(0) + 's';
   }
 
   /* ── Kart yerinde güncelle (DOM yeniden yazılmaz) ── */
@@ -667,7 +675,7 @@
   function updateCard(id, d) {
     const card = document.querySelector(`.card[data-id="${id}"]`);
     if (!card) return;
-    const { greenKey, info, total, qPct } = computeState(d);
+    const { greenDirs, info, total, qPct } = computeState(d);
 
     card.className = `card ${info.cardCls}${id === selectedId ? ' selected' : ''}`;
     const tag = card.querySelector('.status-tag');
@@ -676,7 +684,7 @@
     DIR_META.forEach(({ key }) => {
       const row = card.querySelector(`.dir-row[data-dir="${key}"]`);
       if (!row) return;
-      row.className = `dir-row${key === greenKey ? ' active' : ''}`;
+      row.className = `dir-row${greenDirs.includes(key) ? ' active' : ''}`;
       const cval = dirCount(d, key);
       const fill = row.querySelector('.dir-fill');
       if (fill) fill.style.width = Math.min(cval / DMAX * 100, 100).toFixed(0) + '%';

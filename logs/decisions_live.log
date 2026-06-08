@@ -1,105 +1,725 @@
-2026-05-18 17:47:04,702 [SUMO] TraFix v6 live  API=http://127.0.0.1:8000/telemetry  log=C:\Users\rarda\Downloads\trafix-SUMOFIXED (1)\trafix-SUMOFIXED\logs\decisions_live.log
-2026-05-18 17:47:15,196   Junctions: ['J0', 'J1', 'J2', 'J3', 'J4']
-2026-05-18 17:47:15,197   Phase key: 0=NS-through | 1=N-left | 2=S-left | 3=EW-through | 4=E-left | 5=W-left
-2026-05-18 17:47:15,201 
-2026-05-18 17:47:16,277   [OBS SNAPSHOT]
-2026-05-18 17:47:16,279     J0  phase=NS-through(20s)  N(l=5 t=1 r=2)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=3 t=1 r=3)  q=22
-2026-05-18 17:47:16,282     J1  phase=NS-through(20s)  N(l=0 t=0 r=0)  S(l=2 t=1 r=4)  E(l=0 t=0 r=0)  W(l=5 t=0 r=2)  q=21
-2026-05-18 17:47:16,282     J2  phase=NS-through(20s)  N(l=3 t=2 r=3)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=12
-2026-05-18 17:47:16,285     J3  phase=NS-through(20s)  N(l=0 t=0 r=0)  S(l=2 t=1 r=4)  E(l=2 t=0 r=5)  W(l=0 t=0 r=0)  q=21
-2026-05-18 17:47:16,285     J4  phase=NS-through(20s)  N(l=1 t=1 r=3)  S(l=3 t=1 r=1)  E(l=2 t=0 r=3)  W(l=0 t=0 r=0)  q=22
-2026-05-18 17:47:16,295   SWITCH  step=   10  J0    NS-through -> N-left        q=22  conf=0.54
-2026-05-18 17:47:16,297   SWITCH  step=   10  J1    NS-through -> W-left        q=21  conf=0.41
-2026-05-18 17:47:16,297   SWITCH  step=   10  J2    NS-through -> E-left        q=12  conf=0.24
-2026-05-18 17:47:16,297   SWITCH  step=   10  J3    NS-through -> S-left        q=21  conf=0.42
-2026-05-18 17:47:16,297   SWITCH  step=   10  J4    NS-through -> S-left        q=22  conf=0.50
-2026-05-18 17:47:16,297 step=   10 | J0:NS-through->N-left(q=22,conf=0.54)  J1:NS-through->W-left(q=21,conf=0.41)  J2:NS-through->E-left(q=12,conf=0.24)  J3:NS-through->S-left(q=21,conf=0.42)  J4:NS-through->S-left(q=22,conf=0.50)
-2026-05-18 17:47:17,345 step=   20 | J0:N-left  N-left(q=16,conf=0.35)  J1:W-left  W-left(q=18,conf=0.27)  J2:E-left  E-left(q=20,conf=0.36)  J3:S-left  S-left(q=15,conf=0.32)  J4:S-left  S-left(q=15,conf=0.33)
-2026-05-18 17:47:18,411 step=   30 | J0:N-left  N-left(q=18,conf=0.31)  J1:W-left  W-left(q=16,conf=0.26)  J2:E-left  E-left(q=27,conf=0.39)  J3:S-left  S-left(q=15,conf=0.34)  J4:S-left  S-left(q=15,conf=0.30)
-2026-05-18 17:47:18,482   [EMERGENCY] step=31 J1 — ambulans '-E7' yolunda tespit edildi, sarıya geçiliyor
-2026-05-18 17:47:18,801   [EMERGENCY] step=34 J1 — tüm yönler kırmızı, kavşak boşaltılıyor
-2026-05-18 17:47:19,022   [EMERGENCY GREEN] step=36 J1 — '-E7' yolunun tüm çıkışları yeşil, araç geçiyor
-2026-05-18 17:47:19,514 step=   40 | J0:N-left  N-left(q=21,conf=0.29)  J2:E-left  E-left(q=22,conf=0.28)  J3:S-left  S-left(q=16,conf=0.30)  J4:S-left  S-left(q=15,conf=0.30)
-2026-05-18 17:47:19,907   [EMERGENCY METRIC] K2 (Güney yonu) arac=ambulans_0 gecis=13 adim (≈sn) | bekleyen=4 arac, toplam_bekleme=33 adim, ort=8.2 | sonuc=cleared
-2026-05-18 17:47:19,907   [EMERGENCY CLEAR] step=44 J1 — araç geçti, normal moda dönülüyor
-2026-05-18 17:47:20,110   [EMERGENCY] step=46 J0 — ambulans '-E0' yolunda tespit edildi, sarıya geçiliyor
-2026-05-18 17:47:20,210   [EMERGENCY END] step=47 J1 — orijinal program geri yüklendi, AI kontrolü geri alındı
-2026-05-18 17:47:20,429   [EMERGENCY] step=49 J0 — tüm yönler kırmızı, kavşak boşaltılıyor
-2026-05-18 17:47:20,591   SWITCH  step=   50  J1    NS-through -> N-left        q=4  conf=0.34
-2026-05-18 17:47:20,591 step=   50 | J1:NS-through->N-left(q=4,conf=0.34)  J2:E-left  E-left(q=22,conf=0.23)  J3:S-left  S-left(q=18,conf=0.30)  J4:S-left  S-left(q=15,conf=0.30)
-2026-05-18 17:47:20,658   [EMERGENCY GREEN] step=51 J0 — '-E0' yolunun tüm çıkışları yeşil, araç geçiyor
-2026-05-18 17:47:21,677   SWITCH  step=   60  J1        N-left -> EW-through    q=3  conf=0.26
-2026-05-18 17:47:21,677   SWITCH  step=   60  J2        E-left -> NS-through    q=27  conf=0.28
-2026-05-18 17:47:21,684   SWITCH  step=   60  J3        S-left -> EW-through    q=20  conf=0.33
-2026-05-18 17:47:21,684   SWITCH  step=   60  J4        S-left -> N-left        q=15  conf=0.35
-2026-05-18 17:47:21,684 step=   60 | J1:N-left->EW-through(q=3,conf=0.26)  J2:E-left->NS-through(q=27,conf=0.28)  J3:S-left->EW-through(q=20,conf=0.33)  J4:S-left->N-left(q=15,conf=0.35)
-2026-05-18 17:47:21,952   [EMERGENCY METRIC] K1 (Güney yonu) arac=ambulans_0 gecis=17 adim (≈sn) | bekleyen=10 arac, toplam_bekleme=155 adim, ort=15.5 | sonuc=cleared
-2026-05-18 17:47:21,952   [EMERGENCY CLEAR] step=63 J0 — araç geçti, normal moda dönülüyor
-2026-05-18 17:47:22,164   [EMERGENCY] step=65 J2 — ambulans 'E1' yolunda tespit edildi, sarıya geçiliyor
-2026-05-18 17:47:22,261   [EMERGENCY END] step=66 J0 — orijinal program geri yüklendi, AI kontrolü geri alındı
-2026-05-18 17:47:22,476   [EMERGENCY] step=68 J2 — tüm yönler kırmızı, kavşak boşaltılıyor
-2026-05-18 17:47:22,678   [EMERGENCY GREEN] step=70 J2 — 'E1' yolunun tüm çıkışları yeşil, araç geçiyor
-2026-05-18 17:47:22,721   SWITCH  step=   70  J0        S-left -> EW-through    q=18  conf=0.30
-2026-05-18 17:47:22,721   SWITCH  step=   70  J1    EW-through -> W-left        q=3  conf=0.31
-2026-05-18 17:47:22,723   SWITCH  step=   70  J4        N-left -> EW-through    q=10  conf=0.33
-2026-05-18 17:47:22,723 step=   70 | J0:S-left->EW-through(q=18,conf=0.30)  J1:EW-through->W-left(q=3,conf=0.31)  J3:EW-through  EW-through(q=10,conf=0.28)  J4:N-left->EW-through(q=10,conf=0.33)
-2026-05-18 17:47:23,797   SWITCH  step=   80  J1        W-left -> N-left        q=6  conf=0.30
-2026-05-18 17:47:23,797   SWITCH  step=   80  J3    EW-through -> N-left        q=8  conf=0.23
-2026-05-18 17:47:23,803   SWITCH  step=   80  J4    EW-through -> W-left        q=12  conf=0.29
-2026-05-18 17:47:23,803 step=   80 | J0:EW-through  EW-through(q=8,conf=0.29)  J1:W-left->N-left(q=6,conf=0.30)  J3:EW-through->N-left(q=8,conf=0.23)  J4:EW-through->W-left(q=12,conf=0.29)
-2026-05-18 17:47:23,877   [EMERGENCY METRIC] K3 (Batı yonu) arac=ambulans_0 gecis=16 adim (≈sn) | bekleyen=8 arac, toplam_bekleme=109 adim, ort=13.6 | sonuc=cleared
-2026-05-18 17:47:23,877   [EMERGENCY CLEAR] step=81 J2 — araç geçti, normal moda dönülüyor
-2026-05-18 17:47:24,093   [EMERGENCY] step=83 J4 — ambulans 'E4' yolunda tespit edildi, sarıya geçiliyor
-2026-05-18 17:47:24,194   [EMERGENCY END] step=84 J2 — orijinal program geri yüklendi, AI kontrolü geri alındı
-2026-05-18 17:47:24,430   [EMERGENCY] step=86 J4 — tüm yönler kırmızı, kavşak boşaltılıyor
-2026-05-18 17:47:24,634   [EMERGENCY GREEN] step=88 J4 — 'E4' yolunun tüm çıkışları yeşil, araç geçiyor
-2026-05-18 17:47:24,884   SWITCH  step=   90  J2        N-left -> NS-through    q=27  conf=0.23
-2026-05-18 17:47:24,884 step=   90 | J0:EW-through  EW-through(q=8,conf=0.21)  J1:N-left  N-left(q=8,conf=0.30)  J2:N-left->NS-through(q=27,conf=0.23)  J3:N-left  N-left(q=6,conf=0.32)
-2026-05-18 17:47:24,956   [EMERGENCY] step=91 J3 — ambulans '-E10' yolunda tespit edildi, sarıya geçiliyor
-2026-05-18 17:47:25,269   [EMERGENCY] step=94 J3 — tüm yönler kırmızı, kavşak boşaltılıyor
-2026-05-18 17:47:25,487   [EMERGENCY GREEN] step=96 J3 — '-E10' yolunun tüm çıkışları yeşil, araç geçiyor
-2026-05-18 17:47:25,597   [EMERGENCY METRIC] K5 (Batı yonu) arac=ambulans_0 gecis=14 adim (≈sn) | bekleyen=2 arac, toplam_bekleme=28 adim, ort=14.0 | sonuc=cleared
-2026-05-18 17:47:25,597   [EMERGENCY CLEAR] step=97 J4 — araç geçti, normal moda dönülüyor
-2026-05-18 17:47:25,909   [EMERGENCY END] step=100 J4 — orijinal program geri yüklendi, AI kontrolü geri alındı
-2026-05-18 17:47:25,951   SWITCH  step=  100  J1        N-left -> E-left        q=3  conf=0.40
-2026-05-18 17:47:25,951   SWITCH  step=  100  J2    NS-through -> EW-through    q=20  conf=0.23
-2026-05-18 17:47:25,953   SWITCH  step=  100  J4    NS-through -> EW-through    q=6  conf=0.36
-2026-05-18 17:47:25,953 step=  100 | J0:EW-through  EW-through(q=8,conf=0.22)  J1:N-left->E-left(q=3,conf=0.40)  J2:NS-through->EW-through(q=20,conf=0.23)  J4:NS-through->EW-through(q=6,conf=0.36)
-2026-05-18 17:47:26,244   [EMERGENCY METRIC] K4 (Doğu yonu) arac=ambulans_1 gecis=12 adim (≈sn) | bekleyen=2 arac, toplam_bekleme=24 adim, ort=12.0 | sonuc=cleared
-2026-05-18 17:47:26,247   [EMERGENCY CLEAR] step=103 J3 — araç geçti, normal moda dönülüyor
-2026-05-18 17:47:26,555   [EMERGENCY] step=106 J1 — ambulans '-E3' yolunda tespit edildi, sarıya geçiliyor
-2026-05-18 17:47:26,557   [EMERGENCY END] step=106 J3 — orijinal program geri yüklendi, AI kontrolü geri alındı
-2026-05-18 17:47:26,873   [EMERGENCY] step=109 J1 — tüm yönler kırmızı, kavşak boşaltılıyor
-2026-05-18 17:47:27,021   SWITCH  step=  110  J2    EW-through -> N-left        q=9  conf=0.30
-2026-05-18 17:47:27,021   [DIR OVERRIDE] J3 forcing NS-through (starved 10 decisions, ns_q=4)
-2026-05-18 17:47:27,030   SWITCH  step=  110  J3        S-left -> NS-through    q=9  conf=0.31
-2026-05-18 17:47:27,030   [DIR OVERRIDE] J4 forcing NS-through (starved 10 decisions, ns_q=1)
-2026-05-18 17:47:27,030   SWITCH  step=  110  J4    EW-through -> NS-through    q=9  conf=0.41
-2026-05-18 17:47:27,030 step=  110 | J0:EW-through  EW-through(q=10,conf=0.25)  J2:EW-through->N-left(q=9,conf=0.30)  J3:S-left->NS-through(q=9,conf=0.31)  J4:EW-through->NS-through(q=9,conf=0.41)
-2026-05-18 17:47:27,097   [EMERGENCY GREEN] step=111 J1 — '-E3' yolunun tüm çıkışları yeşil, araç geçiyor
-2026-05-18 17:47:28,090   [DIR OVERRIDE] J0 forcing NS-through (starved 10 decisions, ns_q=3)
-2026-05-18 17:47:28,090   SWITCH  step=  120  J0    EW-through -> NS-through    q=10  conf=0.29
-2026-05-18 17:47:28,097   SWITCH  step=  120  J2        N-left -> NS-through    q=8  conf=0.28
-2026-05-18 17:47:28,097   SWITCH  step=  120  J3    NS-through -> N-left        q=4  conf=0.39
-2026-05-18 17:47:28,097   SWITCH  step=  120  J4    NS-through -> W-left        q=12  conf=0.64
-2026-05-18 17:47:28,097 step=  120 | J0:EW-through->NS-through(q=10,conf=0.29)  J2:N-left->NS-through(q=8,conf=0.28)  J3:NS-through->N-left(q=4,conf=0.39)  J4:NS-through->W-left(q=12,conf=0.64)
-2026-05-18 17:47:28,267   [EMERGENCY METRIC] K2 (Doğu yonu) arac=ambulans_1 gecis=16 adim (≈sn) | bekleyen=0 arac, toplam_bekleme=0 adim, ort=0.0 | sonuc=cleared
-2026-05-18 17:47:28,267   [EMERGENCY CLEAR] step=122 J1 — araç geçti, normal moda dönülüyor
-2026-05-18 17:47:28,478   [EMERGENCY] step=124 J0 — ambulans '-E0' yolunda tespit edildi, sarıya geçiliyor
-2026-05-18 17:47:28,588   [EMERGENCY END] step=125 J1 — orijinal program geri yüklendi, AI kontrolü geri alındı
-2026-05-18 17:47:28,806   [EMERGENCY] step=127 J0 — tüm yönler kırmızı, kavşak boşaltılıyor
-2026-05-18 17:47:29,013   [EMERGENCY GREEN] step=129 J0 — '-E0' yolunun tüm çıkışları yeşil, araç geçiyor
-2026-05-18 17:47:29,167   SWITCH  step=  130  J1        W-left -> NS-through    q=4  conf=0.31
-2026-05-18 17:47:29,169   SWITCH  step=  130  J3        N-left -> EW-through    q=3  conf=0.36
-2026-05-18 17:47:29,171 step=  130 | J1:W-left->NS-through(q=4,conf=0.31)  J2:NS-through  NS-through(q=4,conf=0.33)  J3:N-left->EW-through(q=3,conf=0.36)  J4:W-left  W-left(q=9,conf=0.81)
-2026-05-18 17:47:29,967 
-2026-05-18 17:47:29,972   ── Decision summary at step 131 (total decisions: 13) ──
-2026-05-18 17:47:29,976   Junction      NS-through        N-left        S-left    EW-through        E-left        W-left
-2026-05-18 17:47:29,978   ----------------------------------------------------------------------------------------------
-2026-05-18 17:47:29,979   J0             1(  10%)     4(  40%)     0(   0%)     5(  50%)     0(   0%)     0(   0%)
-2026-05-18 17:47:29,979   J1             1(  10%)     3(  30%)     0(   0%)     1(  10%)     1(  10%)     4(  40%)
-2026-05-18 17:47:29,979   J2             4(  36%)     1(   9%)     0(   0%)     1(   9%)     5(  45%)     0(   0%)
-2026-05-18 17:47:29,983   J3             1(   8%)     3(  25%)     5(  42%)     3(  25%)     0(   0%)     0(   0%)
-2026-05-18 17:47:29,983   J4             1(   8%)     1(   8%)     5(  42%)     2(  17%)     0(   0%)     3(  25%)
-2026-05-18 17:47:29,983 
-2026-05-18 17:47:29,983   Log saved to: C:\Users\rarda\Downloads\trafix-SUMOFIXED (1)\trafix-SUMOFIXED\logs\decisions_live.log
+2026-05-25 23:15:44,554 [SUMO] TraFix v6 live  API=http://127.0.0.1:8001/telemetry  log=/home/ekene/Projects/traf_gov_last/logs/decisions_live.log
+2026-05-25 23:15:45,590   Junctions: ['J0', 'J1', 'J2', 'J3', 'J4']
+2026-05-25 23:15:45,590   Phase key: 0=NS-through | 1=N-left | 2=S-left | 3=EW-through | 4=E-left | 5=W-left
+2026-05-25 23:15:45,590 
+2026-05-25 23:15:45,735   [OBS SNAPSHOT]
+2026-05-25 23:15:45,735     J0  phase=NS-through(20s)  N(l=5 t=1 r=2)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=3 t=1 r=3)  q=22
+2026-05-25 23:15:45,735     J1  phase=NS-through(20s)  N(l=0 t=0 r=0)  S(l=2 t=1 r=4)  E(l=0 t=0 r=0)  W(l=5 t=0 r=2)  q=21
+2026-05-25 23:15:45,735     J2  phase=NS-through(20s)  N(l=3 t=2 r=3)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=12
+2026-05-25 23:15:45,735     J3  phase=NS-through(20s)  N(l=0 t=0 r=0)  S(l=2 t=1 r=4)  E(l=2 t=0 r=5)  W(l=0 t=0 r=0)  q=21
+2026-05-25 23:15:45,735     J4  phase=NS-through(20s)  N(l=1 t=1 r=3)  S(l=3 t=1 r=1)  E(l=2 t=0 r=3)  W(l=0 t=0 r=0)  q=22
+2026-05-25 23:15:45,769   SWITCH  step=   10  J0    NS-through -> N-left        q=22  conf=0.52
+2026-05-25 23:15:45,770   SWITCH  step=   10  J1    NS-through -> W-left        q=21  conf=0.47
+2026-05-25 23:15:45,771   SWITCH  step=   10  J2    NS-through -> E-left        q=12  conf=0.28
+2026-05-25 23:15:45,771   SWITCH  step=   10  J3    NS-through -> S-left        q=21  conf=0.39
+2026-05-25 23:15:45,771   SWITCH  step=   10  J4    NS-through -> S-left        q=22  conf=0.54
+2026-05-25 23:15:45,772 step=   10 | J0:NS-through->N-left(q=22,conf=0.52)  J1:NS-through->W-left(q=21,conf=0.47)  J2:NS-through->E-left(q=12,conf=0.28)  J3:NS-through->S-left(q=21,conf=0.39)  J4:NS-through->S-left(q=22,conf=0.54)
+2026-05-25 23:15:45,946 step=   20 | J0:N-left  N-left(q=16,conf=0.34)  J1:W-left  W-left(q=18,conf=0.31)  J2:E-left  E-left(q=20,conf=0.44)  J3:S-left  S-left(q=15,conf=0.28)  J4:S-left  S-left(q=15,conf=0.37)
+2026-05-25 23:15:46,115 step=   30 | J0:N-left  N-left(q=18,conf=0.30)  J1:W-left  W-left(q=16,conf=0.29)  J2:E-left  E-left(q=27,conf=0.47)  J3:S-left  S-left(q=15,conf=0.31)  J4:S-left  S-left(q=15,conf=0.35)
+2026-05-25 23:15:46,173   [EMERGENCY] step=31 J1 — ambulans '-E7' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:46,200   [EMERGENCY] step=34 J1 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:46,217   [EMERGENCY GREEN] step=36 J1 — '-E7' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:46,288 step=   40 | J0:N-left  N-left(q=21,conf=0.28)  J2:E-left  E-left(q=22,conf=0.34)  J3:S-left  S-left(q=16,conf=0.28)  J4:S-left  S-left(q=15,conf=0.34)
+2026-05-25 23:15:46,384   [EMERGENCY METRIC] K2 (Güney yonu) arac=ambulans_0 gecis=13 adim (≈sn) | bekleyen=4 arac, toplam_bekleme=33 adim, ort=8.2 | sonuc=cleared
+2026-05-25 23:15:46,384   [EMERGENCY CLEAR] step=44 J1 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:46,402   [EMERGENCY] step=46 J0 — ambulans '-E0' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:46,410   [EMERGENCY END] step=47 J1 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:46,426   [EMERGENCY] step=49 J0 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:46,460   SWITCH  step=   50  J1    NS-through -> N-left        q=4  conf=0.32
+2026-05-25 23:15:46,461 step=   50 | J1:NS-through->N-left(q=4,conf=0.32)  J2:E-left  E-left(q=22,conf=0.28)  J3:S-left  S-left(q=18,conf=0.28)  J4:S-left  S-left(q=15,conf=0.34)
+2026-05-25 23:15:46,516   [EMERGENCY GREEN] step=51 J0 — '-E0' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:46,649   SWITCH  step=   60  J1        N-left -> W-left        q=3  conf=0.30
+2026-05-25 23:15:46,649   SWITCH  step=   60  J2        E-left -> EW-through    q=27  conf=0.24
+2026-05-25 23:15:46,650   SWITCH  step=   60  J3        S-left -> EW-through    q=20  conf=0.35
+2026-05-25 23:15:46,650   SWITCH  step=   60  J4        S-left -> N-left        q=15  conf=0.37
+2026-05-25 23:15:46,650 step=   60 | J1:N-left->W-left(q=3,conf=0.30)  J2:E-left->EW-through(q=27,conf=0.24)  J3:S-left->EW-through(q=20,conf=0.35)  J4:S-left->N-left(q=15,conf=0.37)
+2026-05-25 23:15:46,729   [EMERGENCY METRIC] K1 (Güney yonu) arac=ambulans_0 gecis=17 adim (≈sn) | bekleyen=10 arac, toplam_bekleme=155 adim, ort=15.5 | sonuc=cleared
+2026-05-25 23:15:46,729   [EMERGENCY CLEAR] step=63 J0 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:46,746   [EMERGENCY] step=65 J2 — ambulans 'E1' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:46,749   [EMERGENCY END] step=66 J0 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:46,765   [EMERGENCY] step=68 J2 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:46,779   [EMERGENCY GREEN] step=70 J2 — 'E1' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:46,799   SWITCH  step=   70  J0        S-left -> EW-through    q=15  conf=0.30
+2026-05-25 23:15:46,800   SWITCH  step=   70  J4        N-left -> EW-through    q=10  conf=0.47
+2026-05-25 23:15:46,801 step=   70 | J0:S-left->EW-through(q=15,conf=0.30)  J1:W-left  W-left(q=6,conf=0.35)  J3:EW-through  EW-through(q=10,conf=0.31)  J4:N-left->EW-through(q=10,conf=0.47)
+2026-05-25 23:15:46,966   [EMERGENCY METRIC] K3 (Batı yonu) arac=ambulans_0 gecis=15 adim (≈sn) | bekleyen=11 arac, toplam_bekleme=165 adim, ort=15.0 | sonuc=cleared
+2026-05-25 23:15:46,967   [EMERGENCY CLEAR] step=80 J2 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:46,992   SWITCH  step=   80  J1        W-left -> NS-through    q=9  conf=0.25
+2026-05-25 23:15:46,993 step=   80 | J0:EW-through  EW-through(q=4,conf=0.28)  J1:W-left->NS-through(q=9,conf=0.25)  J3:EW-through  EW-through(q=6,conf=0.25)  J4:EW-through  EW-through(q=10,conf=0.34)
+2026-05-25 23:15:47,070   [EMERGENCY] step=82 J4 — ambulans 'E4' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:47,078   [EMERGENCY END] step=83 J2 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:47,110   [EMERGENCY] step=85 J4 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:47,142   [EMERGENCY GREEN] step=87 J4 — 'E4' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:47,209   SWITCH  step=   90  J0    EW-through -> E-left        q=8  conf=0.29
+2026-05-25 23:15:47,209   SWITCH  step=   90  J1    NS-through -> E-left        q=10  conf=0.32
+2026-05-25 23:15:47,210 step=   90 | J0:EW-through->E-left(q=8,conf=0.29)  J1:NS-through->E-left(q=10,conf=0.32)  J2:E-left  E-left(q=33,conf=0.42)  J3:EW-through  EW-through(q=6,conf=0.24)
+2026-05-25 23:15:47,270   [EMERGENCY] step=91 J3 — ambulans '-E10' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:47,307   [EMERGENCY] step=94 J3 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:47,349   [EMERGENCY GREEN] step=96 J3 — '-E10' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:47,354   [EMERGENCY METRIC] K5 (Batı yonu) arac=ambulans_0 gecis=14 adim (≈sn) | bekleyen=2 arac, toplam_bekleme=28 adim, ort=14.0 | sonuc=cleared
+2026-05-25 23:15:47,354   [EMERGENCY CLEAR] step=96 J4 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:47,405   [EMERGENCY END] step=99 J4 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:47,444   SWITCH  step=  100  J4        E-left -> NS-through    q=2  conf=0.39
+2026-05-25 23:15:47,444 step=  100 | J0:E-left  E-left(q=10,conf=0.47)  J1:E-left  E-left(q=8,conf=0.42)  J2:E-left  E-left(q=28,conf=0.34)  J4:E-left->NS-through(q=2,conf=0.39)
+2026-05-25 23:15:47,572   [EMERGENCY METRIC] K4 (Doğu yonu) arac=ambulans_1 gecis=13 adim (≈sn) | bekleyen=3 arac, toplam_bekleme=39 adim, ort=13.0 | sonuc=cleared
+2026-05-25 23:15:47,572   [EMERGENCY CLEAR] step=104 J3 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:47,592   [EMERGENCY] step=106 J2 — ambulans '-E2' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:47,597   [EMERGENCY END] step=107 J3 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:47,623   [EMERGENCY] step=109 J2 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:47,686   SWITCH  step=  110  J3        E-left -> NS-through    q=4  conf=0.28
+2026-05-25 23:15:47,686   SWITCH  step=  110  J4    NS-through -> EW-through    q=0  conf=0.31
+2026-05-25 23:15:47,687 step=  110 | J0:E-left  E-left(q=8,conf=0.32)  J1:E-left  E-left(q=8,conf=0.28)  J3:E-left->NS-through(q=4,conf=0.28)  J4:NS-through->EW-through(q=0,conf=0.31)
+2026-05-25 23:15:47,746   [EMERGENCY GREEN] step=111 J2 — '-E2' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:47,916   [DIR OVERRIDE] J0 forcing NS-through (starved 10 decisions, ns_q=3)
+2026-05-25 23:15:47,917   SWITCH  step=  120  J0        E-left -> NS-through    q=6  conf=0.28
+2026-05-25 23:15:47,917   SWITCH  step=  120  J1        E-left -> N-left        q=9  conf=0.29
+2026-05-25 23:15:47,918   SWITCH  step=  120  J3    NS-through -> W-left        q=2  conf=0.44
+2026-05-25 23:15:47,918   SWITCH  step=  120  J4    EW-through -> W-left        q=4  conf=0.81
+2026-05-25 23:15:47,918 step=  120 | J0:E-left->NS-through(q=6,conf=0.28)  J1:E-left->N-left(q=9,conf=0.29)  J3:NS-through->W-left(q=2,conf=0.44)  J4:EW-through->W-left(q=4,conf=0.81)
+2026-05-25 23:15:48,068   [EMERGENCY METRIC] K3 (Güney yonu) arac=ambulans_1 gecis=17 adim (≈sn) | bekleyen=11 arac, toplam_bekleme=184 adim, ort=16.7 | sonuc=cleared
+2026-05-25 23:15:48,068   [EMERGENCY CLEAR] step=123 J2 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:48,098   [EMERGENCY] step=126 J0 — ambulans '-E1' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:48,103   [EMERGENCY END] step=126 J2 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:48,143   [EMERGENCY] step=129 J0 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:48,214   SWITCH  step=  130  J1        N-left -> NS-through    q=3  conf=0.38
+2026-05-25 23:15:48,215   SWITCH  step=  130  J2        W-left -> NS-through    q=18  conf=0.28
+2026-05-25 23:15:48,216 step=  130 | J1:N-left->NS-through(q=3,conf=0.38)  J2:W-left->NS-through(q=18,conf=0.28)  J3:W-left  W-left(q=2,conf=0.51)  J4:W-left  W-left(q=6,conf=0.90)
+2026-05-25 23:15:48,273   [EMERGENCY GREEN] step=131 J0 — '-E1' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:48,438   SWITCH  step=  140  J1    NS-through -> E-left        q=2  conf=0.28
+2026-05-25 23:15:48,438   SWITCH  step=  140  J2    NS-through -> EW-through    q=6  conf=0.27
+2026-05-25 23:15:48,439   SWITCH  step=  140  J3        W-left -> NS-through    q=4  conf=0.27
+2026-05-25 23:15:48,440 step=  140 | J1:NS-through->E-left(q=2,conf=0.28)  J2:NS-through->EW-through(q=6,conf=0.27)  J3:W-left->NS-through(q=4,conf=0.27)  J4:W-left  W-left(q=6,conf=0.83)
+2026-05-25 23:15:48,521   [EMERGENCY METRIC] K1 (Doğu yonu) arac=ambulans_1 gecis=17 adim (≈sn) | bekleyen=1 arac, toplam_bekleme=17 adim, ort=17.0 | sonuc=cleared
+2026-05-25 23:15:48,521   [EMERGENCY CLEAR] step=143 J0 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:48,537   [EMERGENCY END] step=146 J0 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:48,588   SWITCH  step=  150  J0        N-left -> W-left        q=4  conf=0.26
+2026-05-25 23:15:48,589   SWITCH  step=  150  J1        E-left -> N-left        q=2  conf=0.60
+2026-05-25 23:15:48,591   SWITCH  step=  150  J2    EW-through -> N-left        q=4  conf=0.35
+2026-05-25 23:15:48,591   SWITCH  step=  150  J3    NS-through -> N-left        q=8  conf=0.34
+2026-05-25 23:15:48,592 step=  150 | J0:N-left->W-left(q=4,conf=0.26)  J1:E-left->N-left(q=2,conf=0.60)  J2:EW-through->N-left(q=4,conf=0.35)  J3:NS-through->N-left(q=8,conf=0.34)  J4:W-left  W-left(q=3,conf=0.50)
+2026-05-25 23:15:48,763   SWITCH  step=  160  J0        W-left -> EW-through    q=3  conf=0.69
+2026-05-25 23:15:48,763   [DIR OVERRIDE] J1 forcing EW-through (starved 15 decisions, ew_q=2)
+2026-05-25 23:15:48,764   SWITCH  step=  160  J1        N-left -> EW-through    q=3  conf=0.34
+2026-05-25 23:15:48,764   SWITCH  step=  160  J2        N-left -> W-left        q=2  conf=0.25
+2026-05-25 23:15:48,765   SWITCH  step=  160  J3        N-left -> W-left        q=3  conf=0.54
+2026-05-25 23:15:48,766 step=  160 | J0:W-left->EW-through(q=3,conf=0.69)  J1:N-left->EW-through(q=3,conf=0.34)  J2:N-left->W-left(q=2,conf=0.25)  J3:N-left->W-left(q=3,conf=0.54)  J4:W-left  W-left(q=6,conf=0.75)
+2026-05-25 23:15:48,819   [EMERGENCY] step=161 J0 — ambulans '-E5' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:48,828   [EMERGENCY] step=161 J3 — ambulans '-E11' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:48,846   [EMERGENCY] step=164 J0 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:48,849   [EMERGENCY] step=164 J3 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:48,858   [EMERGENCY GREEN] step=166 J0 — '-E5' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:48,861   [EMERGENCY GREEN] step=166 J3 — '-E11' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:48,917   SWITCH  step=  170  J1    EW-through -> E-left        q=3  conf=0.40
+2026-05-25 23:15:48,919   SWITCH  step=  170  J2        W-left -> EW-through    q=2  conf=0.43
+2026-05-25 23:15:48,920   SWITCH  step=  170  J4        W-left -> EW-through    q=4  conf=0.64
+2026-05-25 23:15:48,920 step=  170 | J1:EW-through->E-left(q=3,conf=0.40)  J2:W-left->EW-through(q=2,conf=0.43)  J4:W-left->EW-through(q=4,conf=0.64)
+2026-05-25 23:15:48,996   [EMERGENCY METRIC] K1 (Kuzey yonu) arac=ambulans_2 gecis=11 adim (≈sn) | bekleyen=2 arac, toplam_bekleme=22 adim, ort=11.0 | sonuc=cleared
+2026-05-25 23:15:48,996   [EMERGENCY CLEAR] step=172 J0 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:49,000   [EMERGENCY METRIC] K4 (Güney yonu) arac=ambulans_3 gecis=11 adim (≈sn) | bekleyen=2 arac, toplam_bekleme=22 adim, ort=11.0 | sonuc=cleared
+2026-05-25 23:15:49,000   [EMERGENCY CLEAR] step=172 J3 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:49,013   [EMERGENCY] step=174 J2 — ambulans '-E2' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:49,015   [EMERGENCY END] step=175 J0 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:49,019   [EMERGENCY END] step=175 J3 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:49,032   [EMERGENCY] step=177 J2 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:49,042   [EMERGENCY GREEN] step=179 J2 — '-E2' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:49,069   SWITCH  step=  180  J3        S-left -> N-left        q=3  conf=0.30
+2026-05-25 23:15:49,070 step=  180 | J0:NS-through  NS-through(q=3,conf=0.30)  J1:E-left  E-left(q=0,conf=0.38)  J3:S-left->N-left(q=3,conf=0.30)  J4:EW-through  EW-through(q=3,conf=0.47)
+2026-05-25 23:15:49,198   [EMERGENCY METRIC] K3 (Güney yonu) arac=ambulans_3 gecis=15 adim (≈sn) | bekleyen=0 arac, toplam_bekleme=0 adim, ort=0.0 | sonuc=cleared
+2026-05-25 23:15:49,206   [EMERGENCY NEXT] step=189 J2 — önceki araç geçti, 'E1' yolundaki ikinci ambulansa geçiliyor
+2026-05-25 23:15:49,255   SWITCH  step=  190  J0    NS-through -> EW-through    q=3  conf=0.68
+2026-05-25 23:15:49,256   SWITCH  step=  190  J1        E-left -> N-left        q=0  conf=0.62
+2026-05-25 23:15:49,257   SWITCH  step=  190  J3        N-left -> W-left        q=2  conf=0.51
+2026-05-25 23:15:49,257   SWITCH  step=  190  J4    EW-through -> W-left        q=3  conf=0.80
+2026-05-25 23:15:49,258 step=  190 | J0:NS-through->EW-through(q=3,conf=0.68)  J1:E-left->N-left(q=0,conf=0.62)  J3:N-left->W-left(q=2,conf=0.51)  J4:EW-through->W-left(q=3,conf=0.80)
+2026-05-25 23:15:49,318   [EMERGENCY GREEN] step=191 J2 — 'E1' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:49,325   [EMERGENCY METRIC] K3 (Batı yonu) arac=ambulans_2 gecis=3 adim (≈sn) | bekleyen=0 arac, toplam_bekleme=0 adim, ort=0.0 | sonuc=cleared
+2026-05-25 23:15:49,325   [EMERGENCY CLEAR] step=192 J2 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:49,367   [EMERGENCY END] step=195 J2 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:49,380   [EMERGENCY] step=195 J4 — ambulans 'E4' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:49,424   [EMERGENCY] step=198 J4 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:49,442   [EMERGENCY GREEN] step=200 J4 — 'E4' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:49,478   SWITCH  step=  200  J2        E-left -> EW-through    q=0  conf=0.50
+2026-05-25 23:15:49,479   SWITCH  step=  200  J3        W-left -> NS-through    q=0  conf=0.47
+2026-05-25 23:15:49,480 step=  200 | J0:EW-through  EW-through(q=0,conf=0.77)  J1:N-left  N-left(q=0,conf=0.72)  J2:E-left->EW-through(q=0,conf=0.50)  J3:W-left->NS-through(q=0,conf=0.47)
+2026-05-25 23:15:49,611   [EMERGENCY METRIC] K5 (Batı yonu) arac=ambulans_2 gecis=14 adim (≈sn) | bekleyen=0 arac, toplam_bekleme=0 adim, ort=0.0 | sonuc=cleared
+2026-05-25 23:15:49,611   [EMERGENCY CLEAR] step=209 J4 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:49,638   [STARVE OVERRIDE] J1 forcing NS-through after 8 left-only decisions
+2026-05-25 23:15:49,639   SWITCH  step=  210  J1        N-left -> NS-through    q=0  conf=0.85
+2026-05-25 23:15:49,639 step=  210 | J0:EW-through  EW-through(q=0,conf=0.75)  J1:N-left->NS-through(q=0,conf=0.85)  J2:EW-through  EW-through(q=0,conf=0.83)  J3:NS-through  NS-through(q=0,conf=0.71)
+2026-05-25 23:15:49,699   [EMERGENCY END] step=212 J4 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:49,759   SWITCH  step=  220  J1    NS-through -> N-left        q=0  conf=0.93
+2026-05-25 23:15:49,760   SWITCH  step=  220  J4    NS-through -> W-left        q=0  conf=0.80
+2026-05-25 23:15:49,761 step=  220 | J0:EW-through  EW-through(q=0,conf=0.86)  J1:NS-through->N-left(q=0,conf=0.93)  J2:EW-through  EW-through(q=0,conf=0.89)  J3:NS-through  NS-through(q=0,conf=0.74)  J4:NS-through->W-left(q=0,conf=0.80)
+2026-05-25 23:15:49,942 step=  230 | J0:EW-through  EW-through(q=0,conf=0.81)  J1:N-left  N-left(q=0,conf=0.91)  J2:EW-through  EW-through(q=0,conf=0.87)  J3:NS-through  NS-through(q=0,conf=0.77)  J4:W-left  W-left(q=0,conf=0.93)
+2026-05-25 23:15:50,015   [EMERGENCY] step=231 J4 — ambulans '-E14' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:50,040   [EMERGENCY] step=234 J4 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:50,050   [EMERGENCY GREEN] step=236 J4 — '-E14' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:50,095 step=  240 | J0:EW-through  EW-through(q=0,conf=0.80)  J1:N-left  N-left(q=0,conf=0.91)  J2:EW-through  EW-through(q=0,conf=0.88)  J3:NS-through  NS-through(q=0,conf=0.76)
+2026-05-25 23:15:50,158   [EMERGENCY METRIC] K5 (Doğu yonu) arac=ambulans_4 gecis=11 adim (≈sn) | bekleyen=0 arac, toplam_bekleme=0 adim, ort=0.0 | sonuc=cleared
+2026-05-25 23:15:50,158   [EMERGENCY CLEAR] step=242 J4 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:50,169   [EMERGENCY] step=244 J2 — ambulans '-E4' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:50,174   [EMERGENCY END] step=245 J4 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:50,180   [EMERGENCY] step=247 J2 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:50,187   [EMERGENCY GREEN] step=249 J2 — '-E4' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:50,217   SWITCH  step=  250  J4    NS-through -> EW-through    q=0  conf=0.64
+2026-05-25 23:15:50,217 step=  250 | J0:EW-through  EW-through(q=0,conf=0.78)  J1:N-left  N-left(q=0,conf=0.84)  J3:NS-through  NS-through(q=0,conf=0.76)  J4:NS-through->EW-through(q=0,conf=0.64)
+2026-05-25 23:15:50,372   [EMERGENCY METRIC] K3 (Doğu yonu) arac=ambulans_4 gecis=15 adim (≈sn) | bekleyen=0 arac, toplam_bekleme=0 adim, ort=0.0 | sonuc=cleared
+2026-05-25 23:15:50,372   [EMERGENCY CLEAR] step=259 J2 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:50,401   SWITCH  step=  260  J4    EW-through -> W-left        q=0  conf=0.83
+2026-05-25 23:15:50,401 step=  260 | J0:EW-through  EW-through(q=0,conf=0.75)  J1:N-left  N-left(q=0,conf=0.88)  J3:NS-through  NS-through(q=0,conf=0.82)  J4:EW-through->W-left(q=0,conf=0.83)
+2026-05-25 23:15:50,462   [EMERGENCY] step=261 J3 — ambulans 'E2' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:50,472   [EMERGENCY END] step=262 J2 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:50,499   [EMERGENCY] step=264 J3 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:50,507   [EMERGENCY GREEN] step=266 J3 — 'E2' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:50,557   SWITCH  step=  270  J1        N-left -> E-left        q=0  conf=0.35
+2026-05-25 23:15:50,557   SWITCH  step=  270  J2        E-left -> EW-through    q=0  conf=0.65
+2026-05-25 23:15:50,558 step=  270 | J0:EW-through  EW-through(q=0,conf=0.70)  J1:N-left->E-left(q=0,conf=0.35)  J2:E-left->EW-through(q=0,conf=0.65)  J4:W-left  W-left(q=0,conf=0.89)
+2026-05-25 23:15:50,671   [EMERGENCY METRIC] K4 (Kuzey yonu) arac=ambulans_4 gecis=16 adim (≈sn) | bekleyen=0 arac, toplam_bekleme=0 adim, ort=0.0 | sonuc=cleared
+2026-05-25 23:15:50,671   [EMERGENCY CLEAR] step=277 J3 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:50,681   [EMERGENCY] step=279 J1 — ambulans '-E3' yolunda tespit edildi, sarıya geçiliyor
+2026-05-25 23:15:50,687   [EMERGENCY END] step=280 J3 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:50,719   SWITCH  step=  280  J3        N-left -> NS-through    q=0  conf=0.76
+2026-05-25 23:15:50,720 step=  280 | J0:EW-through  EW-through(q=0,conf=0.38)  J2:EW-through  EW-through(q=0,conf=0.67)  J3:N-left->NS-through(q=0,conf=0.76)  J4:W-left  W-left(q=0,conf=0.73)
+2026-05-25 23:15:50,783   [EMERGENCY] step=282 J1 — tüm yönler kırmızı, kavşak boşaltılıyor
+2026-05-25 23:15:50,814   [EMERGENCY GREEN] step=284 J1 — '-E3' yolunun tüm çıkışları yeşil, araç geçiyor
+2026-05-25 23:15:50,900   SWITCH  step=  290  J0    EW-through -> NS-through    q=0  conf=0.42
+2026-05-25 23:15:50,902 step=  290 | J0:EW-through->NS-through(q=0,conf=0.42)  J2:EW-through  EW-through(q=0,conf=0.89)  J3:NS-through  NS-through(q=0,conf=0.83)  J4:W-left  W-left(q=0,conf=0.82)
+2026-05-25 23:15:50,998   [EMERGENCY METRIC] K2 (Doğu yonu) arac=ambulans_4 gecis=15 adim (≈sn) | bekleyen=0 arac, toplam_bekleme=0 adim, ort=0.0 | sonuc=cleared
+2026-05-25 23:15:50,998   [EMERGENCY CLEAR] step=294 J1 — araç geçti, normal moda dönülüyor
+2026-05-25 23:15:51,024   [EMERGENCY END] step=297 J1 — orijinal program geri yüklendi, AI kontrolü geri alındı
+2026-05-25 23:15:51,060   SWITCH  step=  300  J1        W-left -> N-left        q=0  conf=0.90
+2026-05-25 23:15:51,064 step=  300 | J0:NS-through  NS-through(q=0,conf=0.39)  J1:W-left->N-left(q=0,conf=0.90)  J2:EW-through  EW-through(q=0,conf=0.94)  J3:NS-through  NS-through(q=0,conf=0.84)  J4:W-left  W-left(q=0,conf=0.83)
+2026-05-25 23:15:51,202   SWITCH  step=  310  J0    NS-through -> EW-through    q=0  conf=0.69
+2026-05-25 23:15:51,203   [STARVE OVERRIDE] J1 forcing NS-through after 8 left-only decisions
+2026-05-25 23:15:51,204   SWITCH  step=  310  J1        N-left -> NS-through    q=0  conf=0.92
+2026-05-25 23:15:51,205   SWITCH  step=  310  J4        W-left -> EW-through    q=0  conf=0.79
+2026-05-25 23:15:51,205 step=  310 | J0:NS-through->EW-through(q=0,conf=0.69)  J1:N-left->NS-through(q=0,conf=0.92)  J2:EW-through  EW-through(q=0,conf=0.92)  J3:NS-through  NS-through(q=0,conf=0.84)  J4:W-left->EW-through(q=0,conf=0.79)
+2026-05-25 23:15:51,380   SWITCH  step=  320  J1    NS-through -> N-left        q=0  conf=0.95
+2026-05-25 23:15:51,382 step=  320 | J0:EW-through  EW-through(q=0,conf=0.94)  J1:NS-through->N-left(q=0,conf=0.95)  J2:EW-through  EW-through(q=0,conf=0.95)  J3:NS-through  NS-through(q=0,conf=0.84)  J4:EW-through  EW-through(q=0,conf=0.64)
+2026-05-25 23:15:51,625   SWITCH  step=  330  J4    EW-through -> W-left        q=0  conf=0.85
+2026-05-25 23:15:51,625 step=  330 | J0:EW-through  EW-through(q=0,conf=0.87)  J1:N-left  N-left(q=0,conf=0.94)  J2:EW-through  EW-through(q=0,conf=0.92)  J3:NS-through  NS-through(q=0,conf=0.86)  J4:EW-through->W-left(q=0,conf=0.85)
+2026-05-25 23:15:51,778 step=  340 | J0:EW-through  EW-through(q=0,conf=0.88)  J1:N-left  N-left(q=0,conf=0.94)  J2:EW-through  EW-through(q=0,conf=0.91)  J3:NS-through  NS-through(q=0,conf=0.84)  J4:W-left  W-left(q=0,conf=0.95)
+2026-05-25 23:15:51,909 step=  350 | J0:EW-through  EW-through(q=0,conf=0.88)  J1:N-left  N-left(q=0,conf=0.93)  J2:EW-through  EW-through(q=0,conf=0.89)  J3:NS-through  NS-through(q=0,conf=0.84)  J4:W-left  W-left(q=0,conf=0.84)
+2026-05-25 23:15:52,048 step=  360 | J0:EW-through  EW-through(q=0,conf=0.86)  J1:N-left  N-left(q=0,conf=0.91)  J2:EW-through  EW-through(q=0,conf=0.87)  J3:NS-through  NS-through(q=0,conf=0.83)  J4:W-left  W-left(q=0,conf=0.83)
+2026-05-25 23:15:52,183   SWITCH  step=  370  J1        N-left -> NS-through    q=0  conf=0.33
+2026-05-25 23:15:52,183   SWITCH  step=  370  J2    EW-through -> NS-through    q=0  conf=0.37
+2026-05-25 23:15:52,184 step=  370 | J0:EW-through  EW-through(q=0,conf=0.84)  J1:N-left->NS-through(q=0,conf=0.33)  J2:EW-through->NS-through(q=0,conf=0.37)  J3:NS-through  NS-through(q=0,conf=0.81)  J4:W-left  W-left(q=0,conf=0.80)
+2026-05-25 23:15:52,353   SWITCH  step=  380  J1    NS-through -> E-left        q=0  conf=0.26
+2026-05-25 23:15:52,354   SWITCH  step=  380  J3    NS-through -> EW-through    q=0  conf=0.51
+2026-05-25 23:15:52,354   SWITCH  step=  380  J4        W-left -> EW-through    q=0  conf=0.73
+2026-05-25 23:15:52,354 step=  380 | J0:EW-through  EW-through(q=0,conf=0.87)  J1:NS-through->E-left(q=0,conf=0.26)  J2:NS-through  NS-through(q=0,conf=0.31)  J3:NS-through->EW-through(q=0,conf=0.51)  J4:W-left->EW-through(q=0,conf=0.73)
+2026-05-25 23:15:52,489   SWITCH  step=  390  J1        E-left -> N-left        q=0  conf=0.88
+2026-05-25 23:15:52,490   SWITCH  step=  390  J2    NS-through -> EW-through    q=0  conf=0.70
+2026-05-25 23:15:52,491 step=  390 | J0:EW-through  EW-through(q=0,conf=0.72)  J1:E-left->N-left(q=0,conf=0.88)  J2:NS-through->EW-through(q=0,conf=0.70)  J3:EW-through  EW-through(q=0,conf=0.45)  J4:EW-through  EW-through(q=0,conf=0.61)
+2026-05-25 23:15:52,621   SWITCH  step=  400  J3    EW-through -> NS-through    q=0  conf=0.85
+2026-05-25 23:15:52,621   SWITCH  step=  400  J4    EW-through -> W-left        q=0  conf=0.81
+2026-05-25 23:15:52,622 step=  400 | J0:EW-through  EW-through(q=0,conf=0.79)  J1:N-left  N-left(q=0,conf=0.93)  J2:EW-through  EW-through(q=0,conf=0.92)  J3:EW-through->NS-through(q=0,conf=0.85)  J4:EW-through->W-left(q=0,conf=0.81)
+2026-05-25 23:15:52,819   SWITCH  step=  410  J0    EW-through -> NS-through    q=0  conf=0.50
+2026-05-25 23:15:52,821 step=  410 | J0:EW-through->NS-through(q=0,conf=0.50)  J1:N-left  N-left(q=0,conf=0.92)  J2:EW-through  EW-through(q=0,conf=0.92)  J3:NS-through  NS-through(q=0,conf=0.94)  J4:W-left  W-left(q=0,conf=0.95)
+2026-05-25 23:15:52,953 step=  420 | J0:NS-through  NS-through(q=0,conf=0.41)  J1:N-left  N-left(q=0,conf=0.89)  J2:EW-through  EW-through(q=0,conf=0.94)  J3:NS-through  NS-through(q=0,conf=0.88)  J4:W-left  W-left(q=0,conf=0.86)
+2026-05-25 23:15:53,079   SWITCH  step=  430  J0    NS-through -> EW-through    q=0  conf=0.80
+2026-05-25 23:15:53,081 step=  430 | J0:NS-through->EW-through(q=0,conf=0.80)  J1:N-left  N-left(q=0,conf=0.93)  J2:EW-through  EW-through(q=0,conf=0.94)  J3:NS-through  NS-through(q=0,conf=0.89)  J4:W-left  W-left(q=0,conf=0.88)
+2026-05-25 23:15:53,217   SWITCH  step=  440  J1        N-left -> NS-through    q=0  conf=0.36
+2026-05-25 23:15:53,218 step=  440 | J0:EW-through  EW-through(q=0,conf=0.91)  J1:N-left->NS-through(q=0,conf=0.36)  J2:EW-through  EW-through(q=0,conf=0.94)  J3:NS-through  NS-through(q=0,conf=0.89)  J4:W-left  W-left(q=0,conf=0.88)
+2026-05-25 23:15:53,370   SWITCH  step=  450  J1    NS-through -> N-left        q=0  conf=0.53
+2026-05-25 23:15:53,372   SWITCH  step=  450  J4        W-left -> EW-through    q=0  conf=0.81
+2026-05-25 23:15:53,372 step=  450 | J0:EW-through  EW-through(q=0,conf=0.90)  J1:NS-through->N-left(q=0,conf=0.53)  J2:EW-through  EW-through(q=0,conf=0.95)  J3:NS-through  NS-through(q=0,conf=0.88)  J4:W-left->EW-through(q=0,conf=0.81)
+2026-05-25 23:15:53,510 step=  460 | J0:EW-through  EW-through(q=0,conf=0.88)  J1:N-left  N-left(q=0,conf=0.96)  J2:EW-through  EW-through(q=0,conf=0.92)  J3:NS-through  NS-through(q=0,conf=0.87)  J4:EW-through  EW-through(q=0,conf=0.63)
+2026-05-25 23:15:53,651   SWITCH  step=  470  J4    EW-through -> W-left        q=0  conf=0.87
+2026-05-25 23:15:53,652 step=  470 | J0:EW-through  EW-through(q=0,conf=0.89)  J1:N-left  N-left(q=0,conf=0.94)  J2:EW-through  EW-through(q=0,conf=0.92)  J3:NS-through  NS-through(q=0,conf=0.88)  J4:EW-through->W-left(q=0,conf=0.87)
+2026-05-25 23:15:53,762 step=  480 | J0:EW-through  EW-through(q=0,conf=0.88)  J1:N-left  N-left(q=0,conf=0.93)  J2:EW-through  EW-through(q=0,conf=0.90)  J3:NS-through  NS-through(q=0,conf=0.86)  J4:W-left  W-left(q=0,conf=0.96)
+2026-05-25 23:15:53,878   SWITCH  step=  490  J2    EW-through -> NS-through    q=0  conf=0.38
+2026-05-25 23:15:53,880 step=  490 | J0:EW-through  EW-through(q=0,conf=0.86)  J1:N-left  N-left(q=0,conf=0.91)  J2:EW-through->NS-through(q=0,conf=0.38)  J3:NS-through  NS-through(q=0,conf=0.85)  J4:W-left  W-left(q=0,conf=0.85)
+2026-05-25 23:15:54,012   SWITCH  step=  500  J1        N-left -> NS-through    q=0  conf=0.32
+2026-05-25 23:15:54,014   SWITCH  step=  500  J3    NS-through -> EW-through    q=0  conf=0.55
+2026-05-25 23:15:54,015 step=  500 | J0:EW-through  EW-through(q=0,conf=0.83)  J1:N-left->NS-through(q=0,conf=0.32)  J2:NS-through  NS-through(q=0,conf=0.30)  J3:NS-through->EW-through(q=0,conf=0.55)  J4:W-left  W-left(q=0,conf=0.83)
+2026-05-25 23:15:54,134   [OBS SNAPSHOT]
+2026-05-25 23:15:54,134     J0  phase=EW-through(80s)  N(l=2 t=1 r=2)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=2 t=0 r=2)  q=14
+2026-05-25 23:15:54,134     J1  phase=NS-through(10s)  N(l=0 t=0 r=0)  S(l=2 t=1 r=2)  E(l=0 t=0 r=0)  W(l=2 t=0 r=2)  q=14
+2026-05-25 23:15:54,134     J2  phase=NS-through(20s)  N(l=2 t=1 r=2)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=8
+2026-05-25 23:15:54,134     J3  phase=EW-through(10s)  N(l=0 t=0 r=0)  S(l=2 t=1 r=2)  E(l=2 t=0 r=2)  W(l=0 t=0 r=0)  q=14
+2026-05-25 23:15:54,134     J4  phase=W-left(40s)  N(l=1 t=1 r=2)  S(l=2 t=0 r=2)  E(l=2 t=1 r=2)  W(l=0 t=0 r=0)  q=20
+2026-05-25 23:15:54,148   SWITCH  step=  510  J0    EW-through -> N-left        q=14  conf=0.35
+2026-05-25 23:15:54,149   [DIR OVERRIDE] J1 forcing EW-through (starved 33 decisions, ew_q=4)
+2026-05-25 23:15:54,149   [LEFT OVERRIDE] J1 forcing S-left (starved 48 decisions)
+2026-05-25 23:15:54,149   SWITCH  step=  510  J1    NS-through -> S-left        q=14  conf=0.28
+2026-05-25 23:15:54,150   [LEFT OVERRIDE] J2 forcing N-left (starved 32 decisions)
+2026-05-25 23:15:54,150   SWITCH  step=  510  J2    NS-through -> N-left        q=8  conf=0.21
+2026-05-25 23:15:54,150   [LEFT OVERRIDE] J3 forcing E-left (starved 48 decisions)
+2026-05-25 23:15:54,151   SWITCH  step=  510  J3    EW-through -> E-left        q=14  conf=0.32
+2026-05-25 23:15:54,151   [DIR OVERRIDE] J4 forcing NS-through (starved 38 decisions, ns_q=8)
+2026-05-25 23:15:54,151   [LEFT OVERRIDE] J4 forcing E-left (starved 47 decisions)
+2026-05-25 23:15:54,151   SWITCH  step=  510  J4        W-left -> E-left        q=20  conf=0.39
+2026-05-25 23:15:54,152 step=  510 | J0:EW-through->N-left(q=14,conf=0.35)  J1:NS-through->S-left(q=14,conf=0.28)  J2:NS-through->N-left(q=8,conf=0.21)  J3:EW-through->E-left(q=14,conf=0.32)  J4:W-left->E-left(q=20,conf=0.39)
+2026-05-25 23:15:54,336   [DIR OVERRIDE] J0 forcing NS-through (starved 10 decisions, ns_q=8)
+2026-05-25 23:15:54,336   [LEFT OVERRIDE] J0 forcing W-left (starved 36 decisions)
+2026-05-25 23:15:54,336   SWITCH  step=  520  J0        N-left -> W-left        q=22  conf=0.60
+2026-05-25 23:15:54,337   SWITCH  step=  520  J1        S-left -> W-left        q=20  conf=0.61
+2026-05-25 23:15:54,338   SWITCH  step=  520  J2        N-left -> E-left        q=10  conf=0.30
+2026-05-25 23:15:54,339   SWITCH  step=  520  J3        E-left -> S-left        q=21  conf=0.37
+2026-05-25 23:15:54,339   SWITCH  step=  520  J4        E-left -> S-left        q=22  conf=0.60
+2026-05-25 23:15:54,340 step=  520 | J0:N-left->W-left(q=22,conf=0.60)  J1:S-left->W-left(q=20,conf=0.61)  J2:N-left->E-left(q=10,conf=0.30)  J3:E-left->S-left(q=21,conf=0.37)  J4:E-left->S-left(q=22,conf=0.60)
+2026-05-25 23:15:54,572   SWITCH  step=  530  J0        W-left -> N-left        q=16  conf=0.43
+2026-05-25 23:15:54,574 step=  530 | J0:W-left->N-left(q=16,conf=0.43)  J1:W-left  W-left(q=16,conf=0.26)  J2:E-left  E-left(q=18,conf=0.53)  J3:S-left  S-left(q=15,conf=0.35)  J4:S-left  S-left(q=15,conf=0.34)
+2026-05-25 23:15:54,764   SWITCH  step=  540  J0        N-left -> S-left        q=12  conf=0.24
+2026-05-25 23:15:54,765   [LEFT OVERRIDE] J1 forcing E-left (starved 16 decisions)
+2026-05-25 23:15:54,765   SWITCH  step=  540  J1        W-left -> E-left        q=16  conf=0.25
+2026-05-25 23:15:54,766   [LEFT OVERRIDE] J3 forcing N-left (starved 35 decisions)
+2026-05-25 23:15:54,767   SWITCH  step=  540  J3        S-left -> N-left        q=15  conf=0.26
+2026-05-25 23:15:54,767   [STARVE OVERRIDE] J4 forcing NS-through after 8 left-only decisions
+2026-05-25 23:15:54,767   [LEFT OVERRIDE] J4 forcing N-left (starved 44 decisions)
+2026-05-25 23:15:54,768   SWITCH  step=  540  J4        S-left -> N-left        q=15  conf=0.32
+2026-05-25 23:15:54,768 step=  540 | J0:N-left->S-left(q=12,conf=0.24)  J1:W-left->E-left(q=16,conf=0.25)  J2:E-left  E-left(q=24,conf=0.39)  J3:S-left->N-left(q=15,conf=0.26)  J4:S-left->N-left(q=15,conf=0.32)
+2026-05-25 23:15:54,963   SWITCH  step=  550  J0        S-left -> E-left        q=12  conf=0.38
+2026-05-25 23:15:54,964   SWITCH  step=  550  J1        E-left -> NS-through    q=15  conf=0.38
+2026-05-25 23:15:54,965   [LEFT OVERRIDE] J3 forcing W-left (starved 35 decisions)
+2026-05-25 23:15:54,966   SWITCH  step=  550  J3        N-left -> W-left        q=14  conf=0.31
+2026-05-25 23:15:54,966   SWITCH  step=  550  J4        N-left -> EW-through    q=9  conf=0.28
+2026-05-25 23:15:54,967 step=  550 | J0:S-left->E-left(q=12,conf=0.38)  J1:E-left->NS-through(q=15,conf=0.38)  J2:E-left  E-left(q=28,conf=0.34)  J3:N-left->W-left(q=14,conf=0.31)  J4:N-left->EW-through(q=9,conf=0.28)
+2026-05-25 23:15:55,143   SWITCH  step=  560  J1    NS-through -> E-left        q=4  conf=0.25
+2026-05-25 23:15:55,144   SWITCH  step=  560  J3        W-left -> EW-through    q=14  conf=0.27
+2026-05-25 23:15:55,145 step=  560 | J0:E-left  E-left(q=14,conf=0.33)  J1:NS-through->E-left(q=4,conf=0.25)  J2:E-left  E-left(q=34,conf=0.22)  J3:W-left->EW-through(q=14,conf=0.27)  J4:EW-through  EW-through(q=4,conf=0.38)
+2026-05-25 23:15:55,375   [LEFT OVERRIDE] J2 forcing S-left (starved 49 decisions)
+2026-05-25 23:15:55,376   SWITCH  step=  570  J2        E-left -> S-left        q=32  conf=0.24
+2026-05-25 23:15:55,377 step=  570 | J0:E-left  E-left(q=15,conf=0.31)  J1:E-left  E-left(q=6,conf=0.42)  J2:E-left->S-left(q=32,conf=0.24)  J3:EW-through  EW-through(q=9,conf=0.23)  J4:EW-through  EW-through(q=4,conf=0.32)
+2026-05-25 23:15:55,550   [STARVE OVERRIDE] J0 forcing NS-through after 8 left-only decisions
+2026-05-25 23:15:55,551   SWITCH  step=  580  J0        E-left -> NS-through    q=12  conf=0.32
+2026-05-25 23:15:55,552   SWITCH  step=  580  J1        E-left -> NS-through    q=6  conf=0.35
+2026-05-25 23:15:55,552   [LEFT OVERRIDE] J2 forcing W-left (starved 38 decisions)
+2026-05-25 23:15:55,552   SWITCH  step=  580  J2        S-left -> W-left        q=30  conf=0.24
+2026-05-25 23:15:55,553   SWITCH  step=  580  J3    EW-through -> N-left        q=4  conf=0.22
+2026-05-25 23:15:55,553   SWITCH  step=  580  J4    EW-through -> W-left        q=8  conf=0.55
+2026-05-25 23:15:55,553 step=  580 | J0:E-left->NS-through(q=12,conf=0.32)  J1:E-left->NS-through(q=6,conf=0.35)  J2:S-left->W-left(q=30,conf=0.24)  J3:EW-through->N-left(q=4,conf=0.22)  J4:EW-through->W-left(q=8,conf=0.55)
+2026-05-25 23:15:55,732   SWITCH  step=  590  J0    NS-through -> E-left        q=4  conf=0.24
+2026-05-25 23:15:55,733   SWITCH  step=  590  J1    NS-through -> N-left        q=6  conf=0.38
+2026-05-25 23:15:55,733   [DIR OVERRIDE] J3 forcing NS-through (starved 10 decisions, ns_q=3)
+2026-05-25 23:15:55,734   SWITCH  step=  590  J3        N-left -> NS-through    q=8  conf=0.32
+2026-05-25 23:15:55,734 step=  590 | J0:NS-through->E-left(q=4,conf=0.24)  J1:NS-through->N-left(q=6,conf=0.38)  J2:W-left  W-left(q=24,conf=0.21)  J3:N-left->NS-through(q=8,conf=0.32)  J4:W-left  W-left(q=8,conf=0.43)
+2026-05-25 23:15:55,918   [DIR OVERRIDE] J0 forcing EW-through (starved 10 decisions, ew_q=1)
+2026-05-25 23:15:55,919   SWITCH  step=  600  J0        E-left -> EW-through    q=4  conf=0.24
+2026-05-25 23:15:55,919   SWITCH  step=  600  J1        N-left -> E-left        q=3  conf=0.34
+2026-05-25 23:15:55,921   SWITCH  step=  600  J3    NS-through -> N-left        q=8  conf=0.34
+2026-05-25 23:15:55,921 step=  600 | J0:E-left->EW-through(q=4,conf=0.24)  J1:N-left->E-left(q=3,conf=0.34)  J2:W-left  W-left(q=22,conf=0.26)  J3:NS-through->N-left(q=8,conf=0.34)  J4:W-left  W-left(q=12,conf=0.70)
+2026-05-25 23:15:56,168   SWITCH  step=  610  J0    EW-through -> E-left        q=4  conf=0.25
+2026-05-25 23:15:56,169   SWITCH  step=  610  J1        E-left -> NS-through    q=2  conf=0.47
+2026-05-25 23:15:56,169   [DIR OVERRIDE] J2 forcing EW-through (starved 10 decisions, ew_q=3)
+2026-05-25 23:15:56,170   SWITCH  step=  610  J2        W-left -> EW-through    q=21  conf=0.28
+2026-05-25 23:15:56,171   SWITCH  step=  610  J3        N-left -> W-left        q=4  conf=0.37
+2026-05-25 23:15:56,172 step=  610 | J0:EW-through->E-left(q=4,conf=0.25)  J1:E-left->NS-through(q=2,conf=0.47)  J2:W-left->EW-through(q=21,conf=0.28)  J3:N-left->W-left(q=4,conf=0.37)  J4:W-left  W-left(q=8,conf=0.71)
+2026-05-25 23:15:56,319   SWITCH  step=  620  J2    EW-through -> NS-through    q=20  conf=0.32
+2026-05-25 23:15:56,320   SWITCH  step=  620  J3        W-left -> E-left        q=3  conf=0.32
+2026-05-25 23:15:56,321 step=  620 | J0:E-left  E-left(q=4,conf=0.26)  J1:NS-through  NS-through(q=0,conf=0.32)  J2:EW-through->NS-through(q=20,conf=0.32)  J3:W-left->E-left(q=3,conf=0.32)  J4:W-left  W-left(q=4,conf=0.47)
+2026-05-25 23:15:56,467   SWITCH  step=  630  J1    NS-through -> E-left        q=0  conf=0.34
+2026-05-25 23:15:56,468   SWITCH  step=  630  J2    NS-through -> EW-through    q=6  conf=0.32
+2026-05-25 23:15:56,468   SWITCH  step=  630  J3        E-left -> NS-through    q=3  conf=0.43
+2026-05-25 23:15:56,469   SWITCH  step=  630  J4        W-left -> EW-through    q=4  conf=0.56
+2026-05-25 23:15:56,470 step=  630 | J0:E-left  E-left(q=8,conf=0.27)  J1:NS-through->E-left(q=0,conf=0.34)  J2:NS-through->EW-through(q=6,conf=0.32)  J3:E-left->NS-through(q=3,conf=0.43)  J4:W-left->EW-through(q=4,conf=0.56)
+2026-05-25 23:15:56,606   [DIR OVERRIDE] J4 forcing NS-through (starved 10 decisions, ns_q=1)
+2026-05-25 23:15:56,607   SWITCH  step=  640  J4    EW-through -> NS-through    q=6  conf=0.45
+2026-05-25 23:15:56,607 step=  640 | J0:E-left  E-left(q=9,conf=0.46)  J1:E-left  E-left(q=0,conf=0.51)  J2:EW-through  EW-through(q=6,conf=0.43)  J3:NS-through  NS-through(q=4,conf=0.41)  J4:EW-through->NS-through(q=6,conf=0.45)
+2026-05-25 23:15:56,761   [DIR OVERRIDE] J1 forcing EW-through (starved 14 decisions, ew_q=1)
+2026-05-25 23:15:56,762   SWITCH  step=  650  J1        E-left -> EW-through    q=3  conf=0.36
+2026-05-25 23:15:56,763   SWITCH  step=  650  J4    NS-through -> W-left        q=4  conf=0.64
+2026-05-25 23:15:56,763 step=  650 | J0:E-left  E-left(q=4,conf=0.33)  J1:E-left->EW-through(q=3,conf=0.36)  J2:EW-through  EW-through(q=6,conf=0.39)  J3:NS-through  NS-through(q=2,conf=0.27)  J4:NS-through->W-left(q=4,conf=0.64)
+2026-05-25 23:15:56,895   [STARVE OVERRIDE] J0 forcing NS-through after 8 left-only decisions
+2026-05-25 23:15:56,895   SWITCH  step=  660  J0        E-left -> NS-through    q=4  conf=0.26
+2026-05-25 23:15:56,896   SWITCH  step=  660  J1    EW-through -> E-left        q=3  conf=0.34
+2026-05-25 23:15:56,896   [LEFT OVERRIDE] J2 forcing N-left (starved 15 decisions)
+2026-05-25 23:15:56,897   SWITCH  step=  660  J2    EW-through -> N-left        q=6  conf=0.61
+2026-05-25 23:15:56,897 step=  660 | J0:E-left->NS-through(q=4,conf=0.26)  J1:EW-through->E-left(q=3,conf=0.34)  J2:EW-through->N-left(q=6,conf=0.61)  J3:NS-through  NS-through(q=2,conf=0.34)  J4:W-left  W-left(q=2,conf=0.82)
+2026-05-25 23:15:57,052   SWITCH  step=  670  J0    NS-through -> EW-through    q=3  conf=0.28
+2026-05-25 23:15:57,053   SWITCH  step=  670  J1        E-left -> NS-through    q=2  conf=0.38
+2026-05-25 23:15:57,054   SWITCH  step=  670  J2        N-left -> EW-through    q=4  conf=0.41
+2026-05-25 23:15:57,055   [DIR OVERRIDE] J3 forcing EW-through (starved 10 decisions, ew_q=1)
+2026-05-25 23:15:57,055   SWITCH  step=  670  J3    NS-through -> EW-through    q=2  conf=0.26
+2026-05-25 23:15:57,056 step=  670 | J0:NS-through->EW-through(q=3,conf=0.28)  J1:E-left->NS-through(q=2,conf=0.38)  J2:N-left->EW-through(q=4,conf=0.41)  J3:NS-through->EW-through(q=2,conf=0.26)  J4:W-left  W-left(q=3,conf=0.70)
+2026-05-25 23:15:57,189   [LEFT OVERRIDE] J0 forcing N-left (starved 15 decisions)
+2026-05-25 23:15:57,191   SWITCH  step=  680  J0    EW-through -> N-left        q=3  conf=0.55
+2026-05-25 23:15:57,192   SWITCH  step=  680  J1    NS-through -> N-left        q=0  conf=0.56
+2026-05-25 23:15:57,193   SWITCH  step=  680  J3    EW-through -> NS-through    q=0  conf=0.37
+2026-05-25 23:15:57,194 step=  680 | J0:EW-through->N-left(q=3,conf=0.55)  J1:NS-through->N-left(q=0,conf=0.56)  J2:EW-through  EW-through(q=4,conf=0.73)  J3:EW-through->NS-through(q=0,conf=0.37)  J4:W-left  W-left(q=3,conf=0.66)
+2026-05-25 23:15:57,399   [LEFT OVERRIDE] J0 forcing S-left (starved 15 decisions)
+2026-05-25 23:15:57,401   SWITCH  step=  690  J0        N-left -> S-left        q=2  conf=0.32
+2026-05-25 23:15:57,405 step=  690 | J0:N-left->S-left(q=2,conf=0.32)  J1:N-left  N-left(q=0,conf=0.44)  J2:EW-through  EW-through(q=6,conf=0.65)  J3:NS-through  NS-through(q=0,conf=0.38)  J4:W-left  W-left(q=2,conf=0.57)
+2026-05-25 23:15:57,586   SWITCH  step=  700  J0        S-left -> EW-through    q=0  conf=0.29
+2026-05-25 23:15:57,588   [LEFT OVERRIDE] J4 forcing E-left (starved 19 decisions)
+2026-05-25 23:15:57,589   SWITCH  step=  700  J4        W-left -> E-left        q=2  conf=0.52
+2026-05-25 23:15:57,589 step=  700 | J0:S-left->EW-through(q=0,conf=0.29)  J1:N-left  N-left(q=0,conf=0.34)  J2:EW-through  EW-through(q=6,conf=0.69)  J3:NS-through  NS-through(q=0,conf=0.39)  J4:W-left->E-left(q=2,conf=0.52)
+2026-05-25 23:15:57,718   [LEFT OVERRIDE] J2 forcing E-left (starved 15 decisions)
+2026-05-25 23:15:57,719   SWITCH  step=  710  J2    EW-through -> E-left        q=6  conf=0.69
+2026-05-25 23:15:57,720   SWITCH  step=  710  J4        E-left -> EW-through    q=0  conf=0.50
+2026-05-25 23:15:57,720 step=  710 | J0:EW-through  EW-through(q=0,conf=0.64)  J1:N-left  N-left(q=0,conf=0.56)  J2:EW-through->E-left(q=6,conf=0.69)  J3:NS-through  NS-through(q=0,conf=0.31)  J4:E-left->EW-through(q=0,conf=0.50)
+2026-05-25 23:15:57,854   [DIR OVERRIDE] J2 forcing NS-through (starved 10 decisions, ns_q=1)
+2026-05-25 23:15:57,855   SWITCH  step=  720  J2        E-left -> NS-through    q=4  conf=0.45
+2026-05-25 23:15:57,857   SWITCH  step=  720  J4    EW-through -> W-left        q=0  conf=0.72
+2026-05-25 23:15:57,858 step=  720 | J0:EW-through  EW-through(q=2,conf=0.54)  J1:N-left  N-left(q=0,conf=0.35)  J2:E-left->NS-through(q=4,conf=0.45)  J3:NS-through  NS-through(q=0,conf=0.34)  J4:EW-through->W-left(q=0,conf=0.72)
+2026-05-25 23:15:58,005   SWITCH  step=  730  J1        N-left -> NS-through    q=0  conf=0.33
+2026-05-25 23:15:58,006   SWITCH  step=  730  J2    NS-through -> EW-through    q=3  conf=0.70
+2026-05-25 23:15:58,007 step=  730 | J0:EW-through  EW-through(q=2,conf=0.86)  J1:N-left->NS-through(q=0,conf=0.33)  J2:NS-through->EW-through(q=3,conf=0.70)  J3:NS-through  NS-through(q=0,conf=0.59)  J4:W-left  W-left(q=2,conf=0.97)
+2026-05-25 23:15:58,162 step=  740 | J0:EW-through  EW-through(q=0,conf=0.79)  J1:NS-through  NS-through(q=0,conf=0.27)  J2:EW-through  EW-through(q=3,conf=0.80)  J3:NS-through  NS-through(q=0,conf=0.64)  J4:W-left  W-left(q=2,conf=0.92)
+2026-05-25 23:15:58,282   SWITCH  step=  750  J1    NS-through -> N-left        q=0  conf=0.89
+2026-05-25 23:15:58,282   [LEFT OVERRIDE] J2 forcing W-left (starved 15 decisions)
+2026-05-25 23:15:58,283   SWITCH  step=  750  J2    EW-through -> W-left        q=3  conf=0.84
+2026-05-25 23:15:58,284 step=  750 | J0:EW-through  EW-through(q=0,conf=0.84)  J1:NS-through->N-left(q=0,conf=0.89)  J2:EW-through->W-left(q=3,conf=0.84)  J3:NS-through  NS-through(q=0,conf=0.67)  J4:W-left  W-left(q=0,conf=0.77)
+2026-05-25 23:15:58,406   SWITCH  step=  760  J2        W-left -> EW-through    q=0  conf=0.81
+2026-05-25 23:15:58,407 step=  760 | J0:EW-through  EW-through(q=0,conf=0.75)  J1:N-left  N-left(q=0,conf=0.87)  J2:W-left->EW-through(q=0,conf=0.81)  J3:NS-through  NS-through(q=0,conf=0.63)  J4:W-left  W-left(q=2,conf=0.88)
+2026-05-25 23:15:58,563   SWITCH  step=  770  J4        W-left -> EW-through    q=2  conf=0.70
+2026-05-25 23:15:58,564 step=  770 | J0:EW-through  EW-through(q=0,conf=0.75)  J1:N-left  N-left(q=0,conf=0.82)  J2:EW-through  EW-through(q=0,conf=0.81)  J3:NS-through  NS-through(q=0,conf=0.63)  J4:W-left->EW-through(q=2,conf=0.70)
+2026-05-25 23:15:58,711   SWITCH  step=  780  J3    NS-through -> EW-through    q=0  conf=0.46
+2026-05-25 23:15:58,712 step=  780 | J0:EW-through  EW-through(q=0,conf=0.72)  J1:N-left  N-left(q=0,conf=0.82)  J2:EW-through  EW-through(q=0,conf=0.81)  J3:NS-through->EW-through(q=0,conf=0.46)  J4:EW-through  EW-through(q=2,conf=0.53)
+2026-05-25 23:15:58,833   SWITCH  step=  790  J4    EW-through -> W-left        q=2  conf=0.80
+2026-05-25 23:15:58,834 step=  790 | J0:EW-through  EW-through(q=0,conf=0.68)  J1:N-left  N-left(q=0,conf=0.81)  J2:EW-through  EW-through(q=0,conf=0.75)  J3:EW-through  EW-through(q=0,conf=0.43)  J4:EW-through->W-left(q=2,conf=0.80)
+2026-05-25 23:15:59,007   SWITCH  step=  800  J0    EW-through -> NS-through    q=0  conf=0.42
+2026-05-25 23:15:59,008   SWITCH  step=  800  J1        N-left -> E-left        q=0  conf=0.33
+2026-05-25 23:15:59,009   SWITCH  step=  800  J3    EW-through -> NS-through    q=0  conf=0.70
+2026-05-25 23:15:59,010 step=  800 | J0:EW-through->NS-through(q=0,conf=0.42)  J1:N-left->E-left(q=0,conf=0.33)  J2:EW-through  EW-through(q=0,conf=0.81)  J3:EW-through->NS-through(q=0,conf=0.70)  J4:W-left  W-left(q=0,conf=0.86)
+2026-05-25 23:15:59,139   SWITCH  step=  810  J0    NS-through -> E-left        q=0  conf=0.30
+2026-05-25 23:15:59,141 step=  810 | J0:NS-through->E-left(q=0,conf=0.30)  J1:E-left  E-left(q=0,conf=0.36)  J2:EW-through  EW-through(q=0,conf=0.72)  J3:NS-through  NS-through(q=0,conf=0.84)  J4:W-left  W-left(q=0,conf=0.73)
+2026-05-25 23:15:59,286   [STARVE OVERRIDE] J1 forcing NS-through after 8 left-only decisions
+2026-05-25 23:15:59,287   SWITCH  step=  820  J1        E-left -> NS-through    q=0  conf=0.49
+2026-05-25 23:15:59,288 step=  820 | J0:E-left  E-left(q=0,conf=0.33)  J1:E-left->NS-through(q=0,conf=0.49)  J2:EW-through  EW-through(q=0,conf=0.79)  J3:NS-through  NS-through(q=0,conf=0.76)  J4:W-left  W-left(q=0,conf=0.79)
+2026-05-25 23:15:59,468   SWITCH  step=  830  J0        E-left -> EW-through    q=0  conf=0.63
+2026-05-25 23:15:59,469   SWITCH  step=  830  J1    NS-through -> N-left        q=0  conf=0.83
+2026-05-25 23:15:59,471 step=  830 | J0:E-left->EW-through(q=0,conf=0.63)  J1:NS-through->N-left(q=0,conf=0.83)  J2:EW-through  EW-through(q=0,conf=0.91)  J3:NS-through  NS-through(q=0,conf=0.77)  J4:W-left  W-left(q=0,conf=0.80)
+2026-05-25 23:15:59,671   SWITCH  step=  840  J4        W-left -> EW-through    q=0  conf=0.77
+2026-05-25 23:15:59,671 step=  840 | J0:EW-through  EW-through(q=0,conf=0.88)  J1:N-left  N-left(q=0,conf=0.88)  J2:EW-through  EW-through(q=0,conf=0.89)  J3:NS-through  NS-through(q=0,conf=0.77)  J4:W-left->EW-through(q=0,conf=0.77)
+2026-05-25 23:15:59,811 step=  850 | J0:EW-through  EW-through(q=0,conf=0.90)  J1:N-left  N-left(q=0,conf=0.90)  J2:EW-through  EW-through(q=0,conf=0.88)  J3:NS-through  NS-through(q=0,conf=0.76)  J4:EW-through  EW-through(q=0,conf=0.64)
+2026-05-25 23:15:59,960   SWITCH  step=  860  J2    EW-through -> NS-through    q=0  conf=0.38
+2026-05-25 23:15:59,961   SWITCH  step=  860  J4    EW-through -> W-left        q=0  conf=0.83
+2026-05-25 23:15:59,962 step=  860 | J0:EW-through  EW-through(q=0,conf=0.90)  J1:N-left  N-left(q=0,conf=0.89)  J2:EW-through->NS-through(q=0,conf=0.38)  J3:NS-through  NS-through(q=0,conf=0.79)  J4:EW-through->W-left(q=0,conf=0.83)
+2026-05-25 23:16:00,093 step=  870 | J0:EW-through  EW-through(q=0,conf=0.89)  J1:N-left  N-left(q=0,conf=0.83)  J2:NS-through  NS-through(q=0,conf=0.30)  J3:NS-through  NS-through(q=0,conf=0.71)  J4:W-left  W-left(q=0,conf=0.94)
+2026-05-25 23:16:00,238   SWITCH  step=  880  J1        N-left -> NS-through    q=0  conf=0.34
+2026-05-25 23:16:00,239   SWITCH  step=  880  J2    NS-through -> EW-through    q=0  conf=0.84
+2026-05-25 23:16:00,240 step=  880 | J0:EW-through  EW-through(q=0,conf=0.87)  J1:N-left->NS-through(q=0,conf=0.34)  J2:NS-through->EW-through(q=0,conf=0.84)  J3:NS-through  NS-through(q=0,conf=0.79)  J4:W-left  W-left(q=0,conf=0.81)
+2026-05-25 23:16:00,369   SWITCH  step=  890  J1    NS-through -> N-left        q=0  conf=0.40
+2026-05-25 23:16:00,371 step=  890 | J0:EW-through  EW-through(q=0,conf=0.89)  J1:NS-through->N-left(q=0,conf=0.40)  J2:EW-through  EW-through(q=0,conf=0.93)  J3:NS-through  NS-through(q=0,conf=0.81)  J4:W-left  W-left(q=0,conf=0.80)
+2026-05-25 23:16:00,528   SWITCH  step=  900  J3    NS-through -> EW-through    q=0  conf=0.58
+2026-05-25 23:16:00,530 step=  900 | J0:EW-through  EW-through(q=0,conf=0.84)  J1:N-left  N-left(q=0,conf=0.95)  J2:EW-through  EW-through(q=0,conf=0.88)  J3:NS-through->EW-through(q=0,conf=0.58)  J4:W-left  W-left(q=0,conf=0.77)
+2026-05-25 23:16:00,661   SWITCH  step=  910  J4        W-left -> EW-through    q=0  conf=0.68
+2026-05-25 23:16:00,661 step=  910 | J0:EW-through  EW-through(q=0,conf=0.83)  J1:N-left  N-left(q=0,conf=0.93)  J2:EW-through  EW-through(q=0,conf=0.86)  J3:EW-through  EW-through(q=0,conf=0.47)  J4:W-left->EW-through(q=0,conf=0.68)
+2026-05-25 23:16:00,791   SWITCH  step=  920  J3    EW-through -> NS-through    q=0  conf=0.83
+2026-05-25 23:16:00,792 step=  920 | J0:EW-through  EW-through(q=0,conf=0.80)  J1:N-left  N-left(q=0,conf=0.92)  J2:EW-through  EW-through(q=0,conf=0.91)  J3:EW-through->NS-through(q=0,conf=0.83)  J4:EW-through  EW-through(q=0,conf=0.64)
+2026-05-25 23:16:00,989   SWITCH  step=  930  J0    EW-through -> NS-through    q=0  conf=0.49
+2026-05-25 23:16:00,994   SWITCH  step=  930  J4    EW-through -> W-left        q=0  conf=0.83
+2026-05-25 23:16:00,995 step=  930 | J0:EW-through->NS-through(q=0,conf=0.49)  J1:N-left  N-left(q=0,conf=0.90)  J2:EW-through  EW-through(q=0,conf=0.91)  J3:NS-through  NS-through(q=0,conf=0.94)  J4:EW-through->W-left(q=0,conf=0.83)
+2026-05-25 23:16:01,178   SWITCH  step=  940  J1        N-left -> NS-through    q=0  conf=0.32
+2026-05-25 23:16:01,180 step=  940 | J0:NS-through  NS-through(q=0,conf=0.39)  J1:N-left->NS-through(q=0,conf=0.32)  J2:EW-through  EW-through(q=0,conf=0.91)  J3:NS-through  NS-through(q=0,conf=0.86)  J4:W-left  W-left(q=0,conf=0.96)
+2026-05-25 23:16:01,323   SWITCH  step=  950  J0    NS-through -> EW-through    q=0  conf=0.82
+2026-05-25 23:16:01,324   SWITCH  step=  950  J1    NS-through -> N-left        q=0  conf=0.33
+2026-05-25 23:16:01,325 step=  950 | J0:NS-through->EW-through(q=0,conf=0.82)  J1:NS-through->N-left(q=0,conf=0.33)  J2:EW-through  EW-through(q=0,conf=0.93)  J3:NS-through  NS-through(q=0,conf=0.87)  J4:W-left  W-left(q=0,conf=0.88)
+2026-05-25 23:16:01,447 step=  960 | J0:EW-through  EW-through(q=0,conf=0.90)  J1:N-left  N-left(q=0,conf=0.93)  J2:EW-through  EW-through(q=0,conf=0.91)  J3:NS-through  NS-through(q=0,conf=0.86)  J4:W-left  W-left(q=0,conf=0.88)
+2026-05-25 23:16:01,583 step=  970 | J0:EW-through  EW-through(q=0,conf=0.87)  J1:N-left  N-left(q=0,conf=0.92)  J2:EW-through  EW-through(q=0,conf=0.90)  J3:NS-through  NS-through(q=0,conf=0.85)  J4:W-left  W-left(q=0,conf=0.87)
+2026-05-25 23:16:01,711   SWITCH  step=  980  J2    EW-through -> NS-through    q=0  conf=0.38
+2026-05-25 23:16:01,712   SWITCH  step=  980  J4        W-left -> EW-through    q=0  conf=0.80
+2026-05-25 23:16:01,713 step=  980 | J0:EW-through  EW-through(q=0,conf=0.88)  J1:N-left  N-left(q=0,conf=0.91)  J2:EW-through->NS-through(q=0,conf=0.38)  J3:NS-through  NS-through(q=0,conf=0.83)  J4:W-left->EW-through(q=0,conf=0.80)
+2026-05-25 23:16:01,852 step=  990 | J0:EW-through  EW-through(q=0,conf=0.87)  J1:N-left  N-left(q=0,conf=0.86)  J2:NS-through  NS-through(q=0,conf=0.30)  J3:NS-through  NS-through(q=0,conf=0.77)  J4:EW-through  EW-through(q=0,conf=0.63)
+2026-05-25 23:16:01,982   SWITCH  step= 1000  J1        N-left -> NS-through    q=0  conf=0.34
+2026-05-25 23:16:01,982   SWITCH  step= 1000  J2    NS-through -> EW-through    q=0  conf=0.86
+2026-05-25 23:16:01,984   SWITCH  step= 1000  J4    EW-through -> W-left        q=0  conf=0.85
+2026-05-25 23:16:01,984 step= 1000 | J0:EW-through  EW-through(q=0,conf=0.85)  J1:N-left->NS-through(q=0,conf=0.34)  J2:NS-through->EW-through(q=0,conf=0.86)  J3:NS-through  NS-through(q=0,conf=0.85)  J4:EW-through->W-left(q=0,conf=0.85)
+2026-05-25 23:16:01,984 
+2026-05-25 23:16:01,984   ── Decision summary at step 1000 (total decisions: 100) ──
+2026-05-25 23:16:01,984   Junction      NS-through        N-left        S-left    EW-through        E-left        W-left
+2026-05-25 23:16:01,984   ----------------------------------------------------------------------------------------------
+2026-05-25 23:16:01,984   J0            11(  12%)     7(   7%)     2(   2%)    59(  62%)    14(  15%)     2(   2%)
+2026-05-25 23:16:01,985   J1            18(  19%)    52(  54%)     1(   1%)     2(   2%)    17(  18%)     7(   7%)
+2026-05-25 23:16:01,985   J2            11(  12%)     3(   3%)     1(   1%)    59(  64%)    13(  14%)     5(   5%)
+2026-05-25 23:16:01,985   J3            63(  65%)     5(   5%)     7(   7%)    14(  14%)     2(   2%)     6(   6%)
+2026-05-25 23:16:01,985   J4             2(   2%)     2(   2%)     7(   7%)    25(  26%)     2(   2%)    58(  60%)
+2026-05-25 23:16:01,985 
+2026-05-25 23:16:02,115   [OBS SNAPSHOT]
+2026-05-25 23:16:02,115     J0  phase=EW-through(60s)  N(l=0 t=0 r=0)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=0
+2026-05-25 23:16:02,115     J1  phase=NS-through(10s)  N(l=0 t=0 r=0)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=0
+2026-05-25 23:16:02,115     J2  phase=EW-through(10s)  N(l=0 t=0 r=0)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=0
+2026-05-25 23:16:02,115     J3  phase=NS-through(90s)  N(l=0 t=0 r=0)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=0
+2026-05-25 23:16:02,115     J4  phase=W-left(10s)  N(l=0 t=0 r=0)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=0
+2026-05-25 23:16:02,128   SWITCH  step= 1010  J1    NS-through -> N-left        q=0  conf=0.44
+2026-05-25 23:16:02,129 step= 1010 | J0:EW-through  EW-through(q=0,conf=0.89)  J1:NS-through->N-left(q=0,conf=0.44)  J2:EW-through  EW-through(q=0,conf=0.94)  J3:NS-through  NS-through(q=0,conf=0.85)  J4:W-left  W-left(q=0,conf=0.94)
+2026-05-25 23:16:02,354   SWITCH  step= 1020  J0    EW-through -> N-left        q=20  conf=0.47
+2026-05-25 23:16:02,354   [DIR OVERRIDE] J1 forcing EW-through (starved 37 decisions, ew_q=6)
+2026-05-25 23:16:02,354   [LEFT OVERRIDE] J1 forcing S-left (starved 51 decisions)
+2026-05-25 23:16:02,355   SWITCH  step= 1020  J1        N-left -> S-left        q=18  conf=0.55
+2026-05-25 23:16:02,355   SWITCH  step= 1020  J2    EW-through -> N-left        q=12  conf=0.22
+2026-05-25 23:16:02,356   [DIR OVERRIDE] J3 forcing EW-through (starved 11 decisions, ew_q=6)
+2026-05-25 23:16:02,356   [LEFT OVERRIDE] J3 forcing S-left (starved 49 decisions)
+2026-05-25 23:16:02,356   SWITCH  step= 1020  J3    NS-through -> S-left        q=20  conf=0.34
+2026-05-25 23:16:02,356   [DIR OVERRIDE] J4 forcing NS-through (starved 38 decisions, ns_q=10)
+2026-05-25 23:16:02,356   [LEFT OVERRIDE] J4 forcing S-left (starved 49 decisions)
+2026-05-25 23:16:02,357   SWITCH  step= 1020  J4        W-left -> S-left        q=22  conf=0.56
+2026-05-25 23:16:02,357 step= 1020 | J0:EW-through->N-left(q=20,conf=0.47)  J1:N-left->S-left(q=18,conf=0.55)  J2:EW-through->N-left(q=12,conf=0.22)  J3:NS-through->S-left(q=20,conf=0.34)  J4:W-left->S-left(q=22,conf=0.56)
+2026-05-25 23:16:02,535   SWITCH  step= 1030  J1        S-left -> W-left        q=18  conf=0.62
+2026-05-25 23:16:02,535   SWITCH  step= 1030  J2        N-left -> E-left        q=12  conf=0.44
+2026-05-25 23:16:02,536   [LEFT OVERRIDE] J3 forcing N-left (starved 43 decisions)
+2026-05-25 23:16:02,536   SWITCH  step= 1030  J3        S-left -> N-left        q=18  conf=0.31
+2026-05-25 23:16:02,537 step= 1030 | J0:N-left  N-left(q=20,conf=0.60)  J1:S-left->W-left(q=18,conf=0.62)  J2:N-left->E-left(q=12,conf=0.44)  J3:S-left->N-left(q=18,conf=0.31)  J4:S-left  S-left(q=18,conf=0.45)
+2026-05-25 23:16:02,700   [DIR OVERRIDE] J0 forcing NS-through (starved 10 decisions, ns_q=3)
+2026-05-25 23:16:02,700   [LEFT OVERRIDE] J0 forcing W-left (starved 52 decisions)
+2026-05-25 23:16:02,701   SWITCH  step= 1040  J0        N-left -> W-left        q=16  conf=0.32
+2026-05-25 23:16:02,702   [LEFT OVERRIDE] J3 forcing E-left (starved 42 decisions)
+2026-05-25 23:16:02,703   SWITCH  step= 1040  J3        N-left -> E-left        q=20  conf=0.37
+2026-05-25 23:16:02,703 step= 1040 | J0:N-left->W-left(q=16,conf=0.32)  J1:W-left  W-left(q=15,conf=0.30)  J2:E-left  E-left(q=20,conf=0.23)  J3:N-left->E-left(q=20,conf=0.37)  J4:S-left  S-left(q=16,conf=0.36)
+2026-05-25 23:16:02,947   [LEFT OVERRIDE] J0 forcing S-left (starved 36 decisions)
+2026-05-25 23:16:02,948   SWITCH  step= 1050  J0        W-left -> S-left        q=14  conf=0.30
+2026-05-25 23:16:02,949   [LEFT OVERRIDE] J2 forcing S-left (starved 48 decisions)
+2026-05-25 23:16:02,950   SWITCH  step= 1050  J2        E-left -> S-left        q=21  conf=0.21
+2026-05-25 23:16:02,951   [LEFT OVERRIDE] J3 forcing W-left (starved 44 decisions)
+2026-05-25 23:16:02,951   SWITCH  step= 1050  J3        E-left -> W-left        q=15  conf=0.26
+2026-05-25 23:16:02,954 step= 1050 | J0:W-left->S-left(q=14,conf=0.30)  J1:W-left  W-left(q=16,conf=0.27)  J2:E-left->S-left(q=21,conf=0.21)  J3:E-left->W-left(q=15,conf=0.26)  J4:S-left  S-left(q=16,conf=0.32)
+2026-05-25 23:16:03,101   [LEFT OVERRIDE] J0 forcing E-left (starved 24 decisions)
+2026-05-25 23:16:03,103   SWITCH  step= 1060  J0        S-left -> E-left        q=8  conf=0.33
+2026-05-25 23:16:03,104   SWITCH  step= 1060  J1        W-left -> NS-through    q=16  conf=0.36
+2026-05-25 23:16:03,104   SWITCH  step= 1060  J2        S-left -> W-left        q=26  conf=0.27
+2026-05-25 23:16:03,105   SWITCH  step= 1060  J3        W-left -> EW-through    q=14  conf=0.27
+2026-05-25 23:16:03,105 step= 1060 | J0:S-left->E-left(q=8,conf=0.33)  J1:W-left->NS-through(q=16,conf=0.36)  J2:S-left->W-left(q=26,conf=0.27)  J3:W-left->EW-through(q=14,conf=0.27)  J4:S-left  S-left(q=16,conf=0.29)
+2026-05-25 23:16:03,264   SWITCH  step= 1070  J0        E-left -> EW-through    q=6  conf=0.36
+2026-05-25 23:16:03,265   SWITCH  step= 1070  J1    NS-through -> E-left        q=10  conf=0.30
+2026-05-25 23:16:03,266   SWITCH  step= 1070  J2        W-left -> N-left        q=21  conf=0.29
+2026-05-25 23:16:03,267   [LEFT OVERRIDE] J4 forcing N-left (starved 53 decisions)
+2026-05-25 23:16:03,267   SWITCH  step= 1070  J4        S-left -> N-left        q=18  conf=0.33
+2026-05-25 23:16:03,267 step= 1070 | J0:E-left->EW-through(q=6,conf=0.36)  J1:NS-through->E-left(q=10,conf=0.30)  J2:W-left->N-left(q=21,conf=0.29)  J3:EW-through  EW-through(q=15,conf=0.25)  J4:S-left->N-left(q=18,conf=0.33)
+2026-05-25 23:16:03,416   SWITCH  step= 1080  J2        N-left -> EW-through    q=18  conf=0.34
+2026-05-25 23:16:03,417   [LEFT OVERRIDE] J4 forcing E-left (starved 38 decisions)
+2026-05-25 23:16:03,417   SWITCH  step= 1080  J4        N-left -> E-left        q=15  conf=0.34
+2026-05-25 23:16:03,417 step= 1080 | J0:EW-through  EW-through(q=4,conf=0.32)  J1:E-left  E-left(q=8,conf=0.36)  J2:N-left->EW-through(q=18,conf=0.34)  J3:EW-through  EW-through(q=16,conf=0.26)  J4:N-left->E-left(q=15,conf=0.34)
+2026-05-25 23:16:03,584   SWITCH  step= 1090  J1        E-left -> N-left        q=6  conf=0.32
+2026-05-25 23:16:03,586   [DIR OVERRIDE] J2 forcing NS-through (starved 10 decisions, ns_q=5)
+2026-05-25 23:16:03,587   SWITCH  step= 1090  J2    EW-through -> NS-through    q=16  conf=0.27
+2026-05-25 23:16:03,588   SWITCH  step= 1090  J4        E-left -> EW-through    q=10  conf=0.24
+2026-05-25 23:16:03,589 step= 1090 | J0:EW-through  EW-through(q=4,conf=0.33)  J1:E-left->N-left(q=6,conf=0.32)  J2:EW-through->NS-through(q=16,conf=0.27)  J3:EW-through  EW-through(q=16,conf=0.23)  J4:E-left->EW-through(q=10,conf=0.24)
+2026-05-25 23:16:03,723   SWITCH  step= 1100  J0    EW-through -> NS-through    q=3  conf=0.42
+2026-05-25 23:16:03,725   SWITCH  step= 1100  J2    NS-through -> E-left        q=14  conf=0.34
+2026-05-25 23:16:03,725   SWITCH  step= 1100  J3    EW-through -> N-left        q=18  conf=0.25
+2026-05-25 23:16:03,726 step= 1100 | J0:EW-through->NS-through(q=3,conf=0.42)  J1:N-left  N-left(q=2,conf=0.29)  J2:NS-through->E-left(q=14,conf=0.34)  J3:EW-through->N-left(q=18,conf=0.25)  J4:EW-through  EW-through(q=10,conf=0.37)
+2026-05-25 23:16:03,878   SWITCH  step= 1110  J0    NS-through -> E-left        q=4  conf=0.56
+2026-05-25 23:16:03,878   SWITCH  step= 1110  J1        N-left -> E-left        q=3  conf=0.33
+2026-05-25 23:16:03,879   SWITCH  step= 1110  J2        E-left -> EW-through    q=9  conf=0.39
+2026-05-25 23:16:03,879   [DIR OVERRIDE] J3 forcing NS-through (starved 10 decisions, ns_q=5)
+2026-05-25 23:16:03,880   SWITCH  step= 1110  J3        N-left -> NS-through    q=10  conf=0.31
+2026-05-25 23:16:03,880   SWITCH  step= 1110  J4    EW-through -> W-left        q=9  conf=0.54
+2026-05-25 23:16:03,880 step= 1110 | J0:NS-through->E-left(q=4,conf=0.56)  J1:N-left->E-left(q=3,conf=0.33)  J2:E-left->EW-through(q=9,conf=0.39)  J3:N-left->NS-through(q=10,conf=0.31)  J4:EW-through->W-left(q=9,conf=0.54)
+2026-05-25 23:16:04,026   [DIR OVERRIDE] J1 forcing EW-through (starved 10 decisions, ew_q=2)
+2026-05-25 23:16:04,027   SWITCH  step= 1120  J1        E-left -> EW-through    q=4  conf=0.73
+2026-05-25 23:16:04,028   SWITCH  step= 1120  J2    EW-through -> NS-through    q=9  conf=0.35
+2026-05-25 23:16:04,029   SWITCH  step= 1120  J3    NS-through -> N-left        q=4  conf=0.27
+2026-05-25 23:16:04,029   [DIR OVERRIDE] J4 forcing NS-through (starved 10 decisions, ns_q=2)
+2026-05-25 23:16:04,030   SWITCH  step= 1120  J4        W-left -> NS-through    q=6  conf=0.77
+2026-05-25 23:16:04,030 step= 1120 | J0:E-left  E-left(q=6,conf=0.65)  J1:E-left->EW-through(q=4,conf=0.73)  J2:EW-through->NS-through(q=9,conf=0.35)  J3:NS-through->N-left(q=4,conf=0.27)  J4:W-left->NS-through(q=6,conf=0.77)
+2026-05-25 23:16:04,209   SWITCH  step= 1130  J1    EW-through -> E-left        q=6  conf=0.32
+2026-05-25 23:16:04,210   SWITCH  step= 1130  J3        N-left -> EW-through    q=4  conf=0.30
+2026-05-25 23:16:04,211   SWITCH  step= 1130  J4    NS-through -> W-left        q=6  conf=0.77
+2026-05-25 23:16:04,211 step= 1130 | J0:E-left  E-left(q=2,conf=0.56)  J1:EW-through->E-left(q=6,conf=0.32)  J2:NS-through  NS-through(q=8,conf=0.33)  J3:N-left->EW-through(q=4,conf=0.30)  J4:NS-through->W-left(q=6,conf=0.77)
+2026-05-25 23:16:04,416   [STARVE OVERRIDE] J1 forcing NS-through after 8 left-only decisions
+2026-05-25 23:16:04,416   SWITCH  step= 1140  J1        E-left -> NS-through    q=4  conf=0.45
+2026-05-25 23:16:04,417   SWITCH  step= 1140  J2    NS-through -> EW-through    q=3  conf=0.50
+2026-05-25 23:16:04,418   SWITCH  step= 1140  J3    EW-through -> W-left        q=3  conf=0.51
+2026-05-25 23:16:04,418 step= 1140 | J0:E-left  E-left(q=0,conf=0.33)  J1:E-left->NS-through(q=4,conf=0.45)  J2:NS-through->EW-through(q=3,conf=0.50)  J3:EW-through->W-left(q=3,conf=0.51)  J4:W-left  W-left(q=6,conf=0.86)
+2026-05-25 23:16:04,553   SWITCH  step= 1150  J0        E-left -> EW-through    q=2  conf=0.29
+2026-05-25 23:16:04,554   SWITCH  step= 1150  J1    NS-through -> N-left        q=2  conf=0.41
+2026-05-25 23:16:04,554   SWITCH  step= 1150  J3        W-left -> NS-through    q=2  conf=0.44
+2026-05-25 23:16:04,555 step= 1150 | J0:E-left->EW-through(q=2,conf=0.29)  J1:NS-through->N-left(q=2,conf=0.41)  J2:EW-through  EW-through(q=2,conf=0.48)  J3:W-left->NS-through(q=2,conf=0.44)  J4:W-left  W-left(q=4,conf=0.87)
+2026-05-25 23:16:04,752 step= 1160 | J0:EW-through  EW-through(q=2,conf=0.61)  J1:N-left  N-left(q=0,conf=0.55)  J2:EW-through  EW-through(q=3,conf=0.42)  J3:NS-through  NS-through(q=0,conf=0.47)  J4:W-left  W-left(q=2,conf=0.87)
+2026-05-25 23:16:04,932 step= 1170 | J0:EW-through  EW-through(q=2,conf=0.64)  J1:N-left  N-left(q=0,conf=0.65)  J2:EW-through  EW-through(q=3,conf=0.49)  J3:NS-through  NS-through(q=0,conf=0.47)  J4:W-left  W-left(q=0,conf=0.68)
+2026-05-25 23:16:05,086   SWITCH  step= 1180  J4        W-left -> EW-through    q=0  conf=0.67
+2026-05-25 23:16:05,087 step= 1180 | J0:EW-through  EW-through(q=2,conf=0.67)  J1:N-left  N-left(q=0,conf=0.67)  J2:EW-through  EW-through(q=3,conf=0.54)  J3:NS-through  NS-through(q=0,conf=0.50)  J4:W-left->EW-through(q=0,conf=0.67)
+2026-05-25 23:16:05,286 step= 1190 | J0:EW-through  EW-through(q=2,conf=0.65)  J1:N-left  N-left(q=0,conf=0.65)  J2:EW-through  EW-through(q=3,conf=0.54)  J3:NS-through  NS-through(q=0,conf=0.52)  J4:EW-through  EW-through(q=0,conf=0.61)
+2026-05-25 23:16:05,499   [DIR OVERRIDE] J0 forcing NS-through (starved 10 decisions, ns_q=1)
+2026-05-25 23:16:05,500   SWITCH  step= 1200  J0    EW-through -> NS-through    q=2  conf=0.60
+2026-05-25 23:16:05,501   SWITCH  step= 1200  J1        N-left -> E-left        q=0  conf=0.35
+2026-05-25 23:16:05,502   SWITCH  step= 1200  J4    EW-through -> W-left        q=0  conf=0.69
+2026-05-25 23:16:05,502 step= 1200 | J0:EW-through->NS-through(q=2,conf=0.60)  J1:N-left->E-left(q=0,conf=0.35)  J2:EW-through  EW-through(q=3,conf=0.52)  J3:NS-through  NS-through(q=0,conf=0.58)  J4:EW-through->W-left(q=0,conf=0.69)
+2026-05-25 23:16:05,659   SWITCH  step= 1210  J0    NS-through -> EW-through    q=0  conf=0.41
+2026-05-25 23:16:05,660   [LEFT OVERRIDE] J2 forcing W-left (starved 15 decisions)
+2026-05-25 23:16:05,661   SWITCH  step= 1210  J2    EW-through -> W-left        q=4  conf=0.43
+2026-05-25 23:16:05,662 step= 1210 | J0:NS-through->EW-through(q=0,conf=0.41)  J1:E-left  E-left(q=0,conf=0.37)  J2:EW-through->W-left(q=4,conf=0.43)  J3:NS-through  NS-through(q=0,conf=0.53)  J4:W-left  W-left(q=0,conf=0.86)
+2026-05-25 23:16:05,805   [STARVE OVERRIDE] J1 forcing NS-through after 8 left-only decisions
+2026-05-25 23:16:05,806   SWITCH  step= 1220  J1        E-left -> NS-through    q=0  conf=0.44
+2026-05-25 23:16:05,806   SWITCH  step= 1220  J2        W-left -> EW-through    q=4  conf=0.37
+2026-05-25 23:16:05,808 step= 1220 | J0:EW-through  EW-through(q=0,conf=0.57)  J1:E-left->NS-through(q=0,conf=0.44)  J2:W-left->EW-through(q=4,conf=0.37)  J3:NS-through  NS-through(q=0,conf=0.45)  J4:W-left  W-left(q=0,conf=0.69)
+2026-05-25 23:16:05,954   SWITCH  step= 1230  J1    NS-through -> N-left        q=0  conf=0.84
+2026-05-25 23:16:05,954   [DIR OVERRIDE] J2 forcing NS-through (starved 10 decisions, ns_q=2)
+2026-05-25 23:16:05,955   SWITCH  step= 1230  J2    EW-through -> NS-through    q=3  conf=0.58
+2026-05-25 23:16:05,957 step= 1230 | J0:EW-through  EW-through(q=0,conf=0.86)  J1:NS-through->N-left(q=0,conf=0.84)  J2:EW-through->NS-through(q=3,conf=0.58)  J3:NS-through  NS-through(q=0,conf=0.56)  J4:W-left  W-left(q=0,conf=0.68)
+2026-05-25 23:16:06,144   SWITCH  step= 1240  J2    NS-through -> EW-through    q=0  conf=0.72
+2026-05-25 23:16:06,146 step= 1240 | J0:EW-through  EW-through(q=0,conf=0.83)  J1:N-left  N-left(q=0,conf=0.85)  J2:NS-through->EW-through(q=0,conf=0.72)  J3:NS-through  NS-through(q=0,conf=0.63)  J4:W-left  W-left(q=2,conf=0.84)
+2026-05-25 23:16:06,352   SWITCH  step= 1250  J3    NS-through -> EW-through    q=0  conf=0.46
+2026-05-25 23:16:06,353   SWITCH  step= 1250  J4        W-left -> EW-through    q=2  conf=0.66
+2026-05-25 23:16:06,354 step= 1250 | J0:EW-through  EW-through(q=0,conf=0.84)  J1:N-left  N-left(q=0,conf=0.90)  J2:EW-through  EW-through(q=0,conf=0.78)  J3:NS-through->EW-through(q=0,conf=0.46)  J4:W-left->EW-through(q=2,conf=0.66)
+2026-05-25 23:16:06,468 step= 1260 | J0:EW-through  EW-through(q=0,conf=0.82)  J1:N-left  N-left(q=0,conf=0.91)  J2:EW-through  EW-through(q=0,conf=0.74)  J3:EW-through  EW-through(q=0,conf=0.42)  J4:EW-through  EW-through(q=0,conf=0.55)
+2026-05-25 23:16:06,580   SWITCH  step= 1270  J3    EW-through -> NS-through    q=0  conf=0.74
+2026-05-25 23:16:06,581   SWITCH  step= 1270  J4    EW-through -> W-left        q=0  conf=0.66
+2026-05-25 23:16:06,582 step= 1270 | J0:EW-through  EW-through(q=0,conf=0.80)  J1:N-left  N-left(q=0,conf=0.90)  J2:EW-through  EW-through(q=0,conf=0.82)  J3:EW-through->NS-through(q=0,conf=0.74)  J4:EW-through->W-left(q=0,conf=0.66)
+2026-05-25 23:16:06,780   SWITCH  step= 1280  J1        N-left -> NS-through    q=0  conf=0.34
+2026-05-25 23:16:06,781 step= 1280 | J0:EW-through  EW-through(q=0,conf=0.75)  J1:N-left->NS-through(q=0,conf=0.34)  J2:EW-through  EW-through(q=0,conf=0.83)  J3:NS-through  NS-through(q=0,conf=0.86)  J4:W-left  W-left(q=0,conf=0.87)
+2026-05-25 23:16:06,910   SWITCH  step= 1290  J1    NS-through -> N-left        q=0  conf=0.29
+2026-05-25 23:16:06,911 step= 1290 | J0:EW-through  EW-through(q=0,conf=0.80)  J1:NS-through->N-left(q=0,conf=0.29)  J2:EW-through  EW-through(q=0,conf=0.89)  J3:NS-through  NS-through(q=0,conf=0.78)  J4:W-left  W-left(q=0,conf=0.77)
+2026-05-25 23:16:07,095 step= 1300 | J0:EW-through  EW-through(q=0,conf=0.70)  J1:N-left  N-left(q=0,conf=0.88)  J2:EW-through  EW-through(q=0,conf=0.86)  J3:NS-through  NS-through(q=0,conf=0.79)  J4:W-left  W-left(q=0,conf=0.79)
+2026-05-25 23:16:07,228   SWITCH  step= 1310  J0    EW-through -> NS-through    q=0  conf=0.45
+2026-05-25 23:16:07,230 step= 1310 | J0:EW-through->NS-through(q=0,conf=0.45)  J1:N-left  N-left(q=0,conf=0.82)  J2:EW-through  EW-through(q=0,conf=0.86)  J3:NS-through  NS-through(q=0,conf=0.78)  J4:W-left  W-left(q=0,conf=0.79)
+2026-05-25 23:16:07,351   SWITCH  step= 1320  J4        W-left -> EW-through    q=0  conf=0.75
+2026-05-25 23:16:07,352 step= 1320 | J0:NS-through  NS-through(q=0,conf=0.38)  J1:N-left  N-left(q=0,conf=0.73)  J2:EW-through  EW-through(q=0,conf=0.86)  J3:NS-through  NS-through(q=0,conf=0.78)  J4:W-left->EW-through(q=0,conf=0.75)
+2026-05-25 23:16:07,474   SWITCH  step= 1330  J0    NS-through -> EW-through    q=0  conf=0.72
+2026-05-25 23:16:07,476 step= 1330 | J0:NS-through->EW-through(q=0,conf=0.72)  J1:N-left  N-left(q=0,conf=0.81)  J2:EW-through  EW-through(q=0,conf=0.84)  J3:NS-through  NS-through(q=0,conf=0.76)  J4:EW-through  EW-through(q=0,conf=0.64)
+2026-05-25 23:16:07,624   SWITCH  step= 1340  J1        N-left -> E-left        q=0  conf=0.33
+2026-05-25 23:16:07,625   SWITCH  step= 1340  J2    EW-through -> NS-through    q=0  conf=0.35
+2026-05-25 23:16:07,627   SWITCH  step= 1340  J4    EW-through -> W-left        q=0  conf=0.80
+2026-05-25 23:16:07,627 step= 1340 | J0:EW-through  EW-through(q=0,conf=0.88)  J1:N-left->E-left(q=0,conf=0.33)  J2:EW-through->NS-through(q=0,conf=0.35)  J3:NS-through  NS-through(q=0,conf=0.79)  J4:EW-through->W-left(q=0,conf=0.80)
+2026-05-25 23:16:07,742 step= 1350 | J0:EW-through  EW-through(q=0,conf=0.68)  J1:E-left  E-left(q=0,conf=0.33)  J2:NS-through  NS-through(q=0,conf=0.30)  J3:NS-through  NS-through(q=0,conf=0.71)  J4:W-left  W-left(q=0,conf=0.93)
+2026-05-25 23:16:07,879   [STARVE OVERRIDE] J1 forcing NS-through after 8 left-only decisions
+2026-05-25 23:16:07,881   SWITCH  step= 1360  J1        E-left -> NS-through    q=0  conf=0.85
+2026-05-25 23:16:07,881   SWITCH  step= 1360  J2    NS-through -> EW-through    q=0  conf=0.73
+2026-05-25 23:16:07,883 step= 1360 | J0:EW-through  EW-through(q=0,conf=0.77)  J1:E-left->NS-through(q=0,conf=0.85)  J2:NS-through->EW-through(q=0,conf=0.73)  J3:NS-through  NS-through(q=0,conf=0.79)  J4:W-left  W-left(q=0,conf=0.78)
+2026-05-25 23:16:08,039   SWITCH  step= 1370  J1    NS-through -> N-left        q=0  conf=0.96
+2026-05-25 23:16:08,040   SWITCH  step= 1370  J3    NS-through -> EW-through    q=0  conf=0.57
+2026-05-25 23:16:08,041 step= 1370 | J0:EW-through  EW-through(q=0,conf=0.92)  J1:NS-through->N-left(q=0,conf=0.96)  J2:EW-through  EW-through(q=0,conf=0.93)  J3:NS-through->EW-through(q=0,conf=0.57)  J4:W-left  W-left(q=0,conf=0.76)
+2026-05-25 23:16:08,169 step= 1380 | J0:EW-through  EW-through(q=0,conf=0.89)  J1:N-left  N-left(q=0,conf=0.95)  J2:EW-through  EW-through(q=0,conf=0.85)  J3:EW-through  EW-through(q=0,conf=0.47)  J4:W-left  W-left(q=0,conf=0.67)
+2026-05-25 23:16:08,305   SWITCH  step= 1390  J3    EW-through -> NS-through    q=0  conf=0.83
+2026-05-25 23:16:08,306   SWITCH  step= 1390  J4        W-left -> EW-through    q=0  conf=0.73
+2026-05-25 23:16:08,307 step= 1390 | J0:EW-through  EW-through(q=0,conf=0.88)  J1:N-left  N-left(q=0,conf=0.95)  J2:EW-through  EW-through(q=0,conf=0.91)  J3:EW-through->NS-through(q=0,conf=0.83)  J4:W-left->EW-through(q=0,conf=0.73)
+2026-05-25 23:16:08,448 step= 1400 | J0:EW-through  EW-through(q=0,conf=0.86)  J1:N-left  N-left(q=0,conf=0.95)  J2:EW-through  EW-through(q=0,conf=0.92)  J3:NS-through  NS-through(q=0,conf=0.93)  J4:EW-through  EW-through(q=0,conf=0.64)
+2026-05-25 23:16:08,593   SWITCH  step= 1410  J4    EW-through -> W-left        q=0  conf=0.86
+2026-05-25 23:16:08,593 step= 1410 | J0:EW-through  EW-through(q=0,conf=0.83)  J1:N-left  N-left(q=0,conf=0.93)  J2:EW-through  EW-through(q=0,conf=0.93)  J3:NS-through  NS-through(q=0,conf=0.88)  J4:EW-through->W-left(q=0,conf=0.86)
+2026-05-25 23:16:08,783   SWITCH  step= 1420  J1        N-left -> NS-through    q=0  conf=0.34
+2026-05-25 23:16:08,784 step= 1420 | J0:EW-through  EW-through(q=0,conf=0.79)  J1:N-left->NS-through(q=0,conf=0.34)  J2:EW-through  EW-through(q=0,conf=0.92)  J3:NS-through  NS-through(q=0,conf=0.87)  J4:W-left  W-left(q=0,conf=0.97)
+2026-05-25 23:16:08,934   SWITCH  step= 1430  J0    EW-through -> NS-through    q=0  conf=0.51
+2026-05-25 23:16:08,935   SWITCH  step= 1430  J1    NS-through -> N-left        q=0  conf=0.34
+2026-05-25 23:16:08,936 step= 1430 | J0:EW-through->NS-through(q=0,conf=0.51)  J1:NS-through->N-left(q=0,conf=0.34)  J2:EW-through  EW-through(q=0,conf=0.94)  J3:NS-through  NS-through(q=0,conf=0.88)  J4:W-left  W-left(q=0,conf=0.88)
+2026-05-25 23:16:09,065 step= 1440 | J0:NS-through  NS-through(q=0,conf=0.40)  J1:N-left  N-left(q=0,conf=0.86)  J2:EW-through  EW-through(q=0,conf=0.91)  J3:NS-through  NS-through(q=0,conf=0.87)  J4:W-left  W-left(q=0,conf=0.88)
+2026-05-25 23:16:09,214   SWITCH  step= 1450  J0    NS-through -> EW-through    q=0  conf=0.79
+2026-05-25 23:16:09,216 step= 1450 | J0:NS-through->EW-through(q=0,conf=0.79)  J1:N-left  N-left(q=0,conf=0.88)  J2:EW-through  EW-through(q=0,conf=0.90)  J3:NS-through  NS-through(q=0,conf=0.85)  J4:W-left  W-left(q=0,conf=0.87)
+2026-05-25 23:16:09,352   SWITCH  step= 1460  J2    EW-through -> NS-through    q=0  conf=0.39
+2026-05-25 23:16:09,354   SWITCH  step= 1460  J4        W-left -> EW-through    q=0  conf=0.79
+2026-05-25 23:16:09,354 step= 1460 | J0:EW-through  EW-through(q=0,conf=0.92)  J1:N-left  N-left(q=0,conf=0.89)  J2:EW-through->NS-through(q=0,conf=0.39)  J3:NS-through  NS-through(q=0,conf=0.83)  J4:W-left->EW-through(q=0,conf=0.79)
+2026-05-25 23:16:09,515 step= 1470 | J0:EW-through  EW-through(q=0,conf=0.87)  J1:N-left  N-left(q=0,conf=0.86)  J2:NS-through  NS-through(q=0,conf=0.30)  J3:NS-through  NS-through(q=0,conf=0.77)  J4:EW-through  EW-through(q=0,conf=0.63)
+2026-05-25 23:16:09,652   SWITCH  step= 1480  J1        N-left -> NS-through    q=0  conf=0.35
+2026-05-25 23:16:09,652   SWITCH  step= 1480  J2    NS-through -> EW-through    q=0  conf=0.85
+2026-05-25 23:16:09,653   SWITCH  step= 1480  J4    EW-through -> W-left        q=0  conf=0.83
+2026-05-25 23:16:09,654 step= 1480 | J0:EW-through  EW-through(q=0,conf=0.86)  J1:N-left->NS-through(q=0,conf=0.35)  J2:NS-through->EW-through(q=0,conf=0.85)  J3:NS-through  NS-through(q=0,conf=0.84)  J4:EW-through->W-left(q=0,conf=0.83)
+2026-05-25 23:16:09,841   SWITCH  step= 1490  J1    NS-through -> N-left        q=0  conf=0.49
+2026-05-25 23:16:09,842   SWITCH  step= 1490  J3    NS-through -> EW-through    q=0  conf=0.61
+2026-05-25 23:16:09,843 step= 1490 | J0:EW-through  EW-through(q=0,conf=0.91)  J1:NS-through->N-left(q=0,conf=0.49)  J2:EW-through  EW-through(q=0,conf=0.94)  J3:NS-through->EW-through(q=0,conf=0.61)  J4:W-left  W-left(q=0,conf=0.94)
+2026-05-25 23:16:10,026 step= 1500 | J0:EW-through  EW-through(q=0,conf=0.87)  J1:N-left  N-left(q=0,conf=0.97)  J2:EW-through  EW-through(q=0,conf=0.86)  J3:EW-through  EW-through(q=0,conf=0.48)  J4:W-left  W-left(q=0,conf=0.74)
+2026-05-25 23:16:10,132   [OBS SNAPSHOT]
+2026-05-25 23:16:10,132     J0  phase=EW-through(60s)  N(l=0 t=0 r=0)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=0
+2026-05-25 23:16:10,133     J1  phase=N-left(20s)  N(l=0 t=0 r=0)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=0
+2026-05-25 23:16:10,133     J2  phase=EW-through(30s)  N(l=0 t=0 r=0)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=0
+2026-05-25 23:16:10,133     J3  phase=EW-through(20s)  N(l=0 t=0 r=0)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=0
+2026-05-25 23:16:10,133     J4  phase=W-left(30s)  N(l=0 t=0 r=0)  S(l=0 t=0 r=0)  E(l=0 t=0 r=0)  W(l=0 t=0 r=0)  q=0
+2026-05-25 23:16:10,160   SWITCH  step= 1510  J3    EW-through -> NS-through    q=0  conf=0.87
+2026-05-25 23:16:10,160 step= 1510 | J0:EW-through  EW-through(q=0,conf=0.86)  J1:N-left  N-left(q=0,conf=0.95)  J2:EW-through  EW-through(q=0,conf=0.92)  J3:EW-through->NS-through(q=0,conf=0.87)  J4:W-left  W-left(q=0,conf=0.82)
+2026-05-25 23:16:10,364 step= 1520 | J0:EW-through  EW-through(q=0,conf=0.85)  J1:N-left  N-left(q=0,conf=0.95)  J2:EW-through  EW-through(q=0,conf=0.92)  J3:NS-through  NS-through(q=0,conf=0.94)  J4:W-left  W-left(q=0,conf=0.83)
+2026-05-25 23:16:10,620   SWITCH  step= 1530  J0    EW-through -> N-left        q=22  conf=0.52
+2026-05-25 23:16:10,621   [DIR OVERRIDE] J1 forcing EW-through (starved 41 decisions, ew_q=7)
+2026-05-25 23:16:10,621   [LEFT OVERRIDE] J1 forcing S-left (starved 51 decisions)
+2026-05-25 23:16:10,621   SWITCH  step= 1530  J1        N-left -> S-left        q=21  conf=0.50
+2026-05-25 23:16:10,621   SWITCH  step= 1530  J2    EW-through -> N-left        q=12  conf=0.27
+2026-05-25 23:16:10,622   [LEFT OVERRIDE] J3 forcing S-left (starved 51 decisions)
+2026-05-25 23:16:10,622   SWITCH  step= 1530  J3    NS-through -> S-left        q=21  conf=0.33
+2026-05-25 23:16:10,622   [DIR OVERRIDE] J4 forcing NS-through (starved 41 decisions, ns_q=10)
+2026-05-25 23:16:10,622   [LEFT OVERRIDE] J4 forcing S-left (starved 47 decisions)
+2026-05-25 23:16:10,622   SWITCH  step= 1530  J4        W-left -> S-left        q=22  conf=0.57
+2026-05-25 23:16:10,623 step= 1530 | J0:EW-through->N-left(q=22,conf=0.52)  J1:N-left->S-left(q=21,conf=0.50)  J2:EW-through->N-left(q=12,conf=0.27)  J3:NS-through->S-left(q=21,conf=0.33)  J4:W-left->S-left(q=22,conf=0.57)
+2026-05-25 23:16:10,793   [DIR OVERRIDE] J0 forcing NS-through (starved 10 decisions, ns_q=3)
+2026-05-25 23:16:10,794   [LEFT OVERRIDE] J0 forcing W-left (starved 50 decisions)
+2026-05-25 23:16:10,795   SWITCH  step= 1540  J0        N-left -> W-left        q=16  conf=0.42
+2026-05-25 23:16:10,795   SWITCH  step= 1540  J1        S-left -> W-left        q=18  conf=0.58
+2026-05-25 23:16:10,796   SWITCH  step= 1540  J2        N-left -> E-left        q=10  conf=0.28
+2026-05-25 23:16:10,796   [LEFT OVERRIDE] J3 forcing E-left (starved 50 decisions)
+2026-05-25 23:16:10,797   SWITCH  step= 1540  J3        S-left -> E-left        q=20  conf=0.34
+2026-05-25 23:16:10,798 step= 1540 | J0:N-left->W-left(q=16,conf=0.42)  J1:S-left->W-left(q=18,conf=0.58)  J2:N-left->E-left(q=10,conf=0.28)  J3:S-left->E-left(q=20,conf=0.34)  J4:S-left  S-left(q=16,conf=0.42)
+2026-05-25 23:16:11,004   SWITCH  step= 1550  J0        W-left -> N-left        q=14  conf=0.28
+2026-05-25 23:16:11,005   [LEFT OVERRIDE] J2 forcing W-left (starved 34 decisions)
+2026-05-25 23:16:11,005   SWITCH  step= 1550  J2        E-left -> W-left        q=18  conf=0.36
+2026-05-25 23:16:11,005   [LEFT OVERRIDE] J3 forcing N-left (starved 43 decisions)
+2026-05-25 23:16:11,006   SWITCH  step= 1550  J3        E-left -> N-left        q=14  conf=0.25
+2026-05-25 23:16:11,006   [STARVE OVERRIDE] J4 forcing NS-through after 8 left-only decisions
+2026-05-25 23:16:11,006   [LEFT OVERRIDE] J4 forcing N-left (starved 48 decisions)
+2026-05-25 23:16:11,006   SWITCH  step= 1550  J4        S-left -> N-left        q=18  conf=0.32
+2026-05-25 23:16:11,006 step= 1550 | J0:W-left->N-left(q=14,conf=0.28)  J1:W-left  W-left(q=18,conf=0.28)  J2:E-left->W-left(q=18,conf=0.36)  J3:E-left->N-left(q=14,conf=0.25)  J4:S-left->N-left(q=18,conf=0.32)
+2026-05-25 23:16:11,220   [LEFT OVERRIDE] J0 forcing S-left (starved 51 decisions)
+2026-05-25 23:16:11,221   SWITCH  step= 1560  J0        N-left -> S-left        q=14  conf=0.23
+2026-05-25 23:16:11,221   [STARVE OVERRIDE] J1 forcing NS-through after 8 left-only decisions
+2026-05-25 23:16:11,221   [LEFT OVERRIDE] J1 forcing E-left (starved 21 decisions)
+2026-05-25 23:16:11,222   SWITCH  step= 1560  J1        W-left -> E-left        q=18  conf=0.25
+2026-05-25 23:16:11,222   SWITCH  step= 1560  J2        W-left -> EW-through    q=22  conf=0.28
+2026-05-25 23:16:11,223   SWITCH  step= 1560  J3        N-left -> EW-through    q=14  conf=0.27
+2026-05-25 23:16:11,223   [LEFT OVERRIDE] J4 forcing E-left (starved 48 decisions)
+2026-05-25 23:16:11,223   SWITCH  step= 1560  J4        N-left -> E-left        q=14  conf=0.32
+2026-05-25 23:16:11,223 step= 1560 | J0:N-left->S-left(q=14,conf=0.23)  J1:W-left->E-left(q=18,conf=0.25)  J2:W-left->EW-through(q=22,conf=0.28)  J3:N-left->EW-through(q=14,conf=0.27)  J4:N-left->E-left(q=14,conf=0.32)
+2026-05-25 23:16:11,401   SWITCH  step= 1570  J1        E-left -> NS-through    q=15  conf=0.25
+2026-05-25 23:16:11,402   [DIR OVERRIDE] J2 forcing NS-through (starved 10 decisions, ns_q=8)
+2026-05-25 23:16:11,402   SWITCH  step= 1570  J2    EW-through -> NS-through    q=27  conf=0.30
+2026-05-25 23:16:11,403   SWITCH  step= 1570  J4        E-left -> W-left        q=10  conf=0.56
+2026-05-25 23:16:11,404 step= 1570 | J0:S-left  S-left(q=10,conf=0.39)  J1:E-left->NS-through(q=15,conf=0.25)  J2:EW-through->NS-through(q=27,conf=0.30)  J3:EW-through  EW-through(q=8,conf=0.25)  J4:E-left->W-left(q=10,conf=0.56)
+2026-05-25 23:16:11,553   SWITCH  step= 1580  J1    NS-through -> N-left        q=8  conf=0.29
+2026-05-25 23:16:11,554   SWITCH  step= 1580  J2    NS-through -> W-left        q=20  conf=0.34
+2026-05-25 23:16:11,554   SWITCH  step= 1580  J3    EW-through -> W-left        q=10  conf=0.26
+2026-05-25 23:16:11,555 step= 1580 | J0:S-left  S-left(q=10,conf=0.40)  J1:NS-through->N-left(q=8,conf=0.29)  J2:NS-through->W-left(q=20,conf=0.34)  J3:EW-through->W-left(q=10,conf=0.26)  J4:W-left  W-left(q=9,conf=0.87)
+2026-05-25 23:16:11,811   SWITCH  step= 1590  J1        N-left -> E-left        q=3  conf=0.43
+2026-05-25 23:16:11,813 step= 1590 | J0:S-left  S-left(q=8,conf=0.32)  J1:N-left->E-left(q=3,conf=0.43)  J2:W-left  W-left(q=14,conf=0.28)  J3:W-left  W-left(q=14,conf=0.40)  J4:W-left  W-left(q=8,conf=0.67)
+2026-05-25 23:16:11,994   SWITCH  step= 1600  J0        S-left -> EW-through    q=6  conf=0.36
+2026-05-25 23:16:11,996   [LEFT OVERRIDE] J2 forcing S-left (starved 55 decisions)
+2026-05-25 23:16:11,996   SWITCH  step= 1600  J2        W-left -> S-left        q=15  conf=0.28
+2026-05-25 23:16:11,997 step= 1600 | J0:S-left->EW-through(q=6,conf=0.36)  J1:E-left  E-left(q=2,conf=0.46)  J2:W-left->S-left(q=15,conf=0.28)  J3:W-left  W-left(q=14,conf=0.25)  J4:W-left  W-left(q=6,conf=0.61)
+2026-05-25 23:16:12,194   SWITCH  step= 1610  J0    EW-through -> E-left        q=0  conf=0.29
+2026-05-25 23:16:12,196   SWITCH  step= 1610  J2        S-left -> E-left        q=12  conf=0.32
+2026-05-25 23:16:12,197   SWITCH  step= 1610  J3        W-left -> EW-through    q=10  conf=0.24
+2026-05-25 23:16:12,198   SWITCH  step= 1610  J4        W-left -> EW-through    q=6  conf=0.54
+2026-05-25 23:16:12,198 step= 1610 | J0:EW-through->E-left(q=0,conf=0.29)  J1:E-left  E-left(q=2,conf=0.46)  J2:S-left->E-left(q=12,conf=0.32)  J3:W-left->EW-through(q=10,conf=0.24)  J4:W-left->EW-through(q=6,conf=0.54)
+2026-05-25 23:16:12,356   SWITCH  step= 1620  J3    EW-through -> NS-through    q=10  conf=0.28
+2026-05-25 23:16:12,357 step= 1620 | J0:E-left  E-left(q=4,conf=0.63)  J1:E-left  E-left(q=2,conf=0.48)  J2:E-left  E-left(q=6,conf=0.38)  J3:EW-through->NS-through(q=10,conf=0.28)  J4:EW-through  EW-through(q=4,conf=0.36)
+2026-05-25 23:16:12,498   [DIR OVERRIDE] J1 forcing EW-through (starved 10 decisions, ew_q=2)
+2026-05-25 23:16:12,500   SWITCH  step= 1630  J1        E-left -> EW-through    q=3  conf=0.42
+2026-05-25 23:16:12,501   SWITCH  step= 1630  J3    NS-through -> N-left        q=3  conf=0.54
+2026-05-25 23:16:12,501   SWITCH  step= 1630  J4    EW-through -> W-left        q=3  conf=0.65
+2026-05-25 23:16:12,501 step= 1630 | J0:E-left  E-left(q=6,conf=0.59)  J1:E-left->EW-through(q=3,conf=0.42)  J2:E-left  E-left(q=8,conf=0.27)  J3:NS-through->N-left(q=3,conf=0.54)  J4:EW-through->W-left(q=3,conf=0.65)
+2026-05-25 23:16:12,629   SWITCH  step= 1640  J1    EW-through -> E-left        q=6  conf=0.42
+2026-05-25 23:16:12,630   SWITCH  step= 1640  J2        E-left -> EW-through    q=8  conf=0.21
+2026-05-25 23:16:12,631   SWITCH  step= 1640  J3        N-left -> W-left        q=2  conf=0.36
+2026-05-25 23:16:12,631 step= 1640 | J0:E-left  E-left(q=3,conf=0.58)  J1:EW-through->E-left(q=6,conf=0.42)  J2:E-left->EW-through(q=8,conf=0.21)  J3:N-left->W-left(q=2,conf=0.36)  J4:W-left  W-left(q=2,conf=0.58)
+2026-05-25 23:16:12,786   [STARVE OVERRIDE] J1 forcing NS-through after 8 left-only decisions
+2026-05-25 23:16:12,787   SWITCH  step= 1650  J1        E-left -> NS-through    q=6  conf=0.43
+2026-05-25 23:16:12,787   SWITCH  step= 1650  J2    EW-through -> NS-through    q=6  conf=0.30
+2026-05-25 23:16:12,788   [DIR OVERRIDE] J4 forcing NS-through (starved 10 decisions, ns_q=1)
+2026-05-25 23:16:12,788   SWITCH  step= 1650  J4        W-left -> NS-through    q=3  conf=0.79
+2026-05-25 23:16:12,788 step= 1650 | J0:E-left  E-left(q=2,conf=0.59)  J1:E-left->NS-through(q=6,conf=0.43)  J2:EW-through->NS-through(q=6,conf=0.30)  J3:W-left  W-left(q=2,conf=0.42)  J4:W-left->NS-through(q=3,conf=0.79)
+2026-05-25 23:16:12,941   SWITCH  step= 1660  J0        E-left -> EW-through    q=0  conf=0.45
+2026-05-25 23:16:12,943   SWITCH  step= 1660  J1    NS-through -> N-left        q=2  conf=0.32
+2026-05-25 23:16:12,943   SWITCH  step= 1660  J2    NS-through -> S-left        q=3  conf=0.33
+2026-05-25 23:16:12,944   SWITCH  step= 1660  J3        W-left -> NS-through    q=0  conf=0.43
+2026-05-25 23:16:12,945   SWITCH  step= 1660  J4    NS-through -> W-left        q=4  conf=0.87
+2026-05-25 23:16:12,945 step= 1660 | J0:E-left->EW-through(q=0,conf=0.45)  J1:NS-through->N-left(q=2,conf=0.32)  J2:NS-through->S-left(q=3,conf=0.33)  J3:W-left->NS-through(q=0,conf=0.43)  J4:NS-through->W-left(q=4,conf=0.87)
+2026-05-25 23:16:13,058   SWITCH  step= 1670  J2        S-left -> EW-through    q=3  conf=0.45
+2026-05-25 23:16:13,059 step= 1670 | J0:EW-through  EW-through(q=0,conf=0.64)  J1:N-left  N-left(q=2,conf=0.38)  J2:S-left->EW-through(q=3,conf=0.45)  J3:NS-through  NS-through(q=0,conf=0.40)  J4:W-left  W-left(q=3,conf=0.77)
+2026-05-25 23:16:13,274 step= 1680 | J0:EW-through  EW-through(q=0,conf=0.68)  J1:N-left  N-left(q=2,conf=0.67)  J2:EW-through  EW-through(q=2,conf=0.61)  J3:NS-through  NS-through(q=0,conf=0.62)  J4:W-left  W-left(q=2,conf=0.92)
+2026-05-25 23:16:13,441 step= 1690 | J0:EW-through  EW-through(q=0,conf=0.72)  J1:N-left  N-left(q=2,conf=0.74)  J2:EW-through  EW-through(q=2,conf=0.64)  J3:NS-through  NS-through(q=0,conf=0.66)  J4:W-left  W-left(q=2,conf=0.92)
+2026-05-25 23:16:13,570   [STARVE OVERRIDE] J4 forcing NS-through after 8 left-only decisions
+2026-05-25 23:16:13,571   SWITCH  step= 1700  J4        W-left -> NS-through    q=0  conf=0.76
+2026-05-25 23:16:13,572 step= 1700 | J0:EW-through  EW-through(q=0,conf=0.71)  J1:N-left  N-left(q=2,conf=0.76)  J2:EW-through  EW-through(q=2,conf=0.66)  J3:NS-through  NS-through(q=0,conf=0.69)  J4:W-left->NS-through(q=0,conf=0.76)
+2026-05-25 23:16:13,738   SWITCH  step= 1710  J1        N-left -> EW-through    q=2  conf=0.40
+2026-05-25 23:16:13,740   SWITCH  step= 1710  J4    NS-through -> W-left        q=0  conf=0.72
+2026-05-25 23:16:13,740 step= 1710 | J0:EW-through  EW-through(q=0,conf=0.68)  J1:N-left->EW-through(q=2,conf=0.40)  J2:EW-through  EW-through(q=2,conf=0.64)  J3:NS-through  NS-through(q=0,conf=0.69)  J4:NS-through->W-left(q=0,conf=0.72)
+2026-05-25 23:16:13,869   SWITCH  step= 1720  J1    EW-through -> E-left        q=0  conf=0.27
+2026-05-25 23:16:13,871 step= 1720 | J0:EW-through  EW-through(q=0,conf=0.79)  J1:EW-through->E-left(q=0,conf=0.27)  J2:EW-through  EW-through(q=2,conf=0.72)  J3:NS-through  NS-through(q=0,conf=0.71)  J4:W-left  W-left(q=0,conf=0.73)
+2026-05-25 23:16:14,006   SWITCH  step= 1730  J1        E-left -> N-left        q=0  conf=0.72
+2026-05-25 23:16:14,008 step= 1730 | J0:EW-through  EW-through(q=0,conf=0.56)  J1:E-left->N-left(q=0,conf=0.72)  J2:EW-through  EW-through(q=2,conf=0.54)  J3:NS-through  NS-through(q=0,conf=0.71)  J4:W-left  W-left(q=0,conf=0.73)
+2026-05-25 23:16:14,177 step= 1740 | J0:EW-through  EW-through(q=0,conf=0.68)  J1:N-left  N-left(q=0,conf=0.81)  J2:EW-through  EW-through(q=2,conf=0.61)  J3:NS-through  NS-through(q=0,conf=0.70)  J4:W-left  W-left(q=0,conf=0.71)
+2026-05-25 23:16:14,356   [DIR OVERRIDE] J2 forcing NS-through (starved 10 decisions, ns_q=1)
+2026-05-25 23:16:14,357   SWITCH  step= 1750  J2    EW-through -> NS-through    q=2  conf=0.60
+2026-05-25 23:16:14,358 step= 1750 | J0:EW-through  EW-through(q=0,conf=0.68)  J1:N-left  N-left(q=0,conf=0.72)  J2:EW-through->NS-through(q=2,conf=0.60)  J3:NS-through  NS-through(q=0,conf=0.68)  J4:W-left  W-left(q=0,conf=0.67)
+2026-05-25 23:16:14,469   SWITCH  step= 1760  J0    EW-through -> NS-through    q=0  conf=0.43
+2026-05-25 23:16:14,471   SWITCH  step= 1760  J2    NS-through -> EW-through    q=0  conf=0.66
+2026-05-25 23:16:14,472   SWITCH  step= 1760  J3    NS-through -> EW-through    q=0  conf=0.44
+2026-05-25 23:16:14,473   SWITCH  step= 1760  J4        W-left -> EW-through    q=0  conf=0.65
+2026-05-25 23:16:14,473 step= 1760 | J0:EW-through->NS-through(q=0,conf=0.43)  J1:N-left  N-left(q=0,conf=0.66)  J2:NS-through->EW-through(q=0,conf=0.66)  J3:NS-through->EW-through(q=0,conf=0.44)  J4:W-left->EW-through(q=0,conf=0.65)
+2026-05-25 23:16:14,596 step= 1770 | J0:NS-through  NS-through(q=0,conf=0.35)  J1:N-left  N-left(q=0,conf=0.65)  J2:EW-through  EW-through(q=0,conf=0.67)  J3:EW-through  EW-through(q=0,conf=0.42)  J4:EW-through  EW-through(q=0,conf=0.56)
+2026-05-25 23:16:14,647 
+2026-05-25 23:16:14,647   ── Decision summary at step 1770 (total decisions: 177) ──
+2026-05-25 23:16:14,647   Junction      NS-through        N-left        S-left    EW-through        E-left        W-left
+2026-05-25 23:16:14,647   ----------------------------------------------------------------------------------------------
+2026-05-25 23:16:14,648   J0            19(  11%)    11(   6%)     7(   4%)   107(  62%)    24(  14%)     4(   2%)
+2026-05-25 23:16:14,648   J1            27(  16%)    95(  55%)     3(   2%)     5(   3%)    32(  18%)    12(   7%)
+2026-05-25 23:16:14,648   J2            22(  13%)     6(   4%)     4(   2%)   107(  63%)    20(  12%)    10(   6%)
+2026-05-25 23:16:14,648   J3           108(  62%)    10(   6%)     9(   5%)    30(  17%)     4(   2%)    13(   7%)
+2026-05-25 23:16:14,648   J4             5(   3%)     4(   2%)    14(   8%)    41(  24%)     4(   2%)   105(  61%)
+2026-05-25 23:16:14,648 
+2026-05-25 23:16:14,648   Log saved to: /home/ekene/Projects/traf_gov_last/logs/decisions_live.log
