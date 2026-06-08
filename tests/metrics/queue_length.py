@@ -25,15 +25,23 @@ def compute_queue_length(sumo_output_dir: Union[str, Path]) -> dict:
 
     # Primary: inline metrics
     inline_path = out / "inline_metrics.json"
-    per_junction = {}
+    per_junction = {}        # halting (< 0.1 m/s) — SUMO's strict "stopped"
+    per_junction_slow = {}   # crawl-aware (< slow threshold) — fair vs roundabouts
     if inline_path.exists():
         data = json.loads(inline_path.read_text(encoding="utf-8"))
         for tls_id, q in data.get("junction_queue", {}).items():
             per_junction[tls_id] = q.get("mean_halting_total", 0.0)
+            # fall back to halting if a run predates the slow-queue tracking
+            per_junction_slow[tls_id] = q.get("mean_slow_total",
+                                              q.get("mean_halting_total", 0.0))
 
     mean_total = (
         sum(per_junction.values()) / len(per_junction)
         if per_junction else 0.0
+    )
+    mean_slow = (
+        sum(per_junction_slow.values()) / len(per_junction_slow)
+        if per_junction_slow else 0.0
     )
 
     # Supplementary: queue.xml for lane-level data
@@ -59,8 +67,10 @@ def compute_queue_length(sumo_output_dir: Union[str, Path]) -> dict:
             pass
 
     return {
-        "mean_halting_per_junction": mean_total,
+        "mean_halting_per_junction": mean_total,        # < 0.1 m/s (strict)
+        "mean_slow_per_junction": mean_slow,            # < slow threshold (crawl-aware)
         "per_junction": per_junction,
+        "per_junction_slow": per_junction_slow,
         "lane_queue_from_xml": lane_queue,
     }
 

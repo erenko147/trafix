@@ -55,7 +55,8 @@
       "Read(//run/postgresql/**)",
       "Bash(psql -U ekene -d postgres -c \"SELECT version\\(\\);\")",
       "Bash(.venv/bin/python *)",
-      "Bash(find /home/ekene/Projects/traf_gov_last/tests/outputs/type1* -maxdepth 1 -type f)"
+      "Bash(find /home/ekene/Projects/traf_gov_last/tests/outputs/type1* -maxdepth 1 -type f)",
+      "Bash(break)"
     ]
   }
 }

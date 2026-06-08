@@ -70,14 +70,15 @@ LOWER_BETTER = {
     "co2_per_vehicle_mg": True, "fuel_per_vehicle_L": True,
     "stops_per_vehicle": True, "fairness_variance": True,
     "arrived_vehicles": False, "vehicles_still_running": True,
+    "not_inserted": True, "cars_not_completed": True, "completion_rate_pct": False,
     "NOx_total_mg": True, "teleports": True,
 }
 
 METRIC_LABEL = {
-    "waiting_time_s":       "Mean Waiting Time (s)",
-    "travel_time_s":        "Mean Travel Time (s)",
-    "time_loss_s":          "Mean Time Loss (s)",
-    "queue_length":         "Queue Length (halting veh / junction)",
+    "waiting_time_s":       "Mean Waiting Time (s) — incl. stuck cars",
+    "travel_time_s":        "Mean Travel Time (s) — incl. stuck cars",
+    "time_loss_s":          "Mean Time Loss (s) — incl. stuck cars",
+    "queue_length":         "Queue Length (slow-moving veh / junction, < 5 km/h)",
     "throughput_veh_hr":    "Throughput (veh / hr)",
     "network_speed_ms":     "Mean Network Speed (m/s)",
     "co2_per_vehicle_mg":   "CO₂ per Vehicle (mg)",
@@ -86,11 +87,15 @@ METRIC_LABEL = {
     "fairness_variance":    "Fairness Variance (waiting time)",
     "arrived_vehicles":     "Cars Completed Trip",
     "vehicles_still_running": "Cars Still in Network at End",
+    "not_inserted":         "Cars Never Inserted (fringe gridlock)",
+    "cars_not_completed":   "Cars NOT Completed (stuck + never inserted)",
+    "completion_rate_pct":  "Trip Completion Rate (%)",
     "NOx_total_mg":         "NOx Total (mg)",
     "teleports":            "Teleports",
 }
 
 KEY_METRICS = [
+    "completion_rate_pct", "cars_not_completed",
     "waiting_time_s", "travel_time_s", "time_loss_s",
     "queue_length", "network_speed_ms", "throughput_veh_hr",
     "arrived_vehicles", "vehicles_still_running",
@@ -316,32 +321,37 @@ def fig_cars_completed(data: dict, charts_dir: Path):
     for i, ctrl in enumerate(CTRL_ORDER):
         arrived  = [data.get(lv, {}).get(ctrl, {}).get("arrived_vehicles", 0)        for lv in LEVELS]
         still_in = [data.get(lv, {}).get(ctrl, {}).get("vehicles_still_running", 0)  for lv in LEVELS]
+        never_in = [data.get(lv, {}).get(ctrl, {}).get("not_inserted", 0)            for lv in LEVELS]
         offset   = (i - (n_ctrl - 1) / 2) * w
 
         ax.bar(xi + offset, arrived, w,
                label=f"{CTRL_LABEL[ctrl]} — completed",
                color=C[ctrl], edgecolor="white", zorder=3)
         ax.bar(xi + offset, still_in, w, bottom=arrived,
-               label=f"{CTRL_LABEL[ctrl]} — still in network",
-               color=C[ctrl], alpha=0.3, edgecolor="white", hatch="//", zorder=3)
+               color=C[ctrl], alpha=0.35, edgecolor="white", hatch="//", zorder=3)
+        bottom2 = [a + s for a, s in zip(arrived, still_in)]
+        ax.bar(xi + offset, never_in, w, bottom=bottom2,
+               color=C[ctrl], alpha=0.18, edgecolor="white", hatch="xx", zorder=3)
 
-        for j, (arr, sti) in enumerate(zip(arrived, still_in)):
-            total = arr + sti
+        for j in range(len(LEVELS)):
+            total = arrived[j] + still_in[j] + never_in[j]
             if total > 0:
+                pct = arrived[j] / total * 100.0
                 ax.text(xi[j] + offset, total + total * 0.01,
-                        str(int(arr)), ha="center", va="bottom",
-                        fontsize=6, color=C[ctrl], fontweight="bold", zorder=4)
+                        f"{int(arrived[j])}\n{pct:.0f}%", ha="center", va="bottom",
+                        fontsize=5.5, color=C[ctrl], fontweight="bold", zorder=4)
 
     ax.set_xticks(xi)
     ax.set_xticklabels(xlbls, fontsize=9)
     ax.set_ylabel("Vehicles", fontsize=10)
     ax.set_title(
-        "Cars Completed Trip (solid) vs Still in Network at Sim End (hatched)\n"
-        "Numbers above bars = completed count",
+        "Cars Completed (solid) vs Stuck in Network (//) vs Never Inserted (xx)\n"
+        "Numbers above bars = completed count and completion %",
         fontsize=10, fontweight="bold")
 
     handles = [mpatches.Patch(color=C[c], label=CTRL_LABEL[c]) for c in CTRL_ORDER]
-    handles += [mpatches.Patch(facecolor="grey", alpha=0.3, hatch="//", label="Still in network")]
+    handles += [mpatches.Patch(facecolor="grey", alpha=0.35, hatch="//", label="Stuck in network"),
+                mpatches.Patch(facecolor="grey", alpha=0.18, hatch="xx", label="Never inserted")]
     ax.legend(handles=handles, fontsize=8, loc="upper left", ncol=2)
     ax.yaxis.grid(True, ls="--", alpha=0.4, zorder=0)
     ax.set_axisbelow(True)

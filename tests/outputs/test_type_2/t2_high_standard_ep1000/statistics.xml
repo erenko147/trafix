@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-06-08T22:05:09.972568+03:00 by Eclipse SUMO sumo v1_27_0+0071-51792f6ed79
+<sumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="/home/ekene/Projects/traf_gov_last/sumo/map.net.xml"/>
+        <route-files value="/home/ekene/Projects/traf_gov_last/tests/scenarios/test_type_2_junction_comparison/high.rou.xml"/>
+    </input>
+
+    <output>
+        <queue-output value="/home/ekene/Projects/traf_gov_last/tests/outputs/test_type_2/t2_high_standard_ep1000/queue.xml"/>
+        <summary-output value="/home/ekene/Projects/traf_gov_last/tests/outputs/test_type_2/t2_high_standard_ep1000/summary.xml"/>
+        <tripinfo-output value="/home/ekene/Projects/traf_gov_last/tests/outputs/test_type_2/t2_high_standard_ep1000/tripinfo.xml"/>
+        <statistic-output value="/home/ekene/Projects/traf_gov_last/tests/outputs/test_type_2/t2_high_standard_ep1000/statistics.xml"/>
+    </output>
+
+    <time>
+        <begin value="0"/>
+        <end value="3600"/>
+        <step-length value="1.0"/>
+    </time>
+
+    <processing>
+        <time-to-teleport value="-1"/>
+        <time-to-teleport.highways value="-1"/>
+        <waiting-time-memory value="1000"/>
+    </processing>
+
+    <report>
+        <no-warnings value="true"/>
+    </report>
+
+    <emissions>
+        <emissions.volumetric-fuel value="true"/>
+        <device.emissions.probability value="1.0"/>
+    </emissions>
+
+    <traci_server>
+        <remote-port value="37703"/>
+    </traci_server>
+
+    <random_number>
+        <seed value="42"/>
+    </random_number>
+
+</sumoConfiguration>
+-->
+
+<statistics xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/statistic_file.xsd">
+    <performance clockBegin="1780945509.97" clockEnd="1780945523.90" clockDuration="13.93" traciDuration="13.21" realTimeFactor="258.51" vehicleUpdatesPerSecond="7346.69" personUpdatesPerSecond="0.00" begin="0.00" end="3600.00" duration="3600.00"/>
+    <vehicles loaded="966" inserted="966" running="21" waiting="0"/>
+    <teleports total="0" jam="0" yield="0" wrongLane="0"/>
+    <safety collisions="0" emergencyStops="0" emergencyBraking="0"/>
+    <persons loaded="0" running="0" jammed="0"/>
+    <personTeleports total="0" abortWait="0" wrongDest="0"/>
+    <vehicleTripStatistics count="945" routeLength="647.23" speed="7.05" duration="107.19" waitingTime="43.30" timeLoss="58.71" departDelay="1.00" departDelayWaiting="-1.00" totalTravelTime="101290.00" totalDepartDelay="947.55"/>
+    <pedestrianStatistics number="0" routeLength="0.00" duration="0.00" timeLoss="0.00"/>
+    <rideStatistics number="0"/>
+    <transportStatistics number="0"/>
+</statistics>

@@ -124,6 +124,10 @@ def main():
     parser.add_argument("--gui", action="store_true")
     parser.add_argument("--analysis-only", action="store_true",
                         help="Skip simulations; load manifest from disk and re-run analysis")
+    parser.add_argument("--no-reuse", action="store_true",
+                        help="Run every standard controller fresh (do NOT reuse "
+                             "outputs from other suites). Guarantees a fully fresh, "
+                             "self-consistent Test Type 2 report.")
     args = parser.parse_args()
 
     _check_prerequisites()
@@ -185,7 +189,8 @@ def main():
 
             # ── Standard controllers (reuse if possible) ───────────────────────
             for ctrl_key, sumo_mode, ckpt_suffix, run_all_suffix in _STANDARD_CONTROLLERS:
-                existing = _find_standard_output(level, ckpt_suffix, run_all_suffix)
+                existing = None if args.no_reuse else _find_standard_output(
+                    level, ckpt_suffix, run_all_suffix)
 
                 if existing:
                     source = "reused"

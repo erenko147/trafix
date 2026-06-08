@@ -50,10 +50,13 @@ def _extract_all_metrics(out_dir: str, sim_duration_s: int = 3600) -> Dict[str, 
     m["waiting_time_s"]          = r["mean_waiting_time_s"]
 
     r = compute_queue_length(d)
-    m["queue_length_vehicles"]   = r["mean_halting_per_junction"]
+    m["queue_length_vehicles"]   = r["mean_slow_per_junction"]   # crawl-aware (< 5 km/h)
 
     r = compute_throughput(d, sim_duration_s)
     m["throughput_veh_hr"]       = r["throughput_veh_per_hr"]
+    m["cars_not_completed"]      = float(r["cars_not_completed"])
+    m["completion_rate_pct"]     = float(r["completion_rate"]) * 100.0
+    m["vehicles_still_running"]  = float(r["vehicles_still_running"])
 
     r = compute_network_speed(d)
     m["network_speed_ms"]        = r["mean_speed_ms"]
@@ -87,6 +90,7 @@ _LOWER_IS_BETTER = {
     "travel_time_s": True, "co2_mg_per_vehicle": True, "co2_total_mg": True,
     "waiting_time_s": True, "queue_length_vehicles": True,
     "throughput_veh_hr": False, "network_speed_ms": False,
+    "cars_not_completed": True, "completion_rate_pct": False, "vehicles_still_running": True,
     "teleports": True, "time_loss_s": True, "fuel_per_vehicle_L": True,
     "NOx_total_mg": True, "PMx_total_mg": True, "HC_total_mg": True, "CO_total_mg": True,
     "stops_per_vehicle": True, "fairness_variance": True,

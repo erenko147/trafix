@@ -67,6 +67,71 @@ _SUMO_TO_MODEL_PHASE  = {0: 0, 1: 0, 2: 1, 3: 1, 4: 2, 5: 2,
 _GRIDLOCK_SPEED_THRESHOLD = 0.5   # m/s
 _GRIDLOCK_DURATION_S      = 300   # simulated seconds
 
+# Queue metric: a vehicle counts as "queued" if it is crawling below this speed.
+# SUMO's getLastStepHaltingNumber only counts < 0.1 m/s (fully stopped), which
+# systematically undercounts roundabout congestion (roundabout traffic crawls
+# continuously rather than fully stopping). 1.39 m/s = 5 km/h.
+_QUEUE_SLOW_SPEED_MS = 1.39
+
+# ── Live-runner safety overrides (ported verbatim from sumo/run_sumo_live.py) ──
+# Production applies these starvation overrides ON TOP of the model + governor.
+# Without them the bare greedy (argmax) policy can lock a junction onto one phase
+# and gridlock at low demand — so to measure the controller that actually ships,
+# the AI test path must include them too.
+_STARVE_LIMIT           = 8    # consecutive non-through decisions → force a through
+_DIRECTION_STARVE_LIMIT = 10   # one through direction monopolises → force the other
+_LEFT_STARVE_LIMIT      = 15   # left phase with demand unserved this long → force it
+_LEFT_DEMAND_KEYS = {1: ["north_left"], 2: ["south_left"],
+                     4: ["east_left"],  5: ["west_left"]}
+
+
+def _apply_starvation_overrides(tls_id, model_phase, o, dst, dsn, dse, dsl):
+    """
+    Mirror of the per-decision overrides in run_sumo_live.py. Mutates the counter
+    dicts in place and returns the (possibly forced) model phase.
+      dst = decisions_since_through, dsn/dse = since NS/EW, dsl = since each left.
+    """
+    # Through-phase starvation: too many left-only decisions → force busier through
+    if model_phase in (0, 3):
+        dst[tls_id] = 0
+    else:
+        dst[tls_id] += 1
+        if dst[tls_id] >= _STARVE_LIMIT:
+            ns = o["north_through"] + o["south_through"]
+            ew = o["east_through"] + o["west_through"]
+            model_phase = 0 if ns >= ew else 3
+            dst[tls_id] = 0
+
+    # Direction starvation: one through direction monopolises while the other waits
+    dsn[tls_id] = 0 if model_phase == 0 else dsn[tls_id] + 1
+    dse[tls_id] = 0 if model_phase == 3 else dse[tls_id] + 1
+    ew_q = (o["east_through"] + o["west_through"] + o["east_left"]
+            + o["west_left"] + o["east_right"] + o["west_right"])
+    ns_q = (o["north_through"] + o["south_through"] + o["north_left"]
+            + o["south_left"] + o["north_right"] + o["south_right"])
+    if dse[tls_id] >= _DIRECTION_STARVE_LIMIT and ew_q > 0:
+        model_phase = 3
+        dse[tls_id] = 0
+    elif dsn[tls_id] >= _DIRECTION_STARVE_LIMIT and ns_q > 0:
+        model_phase = 0
+        dsn[tls_id] = 0
+
+    # Left-turn starvation: no governor rule ever forces a left, so guard it here
+    for lp in (1, 2, 4, 5):
+        dsl[tls_id][lp] = 0 if model_phase == lp else dsl[tls_id][lp] + 1
+    if model_phase not in (1, 2, 4, 5):
+        best_lp, best_wait = None, 0
+        for lp, keys in _LEFT_DEMAND_KEYS.items():
+            demand = sum(o.get(k, 0) for k in keys)
+            wait   = dsl[tls_id][lp]
+            if wait >= _LEFT_STARVE_LIMIT and demand > 0 and wait > best_wait:
+                best_lp, best_wait = lp, wait
+        if best_lp is not None:
+            model_phase = best_lp
+            dsl[tls_id][best_lp] = 0
+
+    return model_phase
+
 
 # ── Observation helper (mirrors SumoEnvironment.get_observations) ─────────────
 
@@ -144,9 +209,24 @@ class _InlineTracker:
             tls_id: {e: [] for e in edges}
             for tls_id, edges in tls_incoming.items()
         }
+        # crawl-aware queue: count vehicles below _QUEUE_SLOW_SPEED_MS, not just
+        # the fully-stopped (< 0.1 m/s) ones SUMO reports as "halting".
+        self._edge_slow: Dict[str, Dict[str, List[int]]] = {
+            tls_id: {e: [] for e in edges}
+            for tls_id, edges in tls_incoming.items()
+        }
+        # reverse map edge_id -> tls_id, so a single pass over all vehicles can
+        # bucket slow cars onto the right junction (cheaper than per-edge queries)
+        self._edge_to_tls: Dict[str, str] = {}
+        for tls_id, edges in tls_incoming.items():
+            for e in edges:
+                self._edge_to_tls[e] = tls_id
 
     def update(self):
-        # stops per vehicle
+        # per-step slow-vehicle counts per tracked incoming edge
+        step_slow: Dict[str, int] = {e: 0 for e in self._edge_to_tls}
+
+        # stops per vehicle (+ accumulate slow counts in the same pass)
         for veh_id in traci.vehicle.getIDList():
             speed = traci.vehicle.getSpeed(veh_id)
             is_stopped = speed < 0.1
@@ -157,6 +237,14 @@ class _InlineTracker:
                 self._stop_counts[veh_id] += 1
             self._was_stopped[veh_id] = is_stopped
 
+            if speed < _QUEUE_SLOW_SPEED_MS:
+                try:
+                    road = traci.vehicle.getRoadID(veh_id)
+                except Exception:
+                    road = ""
+                if road in step_slow:
+                    step_slow[road] += 1
+
         # junction waiting / queue
         for tls_id, edges in self.tls_incoming.items():
             for edge_id in edges:
@@ -166,6 +254,9 @@ class _InlineTracker:
                     )
                     self._edge_halt[tls_id][edge_id].append(
                         traci.edge.getLastStepHaltingNumber(edge_id)
+                    )
+                    self._edge_slow[tls_id][edge_id].append(
+                        step_slow.get(edge_id, 0)
                     )
                 except Exception:
                     pass
@@ -183,11 +274,14 @@ class _InlineTracker:
             edges       = self.tls_incoming.get(tls_id, [])
             per_edge_mw = {}
             per_edge_mq = {}
+            per_edge_ms = {}
             for edge_id in edges:
                 waits = self._edge_wait[tls_id].get(edge_id, [])
                 halts = self._edge_halt[tls_id].get(edge_id, [])
+                slows = self._edge_slow[tls_id].get(edge_id, [])
                 per_edge_mw[edge_id] = sum(waits) / len(waits) if waits else 0.0
                 per_edge_mq[edge_id] = sum(halts) / len(halts) if halts else 0.0
+                per_edge_ms[edge_id] = sum(slows) / len(slows) if slows else 0.0
 
             means = list(per_edge_mw.values())
             if len(means) >= 2:
@@ -205,6 +299,9 @@ class _InlineTracker:
             junction_queue[tls_id] = {
                 "per_approach_mean_halting": per_edge_mq,
                 "mean_halting_total": sum(per_edge_mq.values()),
+                "per_approach_mean_slow": per_edge_ms,
+                "mean_slow_total": sum(per_edge_ms.values()),
+                "slow_speed_threshold_ms": _QUEUE_SLOW_SPEED_MS,
             }
 
         network_fairness_variance = (
@@ -366,6 +463,12 @@ def run_simulation(
         window = deque([x0.detach()] * _T_WINDOW, maxlen=_T_WINDOW)
         governor.reset()
 
+    # Starvation-override counters (one set per junction), mirroring run_sumo_live.py
+    dec_since_through = {t: 0 for t in tls_ids}
+    dec_since_ns      = {t: 0 for t in tls_ids}
+    dec_since_ew      = {t: 0 for t in tls_ids}
+    dec_since_left    = {t: {p: 0 for p in (1, 2, 4, 5)} for t in tls_ids}
+
     # ── Inline metrics tracker ────────────────────────────────────────────────
     tracker = _InlineTracker(tls_ids, tls_incoming)
 
@@ -400,7 +503,6 @@ def run_simulation(
         # ── AI decision ───────────────────────────────────────────────────────
         if mode == "ai" and step >= next_decision:
             import torch
-            from trafix_v6.rule_governor import sample_governed
             obs       = _get_observations(tls_ids, phase_held_since, step)
             x         = parse_obs(obs, device=device)
             window.append(x.detach())
@@ -409,17 +511,36 @@ def run_simulation(
             with torch.no_grad():
                 logits_list, _ = model.forward(obs_input)
                 obs_last        = obs_input[0, -1]          # [J, D]
-                masked          = governor.apply_stateless(logits_list, obs_last)
-                actions, _      = sample_governed(masked)   # [1, J]
+                # Match production (backend/main.py): stateful governor (incl.
+                # anti-flicker) + GREEDY argmax. The deployed backend uses argmax,
+                # not sampling — sampling here would measure a different, noisier
+                # controller than the one that actually ships.
+                masked     = governor.apply(logits_list, obs_last)
+                actions_1d = torch.stack(
+                    [torch.argmax(l, dim=-1).reshape(()) for l in masked]
+                )                                            # [J], deterministic
 
-            actions_1d = actions.squeeze(0)          # [J]
+            # Governor flicker state tracks the governed argmax (matches the
+            # backend, which updates state BEFORE the runner's overrides apply).
             governor.update_state(actions_1d)
+
+            # Production safety net: apply the live-runner starvation overrides on
+            # top of the model+governor output. Counters update for EVERY junction
+            # each decision (even if actuation is blocked by an in-progress yellow),
+            # exactly as in run_sumo_live.py.
+            final_actions = []
+            for i, tls_id in enumerate(tls_ids):
+                mp = int(actions_1d[i].item()) % _NUM_PHASES
+                mp = _apply_starvation_overrides(
+                    tls_id, mp, obs[i],
+                    dec_since_through, dec_since_ns, dec_since_ew, dec_since_left)
+                final_actions.append(mp)
 
             # Apply actions with yellow transitions
             for i, tls_id in enumerate(tls_ids):
                 if yellow_remaining.get(tls_id, 0) > 0:
                     continue
-                model_action     = int(actions_1d[i].item()) % _NUM_PHASES
+                model_action     = final_actions[i]
                 target_sumo      = _MODEL_TO_SUMO_GREEN[model_action]
                 current_sumo     = traci.trafficlight.getPhase(tls_id)
                 if target_sumo == current_sumo:
@@ -447,8 +568,36 @@ def run_simulation(
         traci.simulationStep()
         step += 1
 
+    # ── Capture vehicles still in the network at sim end (NOT in tripinfo) ──────
+    # tripinfo.xml only records COMPLETED trips. A controller that gridlocks cars
+    # excludes their (huge) waiting/travel times from every average → survivorship
+    # bias. We record each still-running vehicle's accumulated time via TraCI so
+    # the time-based metrics can fold them back in.
+    unfinished = []
+    try:
+        for vid in traci.vehicle.getIDList():
+            try:
+                depart = float(traci.vehicle.getDeparture(vid))
+                unfinished.append({
+                    "id": vid,
+                    "depart": depart,
+                    "time_in_network_s": float(step) - depart if depart >= 0 else 0.0,
+                    "waiting_time_s": float(traci.vehicle.getAccumulatedWaitingTime(vid)),
+                    "time_loss_s": float(traci.vehicle.getTimeLoss(vid)),
+                })
+            except Exception:
+                pass
+    except Exception:
+        pass
+
     traci.close()
     _time.sleep(1)   # let SUMO process fully exit before next simulation starts
+
+    (out_dir / "unfinished_vehicles.json").write_text(
+        json.dumps({"sim_end_step": step, "count": len(unfinished),
+                    "vehicles": unfinished}, indent=2),
+        encoding="utf-8",
+    )
 
     # ── Save inline metrics ───────────────────────────────────────────────────
     inline = tracker.results()
@@ -469,5 +618,27 @@ def run_simulation(
     if _gridlock_detected:
         print(f"[{run_id}] *** GRIDLOCK DETECTED at step {_gridlock_step} ***")
 
-    print(f"[{run_id}] Done — outputs in {out_dir}")
+    # ── Teleport sanity check ─────────────────────────────────────────────────
+    # SUMO is launched with --time-to-teleport -1, so teleporting is DISABLED and
+    # this must be 0 for every run. If it is ever non-zero, the no-teleport
+    # guarantee broke and the run is invalid — surface it loudly.
+    teleports = 0
+    try:
+        import xml.etree.ElementTree as _ET
+        # statistics.xml carries the AUTHORITATIVE total. (summary.xml's teleports
+        # attribute is cumulative-per-step, so summing it overcounts massively.)
+        stats = out_dir / "statistics.xml"
+        if stats.exists():
+            el = _ET.parse(stats).getroot().find("teleports")
+            if el is not None:
+                teleports = int(el.get("total", 0))
+    except Exception:
+        pass
+    if teleports > 0:
+        print(f"[{run_id}] *** WARNING: {teleports} TELEPORTS — teleporting was "
+              f"supposed to be disabled (--time-to-teleport -1) ***")
+    else:
+        print(f"[{run_id}] teleports=0 (OK)")
+
+    print(f"[{run_id}] Done — {len(unfinished)} cars still in network — outputs in {out_dir}")
     return str(out_dir)

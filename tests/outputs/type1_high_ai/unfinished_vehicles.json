@@ -1,0 +1,167 @@
+{
+  "sim_end_step": 3600,
+  "count": 23,
+  "vehicles": [
+    {
+      "id": "f_E5_E10_0.35",
+      "depart": 3570.0,
+      "time_in_network_s": 30.0,
+      "waiting_time_s": 10.0,
+      "time_loss_s": 14.45543651155451
+    },
+    {
+      "id": "f_E5_E11_1.34",
+      "depart": 3469.0,
+      "time_in_network_s": 131.0,
+      "waiting_time_s": 65.0,
+      "time_loss_s": 76.89516600417635
+    },
+    {
+      "id": "f_E5_E11_1.35",
+      "depart": 3571.0,
+      "time_in_network_s": 29.0,
+      "waiting_time_s": 0.0,
+      "time_loss_s": 11.062481702824368
+    },
+    {
+      "id": "f_E5_E12_2.35",
+      "depart": 3573.0,
+      "time_in_network_s": 27.0,
+      "waiting_time_s": 0.0,
+      "time_loss_s": 12.909348144369096
+    },
+    {
+      "id": "f_E5_E13_3.35",
+      "depart": 3574.0,
+      "time_in_network_s": 26.0,
+      "waiting_time_s": 0.0,
+      "time_loss_s": 11.655650226532652
+    },
+    {
+      "id": "f_E6_E10_4.35",
+      "depart": 3570.0,
+      "time_in_network_s": 30.0,
+      "waiting_time_s": 0.0,
+      "time_loss_s": 3.6524200220069667
+    },
+    {
+      "id": "f_E6_E12_5.35",
+      "depart": 3570.0,
+      "time_in_network_s": 30.0,
+      "waiting_time_s": 2.0,
+      "time_loss_s": 10.22527439790714
+    },
+    {
+      "id": "f_E6_E14_6.35",
+      "depart": 3570.0,
+      "time_in_network_s": 30.0,
+      "waiting_time_s": 0.0,
+      "time_loss_s": 1.856954955822486
+    },
+    {
+      "id": "f_E7_E10_7.35",
+      "depart": 3570.0,
+      "time_in_network_s": 30.0,
+      "waiting_time_s": 17.0,
+      "time_loss_s": 19.913354681460753
+    },
+    {
+      "id": "f_E7_E11_8.35",
+      "depart": 3571.0,
+      "time_in_network_s": 29.0,
+      "waiting_time_s": 12.0,
+      "time_loss_s": 16.627711587139903
+    },
+    {
+      "id": "f_E7_E14_9.34",
+      "depart": 3470.0,
+      "time_in_network_s": 130.0,
+      "waiting_time_s": 71.0,
+      "time_loss_s": 87.76681288108873
+    },
+    {
+      "id": "f_E7_E14_9.35",
+      "depart": 3572.0,
+      "time_in_network_s": 28.0,
+      "waiting_time_s": 11.0,
+      "time_loss_s": 17.448270229311138
+    },
+    {
+      "id": "f_E8_E11_10.35",
+      "depart": 3570.0,
+      "time_in_network_s": 30.0,
+      "waiting_time_s": 0.0,
+      "time_loss_s": 4.256030912604319
+    },
+    {
+      "id": "f_E8_E12_11.34",
+      "depart": 3468.0,
+      "time_in_network_s": 132.0,
+      "waiting_time_s": 82.0,
+      "time_loss_s": 90.31650829542566
+    },
+    {
+      "id": "f_E8_E12_11.35",
+      "depart": 3570.0,
+      "time_in_network_s": 30.0,
+      "waiting_time_s": 0.0,
+      "time_loss_s": 5.547115195718444
+    },
+    {
+      "id": "f_E8_E13_12.34",
+      "depart": 3469.0,
+      "time_in_network_s": 131.0,
+      "waiting_time_s": 71.0,
+      "time_loss_s": 87.3806354805523
+    },
+    {
+      "id": "f_E8_E13_12.35",
+      "depart": 3571.0,
+      "time_in_network_s": 29.0,
+      "waiting_time_s": 0.0,
+      "time_loss_s": 6.2058268043050795
+    },
+    {
+      "id": "f_E9_E10_13.35",
+      "depart": 3570.0,
+      "time_in_network_s": 30.0,
+      "waiting_time_s": 16.0,
+      "time_loss_s": 19.39673147205538
+    },
+    {
+      "id": "f_E9_E11_14.35",
+      "depart": 3570.0,
+      "time_in_network_s": 30.0,
+      "waiting_time_s": 14.0,
+      "time_loss_s": 18.117950618463226
+    },
+    {
+      "id": "f_E9_E12_15.34",
+      "depart": 3470.0,
+      "time_in_network_s": 130.0,
+      "waiting_time_s": 84.0,
+      "time_loss_s": 103.05650682422751
+    },
+    {
+      "id": "f_E9_E12_15.35",
+      "depart": 3571.0,
+      "time_in_network_s": 29.0,
+      "waiting_time_s": 13.0,
+      "time_loss_s": 18.324056205283622
+    },
+    {
+      "id": "f_E9_E14_16.34",
+      "depart": 3472.0,
+      "time_in_network_s": 128.0,
+      "waiting_time_s": 66.0,
+      "time_loss_s": 90.78873687411333
+    },
+    {
+      "id": "f_E9_E14_16.35",
+      "depart": 3572.0,
+      "time_in_network_s": 28.0,
+      "waiting_time_s": 8.0,
+      "time_loss_s": 18.63040961614532
+    }
+  ]
+}

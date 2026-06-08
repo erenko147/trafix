@@ -53,8 +53,12 @@ for d in [_OUT_A, _OUT_B, _TMP]:
 R = 40.0
 
 # Number of lanes on the circulating ring road.
-# 2 lanes matches a typical Turkish major-road roundabout with 3-lane approaches.
-RING_LANES = 2
+# 3 lanes matches the 3-lane approaches 1:1, so approach→ring, ring→ring and
+# ring→exit are all strict same-lane connections with NO multi-lane merge. A
+# merge means two links target one lane, which SUMO flags "unsafe green" and
+# which causes the entering/circulating streams to collide. 1:1 avoids that
+# entirely → collision-free, no teleporting.
+RING_LANES = 3
 
 # Junction centres from sumo/map.net.xml
 JUNCTIONS = {
@@ -219,46 +223,34 @@ def write_con():
             r_in      = ring_in[suf]
             r_out     = ring_out[suf]
 
-            # 1. Approach → ring  (right lane → outer ring, left → inner ring)
+            # Strict 1:1 lane mapping everywhere (RING_LANES == approach lanes).
+            # No two links ever target the same lane → no "unsafe green" merge,
+            # no merge collisions, no teleporting. A car keeps its lane index all
+            # the way around the ring and can exit at any node in that same lane.
+
+            # 1. Approach lane i → ring lane i
             app_edge = _approach_edge_for(jid, suf)
             if app_edge:
                 app_lanes = _edge_lanes(app_edge)
-                # Lane 0 (right)  → outer ring lane (RING_LANES-1)
-                ET.SubElement(root, "connection",
-                              **{"from": app_edge, "to": ring_next},
-                              fromLane="0", toLane=str(RING_LANES - 1), pass_="1")
-                # Middle lane(s) → both ring lanes
-                for al in range(1, app_lanes - 1):
-                    for rl in range(RING_LANES):
-                        ET.SubElement(root, "connection",
-                                      **{"from": app_edge, "to": ring_next},
-                                      fromLane=str(al), toLane=str(rl), pass_="1")
-                # Lane (app_lanes-1) (left) → inner ring lane (0)
-                if app_lanes > 1:
+                for ln in range(min(app_lanes, RING_LANES)):
                     ET.SubElement(root, "connection",
                                   **{"from": app_edge, "to": ring_next},
-                                  fromLane=str(app_lanes - 1), toLane="0", pass_="1")
+                                  fromLane=str(ln), toLane=str(ln))
 
-            # 2. Ring pass-through (each lane continues in same lane)
+            # 2. Ring pass-through: lane i → lane i
             for rl in range(RING_LANES):
                 ET.SubElement(root, "connection",
                               **{"from": r_in, "to": r_out},
                               fromLane=str(rl), toLane=str(rl))
 
-            # 3. Ring exit → exit edge
-            #    Inner lane (0) → exit lanes 0..RING_LANES-1
-            #    Outer lane (1) → exit lanes 1..app_lanes-1  (fan right)
+            # 3. Ring exit: ring lane i → exit lane i
             ex = exit_edge.get(suf, "")
             if ex:
                 ex_lanes = _edge_lanes(ex)
-                for rl in range(RING_LANES):
-                    # inner lane fans left, outer lane fans right
-                    start = 0 if rl == 0 else 1
-                    end   = ex_lanes - 1 if rl == RING_LANES - 1 else ex_lanes - 2
-                    for el in range(start, min(end + 1, ex_lanes)):
-                        ET.SubElement(root, "connection",
-                                      **{"from": r_in, "to": ex},
-                                      fromLane=str(rl), toLane=str(el))
+                for ln in range(min(RING_LANES, ex_lanes)):
+                    ET.SubElement(root, "connection",
+                                  **{"from": r_in, "to": ex},
+                                  fromLane=str(ln), toLane=str(ln))
 
     p = _TMP / "roundabout.con.xml"
     ET.ElementTree(root).write(str(p), xml_declaration=True, encoding="UTF-8")
@@ -343,17 +335,23 @@ def _classify_links(net_root, tl_id):
         is_ring_to   = to.startswith("rnd_")
 
         if not is_ring_from and is_ring_to:
-            # Approach → ring  (entering)
-            # Decide N/S vs E/W by looking at the to-edge suffix
-            if any(s in to for s in ("_NW", "_EN")):
-                mtype = "NS_approach"   # entering at north node
-            elif any(s in to for s in ("_WS", "_SE")):
-                mtype = "EW_approach"   # entering at south or east/west node
+            # Approach → ring  (entering). Classify by the ENTRY NODE, i.e. the
+            # ring arc the approach merges ONTO (whose source node is the entry):
+            #   NW leaves RN, SE leaves RS  → North/South entries
+            #   EN leaves RE, WS leaves RW  → East/West entries
+            if any(s in to for s in ("_NW", "_SE")):
+                mtype = "NS_approach"
+            elif any(s in to for s in ("_EN", "_WS")):
+                mtype = "EW_approach"
             else:
                 mtype = "NS_approach"
         elif is_ring_from and is_ring_to:
-            # Ring → ring  (circulating pass-through)
-            if any(s in frm for s in ("_EN", "_NW")):
+            # Ring → ring (circulating pass-through). Classify by the arc that
+            # FEEDS the node, so the arc that physically conflicts with an entry
+            # is the one held RED while that entry is green:
+            #   EN feeds RN, WS feeds RS  → conflicts with N/S entries ("NS_ring")
+            #   NW feeds RW, SE feeds RE  → conflicts with E/W entries ("EW_ring")
+            if any(s in frm for s in ("_EN", "_WS")):
                 mtype = "NS_ring"
             else:
                 mtype = "EW_ring"
@@ -383,34 +381,39 @@ def _build_state(link_types, phase: str) -> str:
     n = max(idx for idx, _ in link_types) + 1
     state = ["r"] * n
 
+    # Movements that physically MERGE onto a shared lane (free circulating arcs and
+    # ring→exit fans) use permissive green 'g' instead of protected 'G', so SUMO
+    # makes the later vehicle give way (zipper/car-following) rather than letting
+    # two 'G' streams claim the same lane and collide. Only the single protected
+    # approach stream keeps 'G'.
     for idx, mtype in link_types:
         if phase == "NS_green":
-            if mtype == "NS_approach":  state[idx] = "G"
+            if mtype == "NS_approach":   state[idx] = "G"   # protected
             elif mtype == "EW_approach": state[idx] = "r"
             elif mtype == "NS_ring":     state[idx] = "r"   # blocked — conflict
-            elif mtype == "EW_ring":     state[idx] = "G"   # free
-            else:                        state[idx] = "G"   # exits always open
+            elif mtype == "EW_ring":     state[idx] = "g"   # free, give-way merge
+            else:                        state[idx] = "g"   # exits, give-way merge
 
         elif phase == "NS_yellow":
             if mtype == "NS_approach":   state[idx] = "y"
             elif mtype == "EW_approach": state[idx] = "r"
             elif mtype == "NS_ring":     state[idx] = "y"
-            elif mtype == "EW_ring":     state[idx] = "G"
-            else:                        state[idx] = "G"
+            elif mtype == "EW_ring":     state[idx] = "g"
+            else:                        state[idx] = "g"
 
         elif phase == "EW_green":
             if mtype == "NS_approach":   state[idx] = "r"
-            elif mtype == "EW_approach": state[idx] = "G"
-            elif mtype == "NS_ring":     state[idx] = "G"   # free
+            elif mtype == "EW_approach": state[idx] = "G"   # protected
+            elif mtype == "NS_ring":     state[idx] = "g"   # free, give-way merge
             elif mtype == "EW_ring":     state[idx] = "r"   # blocked — conflict
-            else:                        state[idx] = "G"
+            else:                        state[idx] = "g"
 
         elif phase == "EW_yellow":
             if mtype == "NS_approach":   state[idx] = "r"
             elif mtype == "EW_approach": state[idx] = "y"
-            elif mtype == "NS_ring":     state[idx] = "G"
+            elif mtype == "NS_ring":     state[idx] = "g"
             elif mtype == "EW_ring":     state[idx] = "y"
-            else:                        state[idx] = "G"
+            else:                        state[idx] = "g"
 
     return "".join(state)
 
