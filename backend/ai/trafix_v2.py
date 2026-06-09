@@ -232,11 +232,13 @@ class RewardWeights:
     pressure:      float = -0.30
     queue:         float = -0.25
     throughput:    float =  0.25
-    fairness:      float =  0.00
+    fairness:      float =  0.00     # CV-of-lanes term; kept disabled (noisy) —
+                                     # anti-starvation is handled by `starvation`
     phase_penalty: float = -0.08
     wait_penalty:  float = -0.05
     green_wave:    float =  0.20
-    starvation:    float = -0.15
+    starvation:    float = -0.20     # per-movement anti-starvation (see below)
+    clear_bonus:   float =  0.06     # low-demand shaping: reward clearing any car
 
 
 def _intersection_total(o: Dict) -> int:
@@ -339,23 +341,50 @@ def compute_reward(
         if o.get("phase_duration", 0.0) > 60.0:
             wait = (o["phase_duration"] - 60.0) / 60.0
 
-        # 7. Directional starvation: penalise holding one through-direction while
-        #    the other has vehicles waiting. Grows with time past min-green (30s)
-        #    and with the fraction of total demand in the unserved direction.
-        #    Zero when total demand is zero, so quiet periods are not penalised.
-        starvation = 0.0
-        phase = int(o.get("current_phase", 0))
+        # 7. Per-movement anti-starvation (the root-cause fix for argmax collapse).
+        #    Penalise the junction whenever movements that HAVE waiting vehicles are
+        #    going unserved while the current phase holds. The penalty is the share
+        #    of total demand sitting in the *unserved* movement groups, scaled by how
+        #    long the current phase has been held (a proxy for unserved time).
+        #
+        #    Key properties (vs the old NS/EW-only, >30s-gated term):
+        #      • ACTIVE EVEN AT LOW DEMAND — it is share-based, so it is
+        #        scale-invariant and gives signal with only 1-3 cars/lane, exactly
+        #        where pressure/queue/throughput go flat and argmax turns arbitrary.
+        #      • Per-movement (all 6 phase groups), not just NS-vs-EW, so it teaches
+        #        "serve every movement that has demand," which is what the live
+        #        runner's STARVE/DIRECTION/LEFT overrides do externally.
+        #      • ZERO for any group with no demand: if the current phase serves the
+        #        only movement that has cars, unserved_share = 0 ⇒ no penalty. It
+        #        never rewards/penalises serving empty approaches, so it does not
+        #        fight throughput on quiet directions.
+        phase = int(o.get("current_phase", 0)) % 6
         dur   = o.get("phase_duration", 0.0)
-        if dur > 30.0:
-            ns_q = sum(o.get(k, 0) for k in _NS_KEYS)
-            ew_q = sum(o.get(k, 0) for k in _EW_KEYS)
-            total_dir = ns_q + ew_q
-            if total_dir > 0:
-                excess = min((dur - 30.0) / 60.0, 2.0)
-                if phase in (0, 1, 2):        # NS side active — EW is unserved
-                    starvation = (ew_q / total_dir) * excess
-                else:                          # EW side active — NS is unserved
-                    starvation = (ns_q / total_dir) * excess
+        group_demand = [
+            o.get("north_through", 0) + o.get("south_through", 0),  # phase 0 NS-thru
+            o.get("north_left", 0),                                 # phase 1 N-left
+            o.get("south_left", 0),                                 # phase 2 S-left
+            o.get("east_through", 0) + o.get("west_through", 0),    # phase 3 EW-thru
+            o.get("east_left", 0),                                  # phase 4 E-left
+            o.get("west_left", 0),                                  # phase 5 W-left
+        ]
+        total_dem = sum(group_demand)
+        starvation = 0.0
+        if total_dem > 0:
+            excess = min(dur / 45.0, 2.0)
+            unserved_share = (total_dem - group_demand[phase]) / total_dem
+            starvation = unserved_share * excess
+
+        # 8. Low-demand clearing shaping (Step 3): a small POSITIVE reward for
+        #    actually removing vehicles from this junction, in ABSOLUTE terms (the
+        #    `throughput` term above is relative to prev_total and goes noisy/flat
+        #    with only a handful of cars). Capped and one-sided (only clearing is
+        #    rewarded) so it stays small relative to starvation/throughput.
+        clear = 0.0
+        if prev is not None:
+            cleared = _intersection_total(prev[i]) - _intersection_total(o)
+            if cleared > 0:
+                clear = min(cleared, 5.0) / 5.0
 
         r = (
             weights.pressure      * pressure
@@ -365,6 +394,7 @@ def compute_reward(
             + weights.phase_penalty * phase_change
             + weights.wait_penalty  * wait
             + weights.starvation    * starvation
+            + weights.clear_bonus   * clear
         )
         rewards.append(r)
 

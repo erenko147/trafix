@@ -1,3 +1,56 @@
+====================================================================================
+PROGRESS LOG (state of the work so far — read before continuing)
+====================================================================================
+Branch: fix/argmax-policy (created off main @ 092451b).
+Env: use `.venv/bin/python` and `export SUMO_HOME=/usr/share/sumo`. SUMO is fast
+(~6 s for a full 3600 s argmax run), so retraining via a fine-tune is feasible on CPU.
+
+DONE — Step 0 (committed): baseline & guardrails.
+  - Added tests/diagnostics/argmax_phase_distribution.py — loads TraFixV6 + the
+    production RuleGovernor, runs SUMO (type1_low default, seed 42, 3600 s, warmup 50,
+    interval 10), chooses phases via governor.apply(...) then PURE ARGMAX with NO
+    starvation overrides, actuates through the standard 3-step yellow. Reuses
+    _get_observations/_MODEL_TO_SUMO_GREEN/_YELLOW_STEPS + parse_sumo_observations.
+    Prints per-junction phase % and flags movements with standing demand chosen <1%.
+    It REPRODUCES the collapse table exactly (J0 E-left 90%, J1 95%, J2 97%, J4 W-left
+    83%); type1_medium also collapses.
+  - Added tests/diagnostics/high_traffic_reference.py — runs the full AI controller
+    (model + governor + starvation overrides) on type1_high via
+    sumo_runner.run_simulation and prints the must-not-regress metrics.
+    BEFORE baseline (old trafix_v6_final.pt): arrived 943, completion 97.6%,
+    mean travel 103.1 s, slow-queue 2.291, halting-queue 2.133.
+  - BEFORE outputs saved under tests/diagnostics/baseline_before/ (+ README).
+  - 121 mandatory tests pass.
+
+DONE — Steps 1 + 3, reward only (UNCOMMITTED working-tree change in
+backend/ai/trafix_v2.py; commit it yourself):
+  - RewardWeights: starvation -0.15 -> -0.20; added clear_bonus = +0.06; fairness
+    left at 0.00 (documented: anti-starvation handled by `starvation`).
+  - compute_reward: REPLACED the NS/EW-only, dur>30-gated starvation term with a
+    per-movement, share-based anti-starvation penalty = (share of total demand in the
+    UNSERVED movement groups) x min(dur/45, 2.0). It is active even at low demand
+    (scale-invariant), covers all 6 movement groups, and is ZERO when a movement has
+    no demand (never punishes serving/skipping empty approaches). Added a small,
+    one-sided clear_bonus for absolute vehicles cleared (low-demand shaping; smaller
+    than starvation/throughput). Sanity check: stuck-on-empty-E-left-while-NS-has-cars
+    = -0.23, serving-demand-and-clearing = +0.18, no-demand ~= 0. 121 mandatory tests
+    still pass. (Reward changes only take effect after retraining; the deployed .pt is
+    unchanged.)
+
+NOT STARTED YET:
+  - Step 2 — anneal entropy_coef toward ~0 and select the best checkpoint by a GREEDY
+    (argmax + governor, NO overrides) rollout instead of sampled reward; intended to be
+    implemented as a new fine-tune adapted from finetune_morning_peak.py.
+  - Coordination + Step 4 — ONE fine-tune from trafix_v6_final.pt with Steps 1/2/3
+    reconciled, write a NEW checkpoint (keep old as *_prev.pt), re-run the diagnostic on
+    type1_low + type1_medium and the high-traffic reference, promote only if both pass.
+  - Step 5 — (inference-only) tune the production governor (e.g. pressure_thresh
+    0.35 -> ~0.12, continuous/demand-aware boost), kept in sync everywhere.
+  - Step 6 — full Type 1 + Type 2 regression with the new model.
+  - FINAL — regenerate master_ai.md + system_explained.md (and fix code_reference.md
+    drift) against source + a live model import.
+====================================================================================
+
 You are working in the TraFix traffic-signal RL repository (project root: the repo you
 are launched in). Your job is to fix a set of known problems with the production model
 (TraFix v6) so that it behaves well under DETERMINISTIC ARGMAX inference — which is the
