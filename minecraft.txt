@@ -37,6 +37,25 @@ backend/ai/trafix_v2.py; commit it yourself):
     still pass. (Reward changes only take effect after retraining; the deployed .pt is
     unchanged.)
 
+DONE — dead-code cleanup (UNCOMMITTED working-tree change; requested separately,
+not part of the original fix plan): removed the unused legacy v2 model.
+  - backend/ai/trafix_v2.py: deleted SpatioTemporalGNN (GCN), IntersectionCoordinator
+    (multi-head attention), CoordinatedPPOAgent, and train_step; dropped the now-unused
+    torch.nn / F / Categorical / GCNConv imports; rewrote the module docstring. KEPT the
+    shared code v6 needs: parse_sumo_observations, RewardWeights, compute_reward,
+    _compute_green_wave, compute_gae, NUM_NODE_FEATURES.
+  - backend/ai/train_v2.py: dropped CoordinatedPPOAgent/train_step from imports; deleted
+    the dead v2 trainer (build_edge_index, RolloutBuffer, TrainingLogger,
+    CosineWarmupScheduler, train(), _save_checkpoint(), parse_args, __main__). KEPT
+    TrainConfig + SumoEnvironment + the model↔SUMO phase maps (imported by every v6
+    script).
+  - backend/main.py: removed the v2/v3 model branch + CoordinatedPPOAgent import + the
+    dead _USE_GRAPH path; an unknown TRAFIX_MODEL_VERSION now raises (only v6/v5 remain).
+  - NOTE: master_ai.md §13 / §16 currently call the v2 model "intentionally kept for
+    backward-compat" — those sections must be updated in the FINAL doc step to say it was
+    removed. Verified: no live references remain, v6 pipeline + diagnostic still run, and
+    121 mandatory tests still pass.
+
 NOT STARTED YET:
   - Step 2 — anneal entropy_coef toward ~0 and select the best checkpoint by a GREEDY
     (argmax + governor, NO overrides) rollout instead of sampled reward; intended to be

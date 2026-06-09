@@ -1,30 +1,24 @@
 """
-TraFix v2 — Coordinated Multi-Intersection PPO Agent
-=====================================================
-GCN (spatial) + Multi-Head Attention (coordination) — GRU removed.
+TraFix — shared observation, reward and advantage code
+======================================================
+Single source of truth (used by ALL model versions and every v6 training script)
+for the 20-dim SUMO observation parser, the per-junction reward function, and GAE.
 
-v6 updates:
-  • NUM_NODE_FEATURES: 10 → 20 (12 per-lane counts + queue + 6-phase one-hot + duration)
+  • NUM_NODE_FEATURES = 20 (12 per-lane counts + queue + 6-phase one-hot + duration)
   • parse_sumo_observations: 12 lane fields, normalised per-lane
-  • compute_reward: pressure/queue/throughput/fairness over 12 lanes
+  • compute_reward: pressure/queue/throughput/fairness/anti-starvation over 12 lanes
   • _compute_green_wave: through phases are 0 (NS) and 3 (EW) in model space
+
+The legacy v2 model (GCN + Multi-Head-Attention `CoordinatedPPOAgent`) and its
+`train_step` lived here but had no trained weights and were removed; only the
+production v6 model (`trafix_v6/trafix_v6.py`) runs. This module is kept because
+v6 reuses the observation/reward/GAE code below.
 """
 
 import math
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.distributions import Categorical
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
-
-try:
-    from torch_geometric.nn import GCNConv
-except ImportError:
-    raise ImportError(
-        "torch_geometric not found. Install with:\n"
-        "  pip install torch-geometric"
-    )
 
 
 # ══════════════════════════════════════════════════
@@ -98,125 +92,6 @@ def parse_sumo_observations(
         rows.append(row)
 
     return torch.tensor(rows, dtype=torch.float32, device=device)
-
-
-# ══════════════════════════════════════════════════
-#  Spatio GNN  (GCN — GRU removed)
-# ══════════════════════════════════════════════════
-
-class SpatioTemporalGNN(nn.Module):
-    """2-layer GCN with residual + LayerNorm."""
-
-    def __init__(self, num_node_features: int, hidden_dim: int):
-        super().__init__()
-        self.gcn1 = GCNConv(num_node_features, hidden_dim)
-        self.gcn2 = GCNConv(hidden_dim, hidden_dim)
-        self.layer_norm = nn.LayerNorm(hidden_dim)
-
-    def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
-        h = F.relu(self.gcn1(x, edge_index))
-        h = h + F.relu(self.gcn2(h, edge_index))
-        return self.layer_norm(h)
-
-
-# ══════════════════════════════════════════════════
-#  Cross-Intersection Coordination Layer
-# ══════════════════════════════════════════════════
-
-class IntersectionCoordinator(nn.Module):
-    """Multi-Head Attention for cross-intersection coordination."""
-
-    def __init__(self, hidden_dim: int, num_heads: int = 4, dropout: float = 0.1):
-        super().__init__()
-        self.attn = nn.MultiheadAttention(
-            embed_dim=hidden_dim, num_heads=num_heads,
-            dropout=dropout, batch_first=True,
-        )
-        self.norm1 = nn.LayerNorm(hidden_dim)
-        self.ffn = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim * 2), nn.GELU(),
-            nn.Dropout(dropout), nn.Linear(hidden_dim * 2, hidden_dim),
-            nn.Dropout(dropout),
-        )
-        self.norm2 = nn.LayerNorm(hidden_dim)
-
-    def forward(self, node_features: torch.Tensor) -> torch.Tensor:
-        x = node_features.unsqueeze(0)
-        attn_out, _ = self.attn(x, x, x)
-        x = self.norm1(x + attn_out)
-        x = self.norm2(x + self.ffn(x))
-        return x.squeeze(0)
-
-
-# ══════════════════════════════════════════════════
-#  Coordinated PPO Agent
-# ══════════════════════════════════════════════════
-
-class CoordinatedPPOAgent(nn.Module):
-    """Flow: SUMO obs → GCN → Attention → Actor/Critic"""
-
-    def __init__(
-        self,
-        num_node_features: int = NUM_NODE_FEATURES,
-        hidden_dim: int = 128,
-        num_actions: int = 6,
-        num_heads: int = 4,
-        entropy_coef: float = 0.01,
-        value_coef: float = 0.25,
-        clip_eps: float = 0.2,
-        max_grad_norm: float = 0.5,
-    ):
-        super().__init__()
-        self.hidden_dim = hidden_dim
-        self.num_actions = num_actions
-        self.entropy_coef = entropy_coef
-        self.value_coef = value_coef
-        self.clip_eps = clip_eps
-        self.max_grad_norm = max_grad_norm
-
-        self.st_gnn = SpatioTemporalGNN(num_node_features, hidden_dim)
-        self.coordinator = IntersectionCoordinator(hidden_dim, num_heads)
-
-        self.actor = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2), nn.ReLU(),
-            nn.Linear(hidden_dim // 2, num_actions),
-        )
-        self.critic = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2), nn.ReLU(),
-            nn.Linear(hidden_dim // 2, 1),
-        )
-
-    def forward(self, x, edge_index) -> Tuple[torch.Tensor, torch.Tensor]:
-        features = self.st_gnn(x, edge_index)
-        coordinated = self.coordinator(features)
-        action_probs = F.softmax(self.actor(coordinated), dim=-1)
-        state_value = self.critic(coordinated.mean(dim=0))
-        return action_probs, state_value
-
-    @torch.no_grad()
-    def select_actions(self, x, edge_index) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        probs, value = self.forward(x, edge_index)
-        dists = Categorical(probs)
-        actions = dists.sample()
-        log_probs = dists.log_prob(actions)
-        return actions, log_probs, value
-
-    def compute_ppo_loss(self, x, edge_index, old_actions, old_log_probs,
-                         advantages, returns) -> Dict[str, torch.Tensor]:
-        probs, value = self.forward(x, edge_index)
-        dists = Categorical(probs)
-        new_log_probs = dists.log_prob(old_actions)
-        entropy = dists.entropy().mean()
-        ratio = torch.exp(new_log_probs - old_log_probs)
-        surr1 = ratio * advantages
-        surr2 = torch.clamp(ratio, 1 - self.clip_eps, 1 + self.clip_eps) * advantages
-        policy_loss = -torch.min(surr1, surr2).mean()
-        value_loss = F.mse_loss(value.squeeze(), returns.mean())
-        total_loss = policy_loss + self.value_coef * value_loss - self.entropy_coef * entropy
-        return {
-            "total": total_loss, "policy": policy_loss.detach(),
-            "value": value_loss.detach(), "entropy": entropy.detach(),
-        }
 
 
 # ══════════════════════════════════════════════════
@@ -448,41 +323,3 @@ def compute_gae(
         returns = (returns - returns.mean()) / (returns.std() + 1e-8)
 
     return advantages, returns
-
-
-# ══════════════════════════════════════════════════
-#  Training Step (Single Epoch)
-# ══════════════════════════════════════════════════
-
-def train_step(
-    agent: CoordinatedPPOAgent,
-    optimizer: torch.optim.Optimizer,
-    rollout: Dict,
-    ppo_epochs: int = 4,
-) -> Dict[str, float]:
-    advantages, returns = compute_gae(
-        rollout["rewards"], rollout["values"], rollout["next_value"],
-    )
-
-    total_metrics = {"total": 0.0, "policy": 0.0, "value": 0.0, "entropy": 0.0}
-    T = len(rollout["rewards"])
-
-    for _ in range(ppo_epochs):
-        for t in range(T):
-            losses = agent.compute_ppo_loss(
-                x=rollout["observations"][t],
-                edge_index=rollout["edge_index"],
-                old_actions=rollout["actions"][t],
-                old_log_probs=rollout["log_probs"][t],
-                advantages=advantages[t],
-                returns=returns[t],
-            )
-            optimizer.zero_grad()
-            losses["total"].backward()
-            nn.utils.clip_grad_norm_(agent.parameters(), agent.max_grad_norm)
-            optimizer.step()
-            for k in total_metrics:
-                total_metrics[k] += losses[k].item()
-
-    n = ppo_epochs * T
-    return {k: v / max(n, 1) for k, v in total_metrics.items()}

@@ -6,7 +6,9 @@ Receives telemetry, queries the TraFix v6 AI model, and returns phase decisions.
 Supported model versions (set via TRAFIX_MODEL_VERSION env var):
   v6  — TraFix v6: GRU temporal encoder + GATConv graph encoder, 6 phases, 3-lane (default)
   v5  — TraFix v5: GRU + GAT, 4 phases (legacy, kept for comparison)
-  v2  — TraFix v2: GCN + GRU + Attention, 4 phases (legacy observation parser)
+
+The legacy v2 model (GCN + Multi-Head-Attention) had no trained weights and has
+been removed; only v6 (default) and v5 are selectable.
 """
 
 from fastapi import FastAPI, BackgroundTasks
@@ -23,7 +25,6 @@ import backend.database as db
 
 _MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v6").strip().lower()
 
-_USE_GRAPH = False
 _USE_V5    = False
 _USE_V6    = False
 
@@ -35,7 +36,6 @@ if _MODEL_VERSION == "v5":
     from backend.ai.trafix_v2 import parse_sumo_observations
     _WEIGHT_FILENAME = "trafix_v5/checkpoints/trafix_v5_final.pt"
     _USE_V5 = True
-    CoordinatedPPOAgent = None
 
 elif _MODEL_VERSION == "v6":
     import sys as _sys, os as _os
@@ -45,12 +45,15 @@ elif _MODEL_VERSION == "v6":
     from backend.ai.trafix_v2 import parse_sumo_observations
     _WEIGHT_FILENAME = "trafix_v6/checkpoints/trafix_v6_final.pt"
     _USE_V6 = True
-    CoordinatedPPOAgent = None
 
-else:  # v2 default
-    from backend.ai.trafix_v2 import CoordinatedPPOAgent, parse_sumo_observations
-    _WEIGHT_FILENAME = "coordinated_agent_weights.pth"
-    _USE_GRAPH = True
+else:
+    # The legacy v2 model was removed (no trained weights). Only v6/v5 remain.
+    from backend.ai.trafix_v2 import parse_sumo_observations  # noqa: F401
+    raise ValueError(
+        f"Unsupported TRAFIX_MODEL_VERSION={_MODEL_VERSION!r}. "
+        f"Only 'v6' (default) and 'v5' are supported; the legacy 'v2' model "
+        f"was removed."
+    )
 
 logger = logging.getLogger("trafix")
 
@@ -203,35 +206,9 @@ def load_model():
         print("[WARN] TraFixV5 weights not found. Heuristic fallback active.")
         return False
 
-    # ── v2/v3 ─────────────────────────────────────────────────────────────────
-    agent = CoordinatedPPOAgent(
-        num_node_features=NUM_FEATURES,
-        hidden_dim=HIDDEN_DIM,
-        num_actions=NUM_ACTIONS,
-        num_heads=NUM_HEADS,
-    )
-    weight_paths = [
-        os.path.join(base_dir, "ai", _WEIGHT_FILENAME),
-        os.path.join(base_dir, "..", _WEIGHT_FILENAME),
-        _WEIGHT_FILENAME,
-    ]
-    for path in weight_paths:
-        abs_path = os.path.abspath(path)
-        if os.path.exists(abs_path):
-            try:
-                sd = torch.load(abs_path, map_location="cpu", weights_only=True)
-                if isinstance(sd, dict) and "model_state_dict" in sd:
-                    sd = sd["model_state_dict"]
-                agent.load_state_dict(sd)
-                agent.eval()
-                ai_agent = agent
-                print(f"[OK] AI model loaded: {abs_path}")
-                return True
-            except RuntimeError as e:
-                print(f"[WARN] Weight mismatch: {abs_path} — {e}")
-                continue
-
-    print("[WARN] AI model weights not found. Heuristic fallback active.")
+    # No other model version is supported (v2 removed). Unreachable in practice
+    # because an unknown version raises at import; keep a safe fallback.
+    print("[WARN] No supported model selected. Heuristic fallback active.")
     return False
 
 
@@ -351,12 +328,6 @@ async def receive_telemetry_batch(batch: TelemetryBatch, background_tasks: Backg
                 action_probs = torch.stack(
                     [torch.softmax(l, dim=-1).squeeze(0) for l in logits_list], dim=0
                 )
-
-            # ── v2/v3 ─────────────────────────────────────────────────────────
-            elif _USE_GRAPH:
-                action_probs, _ = ai_agent(node_features, edge_index)
-            else:
-                action_probs, _ = ai_agent(node_features)
 
             chosen_phases = []
             for data in batch.intersections:

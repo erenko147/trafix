@@ -60,7 +60,9 @@
       "Bash(git checkout *)",
       "Bash(export SUMO_HOME=/usr/share/sumo)",
       "Bash(echo \"=== running mandatory tests ===\")",
-      "Bash(grep -n \"return\" tests/metrics/queue_length.py)"
+      "Bash(grep -n \"return\" tests/metrics/queue_length.py)",
+      "Bash(echo \"=== leftover live refs to removed symbols \\(excluding doc comments\\) ===\")",
+      "Bash(grep -rn \"CoordinatedPPOAgent\\\\|SpatioTemporalGNN\\\\|IntersectionCoordinator\\\\|_USE_GRAPH\\\\|\\\\btrain_step\\\\b\\\\|build_edge_index\" --include=*.py backend/ tests/ trafix_v6/)"
     ]
   }
 }
