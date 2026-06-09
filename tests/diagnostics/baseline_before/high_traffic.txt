@@ -1,0 +1,12 @@
+========================================================
+  HIGH-TRAFFIC REFERENCE  [before]
+  checkpoint: /home/ekene/Projects/traf_gov_last/trafix_v6/checkpoints/trafix_v6_final.pt
+========================================================
+  arrived_vehicles      : 943
+  vehicles_still_running: 23
+  not_inserted          : 0
+  completion_rate       : 97.6%
+  mean_travel_time_s    : 103.1
+  mean_halting_queue    : 2.133
+  mean_slow_queue       : 2.291
+========================================================
