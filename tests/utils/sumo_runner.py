@@ -384,7 +384,7 @@ def run_simulation(
             num_junctions=_NUM_JUNCTIONS, num_phases=_NUM_PHASES,
             min_green_s=10.0, max_green_s=90.0,
             flicker_window=2, flicker_penalty=3.0,
-            pressure_boost=1.0, pressure_thresh=0.35,
+            pressure_boost=1.0, pressure_thresh=0.12,   # Step 5: in sync with backend
         )
         parse_obs = parse_sumo_observations
 

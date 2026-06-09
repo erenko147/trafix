@@ -162,7 +162,13 @@ def load_model():
                         flicker_window=2,
                         flicker_penalty=3.0,
                         pressure_boost=1.0,
-                        pressure_thresh=0.35,
+                        pressure_thresh=0.12,   # Step 5: lowered 0.35->0.12 so the
+                        # pressure boost nudges toward the busiest movement at
+                        # balanced low flow (tie-break). Kept in sync with the
+                        # training governor (finetune_argmax / stage3) and the
+                        # test runner. A/B on the old model: marginal help, no
+                        # over-switching; the real anti-collapse fix is the
+                        # retrained policy (Steps 1-3).
                     )
                     print(f"[OK] TraFixV6 loaded: {abs_path}")
                     print(f"[OK] RuleGovernor active (6 phases, min_green_through=10s)")

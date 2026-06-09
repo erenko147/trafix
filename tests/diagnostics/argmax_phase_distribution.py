@@ -82,19 +82,22 @@ def _phase_demand(o: Dict) -> List[float]:
 
 
 def run_diagnostic(route_file, checkpoint_path, seed, sim_duration,
-                   warmup_steps, decision_interval):
+                   warmup_steps, decision_interval,
+                   pressure_thresh=0.12, pressure_boost=1.0, flicker_penalty=3.0):
     device = torch.device("cpu")
     model = TraFixV6().to(device)
     ckpt = torch.load(checkpoint_path, map_location=device, weights_only=True)
     model.load_state_dict(ckpt.get("model_state_dict", ckpt))
     model.eval()
 
-    # Production governor params (backend/main.py::load_model).
+    # Production governor params (backend/main.py::load_model). pressure_thresh /
+    # pressure_boost / flicker_penalty are exposed so Step 5 (governor tuning) can be
+    # A/B-tested against a fixed checkpoint without retraining.
     governor = RuleGovernor(
         num_junctions=_NUM_JUNCTIONS, num_phases=_NUM_PHASES,
         min_green_s=10.0, max_green_s=90.0,
-        flicker_window=2, flicker_penalty=3.0,
-        pressure_boost=1.0, pressure_thresh=0.35,
+        flicker_window=2, flicker_penalty=flicker_penalty,
+        pressure_boost=pressure_boost, pressure_thresh=pressure_thresh,
     )
 
     cmd = [
@@ -130,6 +133,8 @@ def run_diagnostic(route_file, checkpoint_path, seed, sim_duration,
     demand_sum = [[0.0] * _NUM_PHASES for _ in range(_NUM_JUNCTIONS)]
     demand_present = [[0] * _NUM_PHASES for _ in range(_NUM_JUNCTIONS)]
     total_decisions = 0
+    switches = 0            # chosen phase != previous chosen phase (over-switch guard)
+    prev_chosen = [None] * _NUM_JUNCTIONS
 
     pending_target: Dict[str, int] = {}
     yellow_remaining: Dict[str, int] = {}
@@ -158,6 +163,9 @@ def run_diagnostic(route_file, checkpoint_path, seed, sim_duration,
             for i in range(_NUM_JUNCTIONS):
                 mp = int(actions_1d[i].item()) % _NUM_PHASES
                 phase_counts[i][mp] += 1
+                if prev_chosen[i] is not None and prev_chosen[i] != mp:
+                    switches += 1
+                prev_chosen[i] = mp
                 dem = _phase_demand(obs[i])
                 for p in range(_NUM_PHASES):
                     demand_sum[i][p] += dem[p]
@@ -201,6 +209,11 @@ def run_diagnostic(route_file, checkpoint_path, seed, sim_duration,
         "phase_counts": phase_counts,
         "demand_sum": demand_sum,
         "demand_present": demand_present,
+        "switches": switches,
+        "switch_rate": switches / max(total_decisions * _NUM_JUNCTIONS, 1),
+        "governor": {"pressure_thresh": pressure_thresh,
+                     "pressure_boost": pressure_boost,
+                     "flicker_penalty": flicker_penalty},
     }
 
 
@@ -209,7 +222,11 @@ def print_report(result):
     n = max(result["total_decisions"], 1)
     print(f"\nRoute      : {result['route']}")
     print(f"Checkpoint : {result['checkpoint']}")
-    print(f"Decisions  : {result['total_decisions']} per junction\n")
+    print(f"Decisions  : {result['total_decisions']} per junction")
+    g = result.get("governor", {})
+    print(f"Governor   : pressure_thresh={g.get('pressure_thresh')} "
+          f"pressure_boost={g.get('pressure_boost')} flicker_penalty={g.get('flicker_penalty')}")
+    print(f"Switch rate: {result.get('switch_rate', 0.0)*100:.1f}% of decisions change phase\n")
 
     header = "  junction   " + "  ".join(f"{name:>7s}" for name in _PHASE_NAMES)
     print(header)
@@ -255,6 +272,10 @@ def main():
     p.add_argument("--sim-duration", type=int, default=3600)
     p.add_argument("--warmup", type=int, default=50)
     p.add_argument("--decision-interval", type=int, default=10)
+    p.add_argument("--pressure-thresh", type=float, default=0.12,
+                   help="governor pressure_thresh (Step 5 A/B; production = 0.35)")
+    p.add_argument("--pressure-boost", type=float, default=1.0)
+    p.add_argument("--flicker-penalty", type=float, default=3.0)
     args = p.parse_args()
 
     result = run_diagnostic(
@@ -264,6 +285,9 @@ def main():
         sim_duration=args.sim_duration,
         warmup_steps=args.warmup,
         decision_interval=args.decision_interval,
+        pressure_thresh=args.pressure_thresh,
+        pressure_boost=args.pressure_boost,
+        flicker_penalty=args.flicker_penalty,
     )
     print_report(result)
 

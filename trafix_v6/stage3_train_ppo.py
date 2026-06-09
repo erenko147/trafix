@@ -7,7 +7,7 @@ full PPO with differential learning rates.
 v6 changes vs v5:
   NUM_PHASES = 6
   OBS_DIM = 20
-  Governor: num_phases=6, pressure_thresh=0.35, freeze_episodes=100
+  Governor: num_phases=6, pressure_thresh=0.12 (Step 5), freeze_episodes=100
   entropy_coef = 0.01 (was 0.005 — prevent premature collapse over 6 phases)
   episodes = 2000
 
@@ -359,7 +359,7 @@ def train(args):
         flicker_window=2,
         flicker_penalty=3.0,
         pressure_boost=1.0,
-        pressure_thresh=0.35,
+        pressure_thresh=0.12,   # Step 5: in sync with production governor
     )
 
     reward_history = deque(maxlen=50)

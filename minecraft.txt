@@ -56,15 +56,72 @@ not part of the original fix plan): removed the unused legacy v2 model.
     removed. Verified: no live references remain, v6 pipeline + diagnostic still run, and
     121 mandatory tests still pass.
 
-NOT STARTED YET:
-  - Step 2 — anneal entropy_coef toward ~0 and select the best checkpoint by a GREEDY
-    (argmax + governor, NO overrides) rollout instead of sampled reward; intended to be
-    implemented as a new fine-tune adapted from finetune_morning_peak.py.
-  - Coordination + Step 4 — ONE fine-tune from trafix_v6_final.pt with Steps 1/2/3
-    reconciled, write a NEW checkpoint (keep old as *_prev.pt), re-run the diagnostic on
-    type1_low + type1_medium and the high-traffic reference, promote only if both pass.
-  - Step 5 — (inference-only) tune the production governor (e.g. pressure_thresh
-    0.35 -> ~0.12, continuous/demand-aware boost), kept in sync everywhere.
+DONE — Steps 2 + 3 CODE (no training run here; retrain to be done on another machine).
+New script trafix_v6/finetune_argmax.py — the SINGLE reconciled Steps 1-3 fine-tune:
+  - Step 2(a) ENTROPY ANNEALING: entropy_coef cosine-anneals --entropy-start 0.01 ->
+    --entropy-end 0.0005 over the run (sharpens to a defined argmax mode; never zero
+    early). _entropy_coef().
+  - Step 2(b) GREEDY (ARGMAX) CHECKPOINT SELECTION: greedy_eval() does an argmax rollout
+    with governor.apply() but NO starvation overrides — identical convention to
+    tests/diagnostics/argmax_phase_distribution.py — and "best" is gated on greedy mean
+    reward (under the NEW reward) PLUS a high-traffic no-regression guard (peak_queue must
+    stay < baseline x (1+--peak-slack)). Logs a `worst_lock` collapse metric per eval.
+  - Step 3 CURRICULUM: low-demand-heavy training mix _TRAIN_MIX = 45% OFFPEAK / 18%
+    MORNING / 15% EVENING / 12% PULSE / 10% INCIDENT (shapes the low-flow collapse regime
+    while keeping peaks so high traffic is not forgotten). Reconciled with the Step-1
+    reward (anti-starvation -0.20 > clear_bonus 0.06; neither overwhelms throughput 0.25).
+  - Uses the PRODUCTION governor (pressure_thresh default 0.35, --pressure-thresh to
+    override) so the policy trains under the constraints it ships with. Freezes GRU+GAT,
+    trains trunk+heads (27,108 params), LR 3e-5.
+  - Writes NEW checkpoints checkpoints/trafix_v6_argmax_best.pt and
+    trafix_v6_argmax_final.pt; NEVER overwrites trafix_v6_final.pt.
+  - VALIDATED via `--smoke` (2 episodes, exit 0): the full train -> greedy-eval -> gate ->
+    save-best loop runs; entropy anneal, greedy selection, peak-guard, and checkpoint
+    writes all work. (Smoke checkpoints were deleted — they are NOT a trained model.)
+  TO RUN THE REAL RETRAIN (on the other machine), with SUMO_HOME set:
+    .venv/bin/python trafix_v6/finetune_argmax.py --episodes 400
+  then Step 4 validation commands printed at the end of the run, and promote only if the
+  diagnostic (type1_low + type1_medium) AND high-traffic reference both pass:
+    cp trafix_v6/checkpoints/trafix_v6_final.pt trafix_v6/checkpoints/trafix_v6_final_prev.pt
+    cp trafix_v6/checkpoints/trafix_v6_argmax_best.pt trafix_v6/checkpoints/trafix_v6_final.pt
+  If a fine-tune cannot break the collapse, fall back to a full Stage-1->3 retrain with the
+  same Steps 1-3 in place (stage3_train_ppo.py would need the same entropy-anneal + greedy
+  selection added) and justify with the greedy_eval evidence.
+
+DONE — Step 5 (governor tuning, inference-side; validated WITHOUT training on the OLD
+checkpoint via the diagnostic):
+  - Lowered pressure_thresh 0.35 -> 0.12 CONSISTENTLY in every RuleGovernor construction:
+    backend/main.py (production), tests/utils/sumo_runner.py (test runner AI path),
+    trafix_v6/stage3_train_ppo.py, trafix_v6/finetune_morning_peak.py, and the default of
+    trafix_v6/finetune_argmax.py + tests/diagnostics/argmax_phase_distribution.py. (The
+    only other pressure_thresh, tests/mandatory/test_unit_rule_governor.py = 0.3, is that
+    test's own fixture and was intentionally left.) Because the training governor changed,
+    the retrain MUST use 0.12 — which finetune_argmax/stage3 now do by default, so train
+    and inference stay in sync.
+  - Added A/B tooling to the diagnostic: --pressure-thresh / --pressure-boost /
+    --flicker-penalty plus a printed SWITCH RATE (over-switching guard).
+  - EVIDENCE (old model, type1_low, argmax+governor, no overrides):
+      pressure_thresh 0.35 -> switch 9.2%, J2 locks 97%, OVERALL COLLAPSED
+      pressure_thresh 0.12 -> switch 8.1%, J2 locks 73%, OVERALL COLLAPSED
+      pressure_thresh 0.05 -> identical to 0.12 (boost saturates)
+    => 0.12 helps slightly (J2 97->73, a few starvation flags clear) with NO
+    over-switching, but governor tuning ALONE cannot break the collapse. This confirms P4
+    is secondary and the policy retrain (Steps 1-3) is the real fix. Did NOT pursue the
+    continuous/demand-aware-boost or demand-aware-flicker logic changes: higher risk, and
+    only validatable against the NEW model (do that during the retrain if still needed).
+  - baseline_before/type1_low.txt + type1_medium.txt were REGENERATED at 0.12 so the
+    eventual AFTER (retrained model, also 0.12) is apples-to-apples. 121 mandatory tests
+    still pass.
+
+NOT STARTED YET (need the retrain / new checkpoint, deferred to the other computer):
+  - Step 4 — run finetune_argmax.py, validate with the diagnostic (type1_low +
+    type1_medium must no longer collapse) and the high-traffic reference (no regression),
+    then promote (old -> trafix_v6_final_prev.pt).
+  - Step 6 — full Type 1 + Type 2 regression with the new model (121 tests; 0 teleports;
+    0 gridlock; overrides now fire rarely).
+  - FINAL doc regen depends on the promoted model's real numbers (see below); the
+    NON-model doc edits (v2 removal, governor 0.12, new reward weights/method, greedy
+    training/selection) can be drafted now but should be finished once the model is in.
   - Step 6 — full Type 1 + Type 2 regression with the new model.
   - FINAL — regenerate master_ai.md + system_explained.md (and fix code_reference.md
     drift) against source + a live model import.
