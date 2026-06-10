@@ -96,7 +96,9 @@ def parse_sumo_observations(
 #  Reward Function — Per-Node (N,) Tensor
 # ══════════════════════════════════════════════════
 
-_GREEN_WAVE_EDGES: List[Tuple[int, int]] = [(0, 1), (1, 2), (1, 3), (3, 4)]
+# Real map topology edges (from sumo/map.net.xml):
+# J0—J1, J0—J2, J1—J3, J2—J3, J2—J4
+_GREEN_WAVE_EDGES: List[Tuple[int, int]] = [(0, 1), (0, 2), (1, 3), (2, 3), (2, 4)]
 _PLATOON_THRESHOLD: int = 5
 
 

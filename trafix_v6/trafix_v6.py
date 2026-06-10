@@ -33,10 +33,20 @@ NUM_PHASES = 6
 NUM_JUNCTIONS = 5
 
 
-def _make_chain_edge_index(n: int) -> Tensor:
-    """Bidirectional chain edges: 0-1-2-..-(n-1)."""
-    src = list(range(n - 1)) + list(range(1, n))
-    dst = list(range(1, n)) + list(range(n - 1))
+def _make_topology_edge_index() -> Tensor:
+    """Bidirectional edges matching the real SUMO map topology (map.net.xml).
+
+    Physical layout (2×2 grid + spur):
+        J0 — J1
+        |      |
+        J2 — J3
+        |
+        J4
+
+    Undirected edges: {0-1, 0-2, 1-3, 2-3, 2-4}
+    """
+    src = [0, 1, 0, 2, 1, 3, 2, 3, 2, 4]
+    dst = [1, 0, 2, 0, 3, 1, 3, 2, 4, 2]
     return torch.tensor([src, dst], dtype=torch.long)
 
 
@@ -62,7 +72,7 @@ class _TemporalEncoder(nn.Module):
 
 
 class _GraphEncoder(nn.Module):
-    """GATConv over a fixed 5-node chain graph."""
+    """GATConv over the 5-node junction topology graph."""
 
     def __init__(self, in_channels: int, heads: int, head_dim: int):
         super().__init__()
@@ -139,7 +149,7 @@ class TraFixV6(nn.Module):
         ])
         self.global_critic = nn.Linear(trunk_out, 1)
 
-        self.register_buffer("edge_index", _make_chain_edge_index(NUM_JUNCTIONS))
+        self.register_buffer("edge_index", _make_topology_edge_index())
 
     def _encode(self, obs: Tensor, edge_index: Tensor) -> tuple:
         B = obs.shape[0]

@@ -107,10 +107,11 @@ NUM_ACTIONS  = 6    # 6 phases for v6
 NUM_NODES    = 5
 NUM_HEADS    = 4
 
-# Chain edge_index for 5 junctions
+# Real topology edge_index for 5 junctions (from sumo/map.net.xml)
+# Edges: J0—J1, J0—J2, J1—J3, J2—J3, J2—J4
 edge_index = torch.tensor([
-    [0, 1, 1, 2, 1, 3, 2, 4, 3, 4],
-    [1, 0, 2, 1, 3, 1, 4, 2, 4, 3],
+    [0, 1, 0, 2, 1, 3, 2, 3, 2, 4],
+    [1, 0, 2, 0, 3, 1, 3, 2, 4, 2],
 ], dtype=torch.long)
 
 # ── Model state ───────────────────────────────────────────────────────────────
@@ -151,7 +152,13 @@ def load_model():
                 try:
                     ckpt = torch.load(abs_path, map_location="cpu", weights_only=True)
                     state = ckpt.get("model_state_dict", ckpt)
-                    agent.load_state_dict(state)
+                    # Drop saved edge_index if shape mismatches (old chain [2,8]
+                    # vs new real topology [2,10]) — model uses its own buffer.
+                    if "edge_index" in state and state["edge_index"].shape != agent.edge_index.shape:
+                        print(f"[INFO] Dropping saved edge_index {list(state['edge_index'].shape)} "
+                              f"— using model topology {list(agent.edge_index.shape)}")
+                        del state["edge_index"]
+                    agent.load_state_dict(state, strict=False)
                     agent.eval()
                     ai_agent = agent
                     _v6_governor = RuleGovernor(

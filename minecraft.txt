@@ -22,8 +22,7 @@ DONE — Step 0 (committed): baseline & guardrails.
   - BEFORE outputs saved under tests/diagnostics/baseline_before/ (+ README).
   - 121 mandatory tests pass.
 
-DONE — Steps 1 + 3, reward only (UNCOMMITTED working-tree change in
-backend/ai/trafix_v2.py; commit it yourself):
+DONE — Steps 1 + 3, reward only (committed; in backend/ai/trafix_v2.py):
   - RewardWeights: starvation -0.15 -> -0.20; added clear_bonus = +0.06; fairness
     left at 0.00 (documented: anti-starvation handled by `starvation`).
   - compute_reward: REPLACED the NS/EW-only, dur>30-gated starvation term with a
@@ -37,8 +36,8 @@ backend/ai/trafix_v2.py; commit it yourself):
     still pass. (Reward changes only take effect after retraining; the deployed .pt is
     unchanged.)
 
-DONE — dead-code cleanup (UNCOMMITTED working-tree change; requested separately,
-not part of the original fix plan): removed the unused legacy v2 model.
+DONE — dead-code cleanup (committed; requested separately, not part of the original
+fix plan): removed the unused legacy v2 model.
   - backend/ai/trafix_v2.py: deleted SpatioTemporalGNN (GCN), IntersectionCoordinator
     (multi-head attention), CoordinatedPPOAgent, and train_step; dropped the now-unused
     torch.nn / F / Categorical / GCNConv imports; rewrote the module docstring. KEPT the
