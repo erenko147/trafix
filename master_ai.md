@@ -46,12 +46,13 @@
 |---------|-----------|-------------|---------------|
 | **v6** (default) | `trafix_v6/trafix_v6.py::TraFixV6` | `trafix_v6/checkpoints/trafix_v6_final.pt` | **Present & loaded** |
 | v5 (legacy) | `trafix_v5/trafix_v5.py::TraFixV5` | `trafix_v5/checkpoints/trafix_v5_final.pt` | **`trafix_v5/` was deleted** (commit `76133fb`) → selecting v5 raises `ImportError` at startup |
-| v2 (legacy) | `backend/ai/trafix_v2.py::CoordinatedPPOAgent` | `coordinated_agent_weights.pth` | **No weight file** → loads architecture but falls back to heuristic |
+| v2 (legacy) | model classes **removed** from `backend/ai/trafix_v2.py` | `coordinated_agent_weights.pth` | **No weight file, no model code** → backend v2 branch raises `ImportError`; selecting v2 falls back to heuristic |
 
-> **Defense point:** *“Only v6 is runnable.”* `baslat.py` defaults to `--model v6`.
-> If asked “what about v2/v5?”: v2 is the legacy GCN+Attention agent that still lives
-> in `trafix_v2.py` but has no trained weights; v5 was removed from the repo. The
-> backend keeps the branches for backward compatibility only.
+> **Defense point:** *”Only v6 is runnable.”* `baslat.py` defaults to `--model v6`.
+> If asked “what about v2/v5?”: v2's model classes (`SpatioTemporalGNN`,
+> `IntersectionCoordinator`, `CoordinatedPPOAgent`, `train_step`) were **removed** from
+> `trafix_v2.py` — the file is now observation/reward/GAE-only. v5 was removed from the
+> repo. The backend keeps the version branches for forward compatibility only.
 
 ### The production checkpoint
 
@@ -86,34 +87,38 @@ truth for observation format).
 
 | Index | Feature | Raw source | Normaliser |
 |-------|---------|-----------|-----------|
-| 0 | north_left | per-lane vehicle count | ÷ 15 |
-| 1 | north_through | " | ÷ 30 |
-| 2 | north_right | " | ÷ 15 |
-| 3 | south_left | " | ÷ 15 |
-| 4 | south_through | " | ÷ 30 |
-| 5 | south_right | " | ÷ 15 |
-| 6 | east_left | " | ÷ 15 |
-| 7 | east_through | " | ÷ 30 |
-| 8 | east_right | " | ÷ 15 |
-| 9 | west_left | " | ÷ 15 |
-| 10 | west_through | " | ÷ 30 |
-| 11 | west_right | " | ÷ 15 |
+| 0 | north_left | per-lane vehicle count | ÷ total-12-lane-sum |
+| 1 | north_through | " | ÷ total-12-lane-sum |
+| 2 | north_right | " | ÷ total-12-lane-sum |
+| 3 | south_left | " | ÷ total-12-lane-sum |
+| 4 | south_through | " | ÷ total-12-lane-sum |
+| 5 | south_right | " | ÷ total-12-lane-sum |
+| 6 | east_left | " | ÷ total-12-lane-sum |
+| 7 | east_through | " | ÷ total-12-lane-sum |
+| 8 | east_right | " | ÷ total-12-lane-sum |
+| 9 | west_left | " | ÷ total-12-lane-sum |
+| 10 | west_through | " | ÷ total-12-lane-sum |
+| 11 | west_right | " | ÷ total-12-lane-sum |
 | 12 | queue_length | total queue | ÷ 200 |
 | 13–18 | current_phase | one-hot of phase 0–5 (`phase % 6`) | — |
 | 19 | phase_duration | seconds held | `min(dur/120, 3.0)` |
 
-**Why these specific numbers:**
+**total-12-lane-sum** = `max(Σ(north_left … west_right), 1)` — the sum of all 12 raw lane counts at that junction, floored at 1 to avoid division by zero. Each lane feature is therefore a **junction-relative demand share** in `[0, 1]` that sums to 1.0 across the 12 lanes.
 
-- **÷15 vs ÷30:** left/right movements use a single lane (capacity ≈ 15 vehicles),
-  through movements use the wide lane (capacity ≈ 30). Dividing by capacity keeps
-  every feature roughly in [0, 1] so the network sees comparable scales.
-- **÷200 for queue:** 200 is the saturation cap applied upstream
-  (`queue_length = min(total*1.5, 200.0)` in the env), so this maps the queue to [0, 1].
-- **`min(dur/120, 3.0)`:** duration is normalised by 120 s but **capped at 3.0
-  (= 6 minutes)** rather than 1.0. The comment in the code is explicit: a hard cap
-  at 1.0 would make every long hold collapse to the same value; capping at 3.0 keeps
-  long holds distinguishable so the model/governor can still tell a 2-min hold from a
-  6-min hold.
+**Why junction-relative shares (not fixed ÷15 / ÷30):**
+
+- **Scale invariance:** dividing by the per-junction total means 1 car out of 5 total and 4
+  cars out of 20 total both read as `0.20`. The model receives the same signal regardless of
+  whether the junction is quiet or busy. Fixed divisors (÷15, ÷30) would map near-zero
+  raw counts to near-zero features, giving the model almost no gradient signal at low demand
+  — exactly the root cause of argmax collapse at low/medium traffic.
+- **All 12 lanes use the same denominator** so the ratio between e.g. a through lane and a
+  left-turn lane reflects their actual relative demand, not their lane-capacity ratio.
+- **÷200 for queue:** 200 is the saturation cap (`queue_length = min(total*1.5, 200.0)` in
+  the env), mapping the queue to `[0, 1]`.
+- **`min(dur/120, 3.0)`:** duration normalised by 120 s but **capped at 3.0 (= 6 min)**
+  rather than 1.0 — keeps long holds distinguishable (a 2-min hold reads differently from a
+  6-min hold).
 - **`current_phase` one-hot is 6 bits** because v6 has 6 phases. `phase % 6` guards
   against any out-of-range phase id.
 
@@ -255,8 +260,12 @@ MAX_GREEN_LEFT    = 45.0
 RuleGovernor(num_junctions=5, num_phases=6,
              min_green_s=10.0, max_green_s=90.0,
              flicker_window=2, flicker_penalty=3.0,
-             pressure_boost=1.0, pressure_thresh=0.35)
+             pressure_boost=1.0, pressure_thresh=0.12)
 ```
+
+> `pressure_thresh` was lowered from 0.35 → **0.12** so the pressure boost fires for any
+> movement holding more than 12 % of total demand (previously needed 35 %). This makes the
+> soft boost effective even at low-demand junctions where no single phase exceeds 35 %.
 
 ### Three apply variants (why there are three)
 
@@ -318,10 +327,11 @@ fairness      =  0.00     # computed but zero-weighted
 phase_penalty = -0.08
 wait_penalty  = -0.05
 green_wave    =  0.20     # global, added uniformly to all junctions
-starvation    = -0.15
+starvation    = -0.20     # per-movement anti-starvation
+clear_bonus   =  0.06     # small positive for any vehicles actually cleared
 ```
 
-Per junction, the seven local terms:
+Per junction, the eight local terms:
 
 | Term | Formula | Meaning |
 |------|---------|---------|
@@ -331,13 +341,31 @@ Per junction, the seven local terms:
 | fairness | `std(12 lanes)/max(mean,1)` | imbalance across lanes (weight 0 ⇒ inert) |
 | phase_penalty | `1.0` if phase changed vs last step else 0 | discourages thrashing |
 | wait_penalty | `(dur−60)/60` when `dur>60` else 0 | penalise overlong holds |
-| starvation | see below | penalise starving the cross direction |
+| starvation | see below | penalise holding a phase while other movements have demand |
+| clear_bonus | `min(cleared, 5) / 5` when `cleared > 0` else 0 | absolute clearing reward |
 
-**Starvation term (the subtle one):** when `phase_duration > 30 s` and there is any
-demand, it computes the *unserved* direction’s share. If NS is active (phase 0,1,2),
-`starvation = (ew_demand/total) × excess`; if EW active, the NS share. `excess =
-min((dur−30)/60, 2.0)`. It is **zero when there is no demand**, so quiet periods are
-not punished.
+**Starvation term (per-movement, scale-invariant):**
+
+```python
+excess         = min(dur / 45.0, 2.0)
+unserved_share = (total_demand − demand[current_phase]) / total_demand
+starvation     = unserved_share × excess
+```
+
+Key properties vs the old NS/EW-only, >30 s-gated version:
+
+- **Active at any demand level** — uses shares, not absolute counts. 1 car in the cross
+  direction out of 3 total already gives `unserved_share = 0.67`, so the penalty fires even
+  during off-peak periods where the old >30 s gate was the only signal.
+- **Per-movement (all 6 phase groups)** — not just NS vs EW. If N-left has cars and the
+  junction is stuck on EW-through, the penalty fires for the N-left starvation too.
+- **Zero when there is no cross-direction demand** — `unserved_share = 0` when all demand
+  is served by the current phase, so it never penalises a junction that is correctly holding.
+
+**Clear-bonus term (low-demand shaping):** a small positive reward for any absolute vehicle
+reduction at this junction (capped at 5 vehicles / step). Unlike `throughput`, which is
+relative to `prev_total` and collapses to noise with only 1–3 cars, `clear_bonus` gives a
+reliable signal whenever even a single car is cleared.
 
 **Green-wave bonus (global):** `_compute_green_wave` rewards adjacent junctions whose
 through phases align along the directed edges `[(0,1),(1,2),(1,3),(3,4)]`, but only
@@ -448,25 +476,45 @@ Each stage uses SUMO via TraCI and the shared `parse_sumo_observations`.
 - **Warm start freeze:** for the first `--freeze-episodes 100`, the GRU and GAT are
   frozen; at episode 100 they unfreeze.
 - **Cosine LR decay** every episode from base LR down toward `--lr-min 1e-5`.
+- **Entropy annealing:** `entropy_coef` is cosine-annealed from `--entropy-start 0.01`
+  → `--entropy-end 0.0005` over the full run. Early episodes explore stochastically;
+  late episodes sharpen toward the argmax-mode distribution used at deployment. This
+  directly closes the train/deploy mismatch (the model is trained with policies close to
+  argmax, not just with a fixed high-entropy policy).
 - **Rollout & update:** collect until `rollout_length = 64` steps, then `ppo_update`
   with `ppo_epochs = 4`, `minibatch_size = 64`. The governor is active during both
   collection (`apply`) and update (`apply_stateless_batch`). Reward = `compute_reward`,
   advantages = `compute_gae` (both imported from `trafix_v2`).
 - **Episode budget:** `--episodes 2000`, `--max-steps 3600`, `--decision-interval 10`,
   `--warmup 50` (env warm-up before the agent acts).
+- **Greedy checkpoint selection:** every `--eval-interval 50` episodes a separate,
+  fixed-seed `greedy_eval()` rollout is run: **argmax** (not sampled) with the governor
+  ON and starvation overrides OFF — exactly the production inference path. The checkpoint
+  with the best greedy reward that also keeps `peak_queue < baseline × (1 + peak_slack)`
+  is saved as `trafix_v6_stage3_best.pt`. This prevents the common failure mode of
+  choosing a checkpoint that looks good under stochastic sampling but degrades under
+  deterministic argmax deployment.
 - **Checkpoints:** every 100 episodes → `stage3_ep{N}.pt`; at the end →
-  `trafix_v6_final.pt`. Each checkpoint stores model + optimizer + episode + best_reward.
+  `trafix_v6_final.pt`; best greedy → `trafix_v6_stage3_best.pt`. Each checkpoint
+  stores model + optimizer + episode + best_reward.
 - Truncated episodes flush the remaining buffer with a proper bootstrap value computed
   from the last observed window (not zeros) — important for correct GAE on
   `max_steps`-cut episodes.
 
-### Fine-tune (`finetune_morning_peak.py`, optional)
+### Fine-tune: argmax collapse fix (`finetune_argmax.py`, optional)
 
-- Starts from `trafix_v6_final.pt`. **LR 1e-5** (10–30× lower), GRU+GAT **frozen**
-  (only trunk + actor heads move). Curriculum **70% MORNING_PEAK / 30% OFFPEAK**.
-  250 episodes default. Best model gated by *lowest morning-peak queue* **and**
-  *offpeak queue < 0.035* (anti-forgetting guard). Evaluates every 50 episodes across
-  all scenarios to catch catastrophic forgetting early.
+- Starts from `trafix_v6_final.pt`. **LR 1e-5**, GRU+GAT **frozen** (only trunk + actor
+  heads move, 27,108 / 101,476 params). Curriculum low-demand-heavy (45 % OFFPEAK).
+  400 episodes. **Greedy rollout** (argmax + governor ON) during training, not sampled.
+  Entropy cosine-annealed 0.01 → 0.0005. Best model gated by greedy reward **and**
+  `peak_queue < baseline × 1.10` (high-traffic regression guard). Saves
+  `trafix_v6_argmax_best.pt` and `trafix_v6_argmax_final.pt`.
+
+### Fine-tune: morning-peak (`finetune_morning_peak.py`, optional)
+
+- Starts from `trafix_v6_final.pt`. **LR 1e-5**, GRU+GAT **frozen**. Curriculum
+  **70% MORNING_PEAK / 30% OFFPEAK**. 250 episodes. Best model gated by *lowest
+  morning-peak queue* **and** *offpeak queue < 0.035* (anti-forgetting guard).
 
 ### Evaluation (`eval_stage3.py`)
 
@@ -587,7 +635,7 @@ This is the section to study for *“what happens when we change x with y.”*
 | `NUM_PHASES` 6 → 4 | Actor heads become `64→4`, phase one-hot is 6 bits ⇒ **shape mismatch on load**. Retrain. This is literally the v5→v6 difference. |
 | `NUM_JUNCTIONS` 5 | Hard-coded everywhere (heads, critics, chain graph, `state_dict` in backend). Changing it is a structural rewrite, not a knob. |
 | `T` window 30 → smaller | Less temporal context; the GRU still runs (T is dynamic), but behaviour drifts from training. The backend pre-fills 30; a different live T than training T degrades quality silently. |
-| normalisers (÷15, ÷30, ÷200, /120 cap 3.0) | These are baked into both training and inference. Change one only in inference ⇒ the model sees a different distribution than it trained on ⇒ worse decisions, no error raised. Change in both ⇒ must retrain. |
+| observation normaliser (junction-relative shares, ÷200, /120 cap 3.0) | These are baked into `parse_sumo_observations` and used by training and inference through the same shared function. Change one only in inference ⇒ the model sees a different distribution than it trained on ⇒ worse decisions, no error raised. Change in `parse_sumo_observations` ⇒ must retrain from Stage 1 because the GRU pretrain used the old distribution. The relative-share approach (`count / max(total, 1)`) is what the current production weights were trained on. |
 
 ### Reward weights — change these, retrain, behaviour shifts (no crash)
 
@@ -608,7 +656,7 @@ old weights.
 | Change | Effect |
 |--------|--------|
 | `clip_eps` 0.2 ↑ | Larger policy steps, faster but less stable. |
-| `entropy_coef` 0.01 ↓ | Less exploration ⇒ risk of premature collapse onto a few phases (this is exactly why v6 raised it from v5’s 0.005). |
+| `entropy_coef` (now annealed 0.01→0.0005) | Stage 3 cosine-anneals entropy so early training explores and late training sharpens toward argmax. A flat high value keeps entropy high throughout → policy stays diffuse at deployment (argmax collapse risk). A flat low value kills exploration early → poor coverage of scenarios. The anneal is the designed trade-off. |
 | `value_coef` 0.25 ↑ | Critic learns faster but can dominate the policy gradient. |
 | `target_kl` 0.015 ↑ | Allows bigger updates before early-stop. |
 | `gamma` 0.99 ↓ | Shorter horizon, more myopic (less green-wave planning). |
@@ -624,7 +672,7 @@ old weights.
 | `MIN_GREEN_THROUGH` 10 / `MIN_GREEN_LEFT` 8 | Longer min-green ⇒ smoother but laggier; shorter ⇒ flicker risk. |
 | `MAX_GREEN_THROUGH` 90 / `MAX_GREEN_LEFT` 45 | Cap on how long one phase can hold before a forced switch. |
 | `flicker_penalty` 3.0 ↑ | Stronger anti-oscillation; too high freezes the phase. |
-| `pressure_boost` 1.0 / `pressure_thresh` 0.35 | Lower threshold ⇒ pressure boost fires more often, biasing toward the busiest movement. |
+| `pressure_boost` 1.0 / `pressure_thresh` 0.12 | Lower threshold ⇒ pressure boost fires more often, biasing toward the busiest movement. At 0.12 (the current production value) the boost fires for any movement with ≥ 12 % of total demand — effective even at very low traffic. The old value was 0.35. |
 | `YELLOW_STEPS` 3 | Safety timing; changing it desyncs the yellow handling in env/runner. |
 
 ### Runner overrides — change these and you change the safety net, not the model
@@ -655,9 +703,12 @@ caught out. Trust the code (and this doc):
 
 Also worth stating plainly:
 
-- The v2 model class is named `SpatioTemporalGNN` but contains **no GRU** — it’s a
-  2-layer GCN (“GRU removed” comments are accurate for v2). GRU only lives in **v6**
-  (`_TemporalEncoder`). Don’t let the v2 class name confuse a reviewer.
+- The v2 model classes (`SpatioTemporalGNN`, `IntersectionCoordinator`,
+  `CoordinatedPPOAgent`, `train_step`) were **removed** from `trafix_v2.py`. The file
+  now contains only the shared infrastructure: `parse_sumo_observations`,
+  `compute_reward`, `compute_gae`, and `RewardWeights`. Don’t look for a v2 model there.
+- `SpatioTemporalGNN` (when it existed) contained **no GRU** despite the name — it was a
+  2-layer GCN. GRU lives only in **v6** (`_TemporalEncoder`).
 - `fairness` weight is **0.0** (term computed but disabled).
 
 ---
@@ -678,9 +729,10 @@ BACKEND (inference)
         ├─ parse_sumo_observations()   ← SHARED 20-dim parser (all versions)
         ├─ NUM_NODE_FEATURES = 20
         ├─ compute_reward(), _compute_green_wave()   ← used by Stage-3 PPO
-        ├─ compute_gae(), train_step()
-        ├─ RewardWeights (dataclass)
-        └─ CoordinatedPPOAgent  ← legacy v2 model (GCN+Attention, no GRU)
+        ├─ compute_gae()
+        └─ RewardWeights (dataclass)
+        (v2 model classes SpatioTemporalGNN / IntersectionCoordinator /
+         CoordinatedPPOAgent / train_step were removed — file is now infra-only)
   backend/ai/train_v2.py
         ├─ TrainConfig (dataclass)      ← env/v2 hyperparameters
         ├─ SumoEnvironment              ← TraCI wrapper used by ALL trainers
@@ -748,7 +800,7 @@ TESTS
 | flicker_window | 2 |
 | flicker_penalty | 3.0 |
 | pressure_boost | 1.0 |
-| pressure_thresh | 0.35 |
+| pressure_thresh | **0.12** |
 
 ### Stage-3 PPO (the run that produced production weights)
 
@@ -764,7 +816,9 @@ TESTS
 | gamma / gae_lambda | 0.99 / 0.95 |
 | clip_eps / value_clip_eps | 0.2 / 0.2 |
 | value_loss_coef | 0.25 |
-| entropy_coef | 0.01 |
+| entropy_start → entropy_end | 0.01 → 0.0005 (cosine anneal) |
+| eval_interval | 50 episodes |
+| peak_slack | 0.10 (10 % above baseline peak_queue) |
 | target_kl | 0.015 |
 | max_log_ratio | 2.0 |
 | max_grad_norm | 0.5 |
@@ -785,9 +839,9 @@ TESTS
 
 ### Reward weights (RewardWeights)
 
-| pressure | queue | throughput | fairness | phase | wait | green_wave | starvation |
-|---------:|------:|-----------:|---------:|------:|-----:|-----------:|-----------:|
-| −0.30 | −0.25 | +0.25 | 0.00 | −0.08 | −0.05 | +0.20 | −0.15 |
+| pressure | queue | throughput | fairness | phase | wait | green_wave | starvation | clear_bonus |
+|---------:|------:|-----------:|---------:|------:|-----:|-----------:|-----------:|------------:|
+| −0.30 | −0.25 | +0.25 | 0.00 | −0.08 | −0.05 | +0.20 | **−0.20** | **+0.06** |
 
 ### Live runner (run_sumo_live.py)
 
@@ -949,10 +1003,11 @@ These are the questions a reviewer is most likely to push on.
   (`std/mean`) of the 12 per-lane counts — high when queues are lopsided. Its *normal*
   use is to stop a throughput-maximiser from **permanently starving the quiet
   direction**. We set its weight to **0.00** because that exact failure mode is already
-  covered three more directly: the **`starvation` reward term** (−0.15), the governor’s
-  **max-green** hard switch, and the live runner’s **starvation overrides**
-  (`STARVE_LIMIT`/`DIRECTION_STARVE_LIMIT`/`LEFT_STARVE_LIMIT`). On top of that, lane
-  occupancy at a junction is *naturally* uneven (through lanes hold ~30, left lanes ~15),
+  covered three more directly: the **`starvation` reward term** (−0.20, per-movement
+  share-based), the governor’s **max-green** hard switch, and the live runner’s
+  **starvation overrides** (`STARVE_LIMIT`/`DIRECTION_STARVE_LIMIT`/`LEFT_STARVE_LIMIT`).
+  On top of that, lane occupancy at a junction is *naturally* uneven (through lanes have
+  more vehicles than left-turn lanes),
   so the CV signal is noisy and would fight throughput for little gain. It’s kept as a
   one-number toggle so the choice is reversible, but it is deliberately off.
 

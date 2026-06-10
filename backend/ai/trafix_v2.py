@@ -4,8 +4,9 @@ TraFix — shared observation, reward and advantage code
 Single source of truth (used by ALL model versions and every v6 training script)
 for the 20-dim SUMO observation parser, the per-junction reward function, and GAE.
 
-  • NUM_NODE_FEATURES = 20 (12 per-lane counts + queue + 6-phase one-hot + duration)
-  • parse_sumo_observations: 12 lane fields, normalised per-lane
+  • NUM_NODE_FEATURES = 20 (12 per-lane shares + queue + 6-phase one-hot + duration)
+  • parse_sumo_observations: 12 lane fields as junction-relative shares
+      (count / total_12_lane_sum) — scale-invariant, fixes low-demand signal (P5)
   • compute_reward: pressure/queue/throughput/fairness/anti-starvation over 12 lanes
   • _compute_green_wave: through phases are 0 (NS) and 3 (EW) in model space
 
@@ -38,16 +39,8 @@ _NS_KEYS = ["north_left", "north_through", "north_right",
 _EW_KEYS = ["east_left",  "east_through",  "east_right",
             "west_left",  "west_through",  "west_right"]
 
-# Per-lane normalisers: left/right lanes = 15 (single lane), through = 30
-_NORM = {
-    "north_left":    15.0, "north_through": 30.0, "north_right":  15.0,
-    "south_left":    15.0, "south_through": 30.0, "south_right":  15.0,
-    "east_left":     15.0, "east_through":  30.0, "east_right":   15.0,
-    "west_left":     15.0, "west_through":  30.0, "west_right":   15.0,
-}
-
 # Output feature count:
-#   [0-11]  12 normalised per-lane counts
+#   [0-11]  12 lane relative shares  (each lane_count / total_12_lane_sum)
 #   [12]    total queue / 200
 #   [13-18] 6-bit phase one-hot
 #   [19]    phase duration / 120
@@ -72,9 +65,14 @@ def parse_sumo_observations(
     for o in sorted(obs_list, key=lambda x: x["intersection_id"]):
         row = []
 
-        # Indices 0-11: per-lane counts normalised
+        # Indices 0-11: per-lane share of total junction demand.
+        # Dividing by the sum of all 12 lanes makes the features scale-invariant:
+        # 1 car out of 5 and 4 cars out of 20 both read as 0.20, giving the model
+        # a meaningful gradient at low demand where absolute counts are near zero.
+        total_lane = sum(o.get(key, 0) for key in _LANE_KEYS)
+        denom = max(total_lane, 1)
         for key in _LANE_KEYS:
-            row.append(o.get(key, 0) / _NORM[key])
+            row.append(o.get(key, 0) / denom)
 
         # Index 12: total queue / 200
         row.append(o.get("queue_length", 0.0) / 200.0)

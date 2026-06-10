@@ -60,7 +60,7 @@
 | Sym | Name | Line | What it does |
 |-----|------|-----:|--------------|
 | 🔢 | `_IDX_*` (N_LEFT..DURATION) | 29–43 | Named indices into the 20-dim obs (`_IDX_PHASE=slice(13,19)`, `_IDX_DURATION=19`) |
-| 🔢 | `_NORM_LEFT_RIGHT=15`, `_NORM_THROUGH=30`, `_NORM_DURATION=120`, `_NEG_INF=-1e9` | 45–49 | De-normalisers + the masking sentinel |
+| 🔢 | `_NORM_DURATION=120`, `_NEG_INF=-1e9` | ~45–48 | Duration de-normaliser + the masking sentinel (`_NORM_LEFT_RIGHT` and `_NORM_THROUGH` were removed when obs moved to junction-relative shares) |
 | 🔢 | `MIN_GREEN_THROUGH=10`, `MIN_GREEN_LEFT=8`, `MAX_GREEN_THROUGH=90`, `MAX_GREEN_LEFT=45` | 52–55 | Phase-type green bounds (override constructor args inside `_hard_mask`) |
 | ƒ | `_decode_obs(obs_j)` | 58 | Reads `(phase, duration_seconds)` from one junction's obs (`argmax` one-hot, `dur×120`) |
 | 🏛 | `RuleGovernor` | 67 | The constraint layer between logits and the phase choice |
@@ -68,7 +68,7 @@
 | 🅼 | `RuleGovernor.reset()` | 114 | Clears flicker history (call per episode / SUMO restart) |
 | 🅼 | `RuleGovernor.update_state(actions_1d)` | 118 | Pushes the chosen phases into the flicker history |
 | 🅼 | `RuleGovernor._hard_mask(phase, duration)` | 125 | Min-green: forbid all-but-current; max-green: forbid current |
-| 🅼 | `RuleGovernor._pressure_bonus(obs_j)` | 142 | Adds a bonus to the busiest movement's phase if it exceeds `pressure_thresh` |
+| 🅼 | `RuleGovernor._pressure_bonus(obs_j)` | ~142 | Adds a bonus to the busiest movement's phase if it exceeds `pressure_thresh` (0.12); uses obs[0:12] directly as demand shares (no `*_NORM_*` multiply) |
 | 🅼 | `RuleGovernor._flicker_penalty(j)` | 172 | Subtracts `flicker_penalty` from a back-to-A reversal |
 | 🅼 | `RuleGovernor.apply(logits_list, obs_last)` | 184 | **Live/rollout path**: hard mask + pressure + stateful flicker |
 | 🅼 | `RuleGovernor.apply_stateless(...)` | 202 | Hard mask + pressure only (no flicker); used by test runner |
@@ -106,19 +106,16 @@
 
 | Sym | Name | Line | What it does |
 |-----|------|-----:|--------------|
-| 🔢 | `_LANE_KEYS`, `_NS_KEYS`, `_EW_KEYS` | 35–45 | Canonical lane-name lists |
-| 🔢 | `_NORM` | 48 | Per-feature normalisers (÷15/÷30/÷200/…) |
-| 🔢 | `NUM_NODE_FEATURES=20` | 60 | The obs width; imported everywhere as `OBS_DIM` |
-| ƒ | **`parse_sumo_observations(obs_list, device=None)`** | 63 | **Single source of truth** for telemetry→`[5,20]` float tensor |
-| 🏛 | `SpatioTemporalGNN(nn.Module)` | 107 | Legacy v2 GCN (no GRU despite the name) |
-| 🏛 | `IntersectionCoordinator(nn.Module)` | 126 | Legacy v2 attention block |
-| 🏛 | `CoordinatedPPOAgent(nn.Module)` | 155 | Legacy v2 agent (`forward`@189, `select_actions`@197, `compute_ppo_loss`@204) |
-| 📦 | `RewardWeights` (`@dataclass`) | 230 | The 8 reward weights (pressure −0.30 … starvation −0.15; fairness 0.0) |
-| ƒ | `_intersection_total(o)` | 242 | Sums the 12 lane counts for one junction |
-| ƒ | `_compute_green_wave(cur, prev)` | 247 | Global green-wave bonus along directed edges with platoons |
-| ƒ | **`compute_reward(...)`** | 290 | Per-junction `(N,)` reward tensor (used by Stage-3 PPO) |
-| ƒ | **`compute_gae(...)`** | 384 | Generalised Advantage Estimation (γ=0.99, λ=0.95), standardised |
-| ƒ | `train_step(...)` | 427 | Legacy v2 single-sample PPO step |
+| 🔢 | `_LANE_KEYS`, `_NS_KEYS`, `_EW_KEYS` | ~30–40 | Canonical lane-name lists |
+| 🔢 | `NUM_NODE_FEATURES=20` | ~47 | The obs width; imported everywhere as `OBS_DIM` |
+| ƒ | **`parse_sumo_observations(obs_list, device=None)`** | ~50 | **Single source of truth** for telemetry→`[5,20]` float tensor. Indices [0–11] = lane/total-12-lane-sum (junction-relative shares); [12] = queue/200; [13–18] = 6-bit phase one-hot; [19] = min(dur/120, 3.0). The legacy `_NORM` dict (÷15/÷30) was removed. |
+| 📦 | `RewardWeights` (`@dataclass`) | ~103 | The 9 reward weights: pressure −0.30, queue −0.25, throughput +0.25, fairness 0.00, phase_penalty −0.08, wait_penalty −0.05, green_wave +0.20, **starvation −0.20**, **clear_bonus +0.06** |
+| ƒ | `_intersection_total(o)` | ~117 | Sums the 12 lane counts for one junction |
+| ƒ | `_compute_green_wave(cur, prev)` | ~122 | Global green-wave bonus along directed edges with platoons |
+| ƒ | **`compute_reward(...)`** | ~165 | Per-junction `(N,)` reward tensor (used by Stage-3 PPO). Includes per-movement share-based starvation term and clear_bonus. |
+| ƒ | **`compute_gae(...)`** | ~287 | Generalised Advantage Estimation (γ=0.99, λ=0.95), standardised |
+> **Note:** `SpatioTemporalGNN`, `IntersectionCoordinator`, `CoordinatedPPOAgent`, and
+> `train_step` were **removed** from this file. It is now infrastructure-only.
 
 ---
 
@@ -167,14 +164,21 @@
 ### `trafix_v6/stage3_train_ppo.py` — full PPO (**produces the production model**)
 | Sym | Name | Line | What it does |
 |-----|------|-----:|--------------|
-| 🏛 | `RolloutBuffer` | 113 | Collects windows/actions/log-probs/rewards/values (`.add`@124, `.clear`@117) |
-| ƒ | **`ppo_update(...)`** | 139 | Clipped PPO + clipped value loss + KL early-stop; governs via `apply_stateless_batch` |
-| ƒ | `save_checkpoint(...)` | 231 | Every 100 eps → `stage3_ep{N}.pt`; end → `trafix_v6_final.pt` |
-| ƒ | `train(args)` | 248 | Differential LRs, freeze-then-unfreeze, cosine decay, rollout=64, 2000 eps |
-| ƒ | `parse_args()` | 550 | CLI |
+| 🔢 | `STAGE3_BEST_CHECKPOINT` | ~110 | Path to `checkpoints/trafix_v6_stage3_best.pt` — saved when greedy eval beats the running best |
+| 🏛 | `RolloutBuffer` | ~113 | Collects windows/actions/log-probs/rewards/values (`.add`, `.clear`) |
+| ƒ | **`ppo_update(...)`** | ~139 | Clipped PPO + clipped value loss + KL early-stop; governs via `apply_stateless_batch`; accepts `ent_coef` arg for annealing |
+| ƒ | `_entropy_coef(episode, total, start, end)` | ~225 | Cosine-anneals entropy coefficient from `start` to `end` over the full episode budget |
+| ƒ | `greedy_eval(model, governor, gen, args)` | ~235 | Argmax rollout (governor ON, starvation overrides OFF) → `{mean_reward, mean_queue, worst_lock, peak_queue}`; mirrors the production inference path for honest checkpoint selection |
+| ƒ | `save_checkpoint(...)` | ~280 | Every 100 eps → `stage3_ep{N}.pt`; end → `trafix_v6_final.pt`; best greedy → `trafix_v6_stage3_best.pt` |
+| ƒ | `train(args)` | ~295 | Differential LRs, freeze-then-unfreeze, cosine LR decay, entropy annealing, `eval_interval` greedy checkpointing, rollout=64, 2000 eps |
+| ƒ | `parse_args()` | ~580 | CLI: `--entropy-start` (0.01), `--entropy-end` (0.0005), `--eval-interval` (50), `--peak-slack` (0.10); `--entropy-coef` replaced by start/end |
 
-### `trafix_v6/finetune_morning_peak.py` (optional)
-`RolloutBuffer`@104 · `ppo_update`@130 · `quick_eval`@229 (anti-forgetting eval) · `finetune(args)`@301 (LR 1e-5, encoders frozen, 70/30 curriculum, gated save) · `parse_args`@615
+### `trafix_v6/finetune_argmax.py` (optional — argmax-collapse fix)
+`RolloutBuffer` · `ppo_update` · `greedy_eval` (argmax rollout, high-traffic guard) · `finetune(args)` (LR 1e-5, encoders frozen 27k/101k params, low-demand-heavy curriculum, entropy cosine 0.01→0.0005, 400 eps) · `parse_args`
+→ `checkpoints/trafix_v6_argmax_best.pt`, `trafix_v6_argmax_final.pt`
+
+### `trafix_v6/finetune_morning_peak.py` (optional — peak specialisation)
+`RolloutBuffer` · `ppo_update` · `quick_eval` (anti-forgetting eval) · `finetune(args)` (LR 1e-5, encoders frozen, 70/30 curriculum, gated save) · `parse_args`
 
 ### `trafix_v6/eval_stage3.py`
 `run_episode(model, env, ...)`@81 (one scenario rollout) · `evaluate(args)`@137 (`_mean`@205 helper) · `parse_args`@218
@@ -343,7 +347,7 @@ each can run standalone. If you change one, change all — they form an implicit
 | `DECISION_INTERVAL=10` | `:50` | — | (cfg) | (arg) | — |
 | `MIN/MAX_GREEN` | `:46–47` | governor ctor `main.py:154` | — | governor ctor `:286` | `rule_governor.py:52–55` |
 | `T window=30` | — | `main.py:124` | — | `:57` | (model input) |
-| obs `_IDX_*` / `_NORM` | — | — | (`get_observations`) | — | `rule_governor.py:29–47`, `trafix_v2.py:48` |
+| obs `_IDX_*` | — | — | (`get_observations`) | — | `rule_governor.py:29–43` (index constants only; `_NORM_LEFT_RIGHT`/`_NORM_THROUGH` removed; `_NORM` dict in `trafix_v2.py` removed) |
 | chain `edge_index` | — | `main.py:108` | `build_edge_index` `:449` | — | `_make_chain_edge_index` `:36` |
 | `OBS_DIM=20` / `NUM_PHASES=6` / `NUM_JUNCTIONS=5` | — | `main.py:101–104` | — | `:58–59` | `trafix_v6.py:31–33`, `trafix_v2.py:60` |
 
