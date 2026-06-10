@@ -115,6 +115,24 @@ _EVAL_SET: List[Tuple[ScenarioType, int]] = [
     (ScenarioType.EVENING_PEAK, 40),
 ]
 
+# 33% low, 33% mid, 34% high mix requested by user
+_TRAIN_MIX: List[Tuple[ScenarioType, float]] = [
+    (ScenarioType.OFFPEAK,      0.33),
+    (ScenarioType.PULSE,        0.165),
+    (ScenarioType.INCIDENT,     0.165),
+    (ScenarioType.MORNING_PEAK, 0.17),
+    (ScenarioType.EVENING_PEAK, 0.17),
+]
+
+def _sample_scenario_type() -> ScenarioType:
+    r = random.random()
+    cum = 0.0
+    for st, w in _TRAIN_MIX:
+        cum += w
+        if r <= cum:
+            return st
+    return _TRAIN_MIX[-1][0]
+
 
 # ══════════════════════════════════════════════════
 #  Entropy annealing + Greedy eval (Step 2)
@@ -506,7 +524,8 @@ def train(args):
             pg["lr"] = base_lr * lr_scale
         current_lr = optimizer.param_groups[-1]["lr"]
 
-        scenario_type, route_file = generator.sample(episode)
+        scenario_type = _sample_scenario_type()
+        route_file = generator.generate(scenario_type, episode)
         env.set_route_file(route_file)
 
         episode_start = time.time()
@@ -617,7 +636,7 @@ def train(args):
                     next_value=next_val,
                     clip_eps=args.clip_eps, gamma=args.gamma,
                     gae_lambda=args.gae_lambda,
-                    entropy_coef=args.entropy_coef,
+                    entropy_coef=ent_coef,
                     value_loss_coef=args.value_loss_coef,
                     ppo_epochs=args.ppo_epochs,
                     minibatch_size=args.minibatch_size,
@@ -673,7 +692,7 @@ def train(args):
                 f"queue={g['mean_queue']:.4f} worst_lock={g['worst_lock']:.2f} "
                 f"peak_queue={g['peak_queue']:.4f} {'OK' if peak_ok else 'PEAK-REGRESSED'} ---"
             )
-            if g["mean_reward"] > best_greedy_reward and peak_ok:
+            if g["mean_reward"] > best_greedy_reward and peak_ok and g["worst_lock"] <= 0.70:
                 best_greedy_reward = g["mean_reward"]
                 torch.save({
                     "model_state_dict": model.state_dict(),
@@ -689,6 +708,9 @@ def train(args):
                              f"(worst_lock={g['worst_lock']:.2f}) — saved {STAGE3_BEST_CHECKPOINT.name} ***")
             elif not peak_ok:
                 logging.info("  [GATE] peak_queue regressed — best not updated")
+            elif g["worst_lock"] > 0.70:
+                logging.info(f"  [GATE] model collapsed (worst_lock={g['worst_lock']:.2f}) — best not updated")
+
 
     save_checkpoint(model, optimizer, args.episodes - 1, FINAL_CHECKPOINT, best_reward)
     logging.info(f"  Final model saved  → {FINAL_CHECKPOINT}")

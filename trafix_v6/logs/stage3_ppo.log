@@ -600,3 +600,85 @@
 2026-05-21 05:21:33,748 [INFO]   → Checkpoint saved: X:\Yeni klasör (2)\trafix\trafix_v6\checkpoints\stage3_ep2000.pt
 2026-05-21 05:21:33,772 [INFO]   Final model saved → X:\Yeni klasör (2)\trafix\trafix_v6\checkpoints\trafix_v6_final.pt
 2026-05-21 05:21:33,773 [INFO]   Best episode reward: -0.029205
+2026-06-10 21:25:46,010 [INFO] ============================================================
+2026-06-10 21:25:46,011 [INFO]   TraFix v6 — Stage 3: Full PPO Training
+2026-06-10 21:25:46,012 [INFO]   NUM_PHASES=6, OBS_DIM=20
+2026-06-10 21:25:46,012 [INFO] ============================================================
+2026-06-10 21:25:46,012 [INFO]   Device: cuda
+2026-06-10 21:25:46,340 [INFO]   Pretrained weights loaded: GRU, GATConv, trunk
+2026-06-10 21:25:46,340 [INFO]   Total params: 101,476
+2026-06-10 21:25:46,340 [INFO]   entropy     : 0.01 -> 0.0005 (cosine anneal)
+2026-06-10 21:25:46,342 [INFO]   selection   : GREEDY argmax rollout (governor ON, overrides OFF)
+2026-06-10 21:25:46,342 [INFO]   Encoders frozen until episode 100
+2026-06-10 21:27:09,488 [INFO]   BASELINE greedy: reward=-0.2196 queue=0.1211 worst_lock=0.83 peak_queue=0.1594
+2026-06-10 21:27:09,489 [INFO]   high-traffic guard: peak_queue must stay < 0.1753 (baseline x 1.10)
+2026-06-10 21:29:18,840 [INFO]   Ep   10/300 | scenario=OFFPEAK | R=-0.0838 (avg50=-0.0852) | Q=0.021 W=0.123 | π=0.0431 V=0.1712 | H=[J0=1.196 J1=1.138 J2=0.991 J3=1.046 J4=1.336] | LR=2.99e-04 | 12.0s | ep0009 | OFFPEAK | flow=429 veh/hr | duration=318 steps
+2026-06-10 21:30:49,042 [INFO]   Ep   20/300 | scenario=OFFPEAK | R=-0.0813 (avg50=-0.0842) | Q=0.020 W=0.109 | π=0.0385 V=0.0995 | H=[J0=1.200 J1=1.218 J2=1.216 J3=1.182 J4=1.361] | LR=2.97e-04 | 8.3s | ep0019 | OFFPEAK | flow=382 veh/hr | duration=343 steps
+2026-06-10 21:32:17,954 [INFO]   Ep   30/300 | scenario=OFFPEAK | R=-0.0761 (avg50=-0.0858) | Q=0.018 W=0.105 | π=0.0035 V=0.0931 | H=[J0=1.253 J1=1.328 J2=1.212 J3=1.220 J4=1.335] | LR=2.93e-04 | 12.6s | ep0029 | OFFPEAK | flow=402 veh/hr | duration=371 steps
+2026-06-10 21:33:42,492 [INFO]   Ep   40/300 | scenario=PULSE | R=-0.0904 (avg50=-0.0857) | Q=0.031 W=0.103 | π=0.0057 V=0.0809 | H=[J0=1.331 J1=1.247 J2=1.322 J3=1.219 J4=1.255] | LR=2.88e-04 | 6.6s | ep0039 | PULSE | quiet=0-291s burst=291-582s flow=695 ods=ALL | duration=370
+2026-06-10 21:35:19,042 [INFO]   Ep   50/300 | scenario=OFFPEAK | R=-0.0687 (avg50=-0.0844) | Q=0.015 W=0.105 | π=0.0176 V=0.1058 | H=[J0=1.277 J1=1.307 J2=1.196 J3=1.347 J4=1.325] | LR=2.81e-04 | 10.3s | ep0049 | OFFPEAK | flow=320 veh/hr | duration=377 steps
+2026-06-10 21:36:37,312 [INFO]   --- greedy eval @ep50: reward=-0.1271 queue=0.0592 worst_lock=0.70 peak_queue=0.0733 OK ---
+2026-06-10 21:36:37,326 [INFO]   *** new best greedy reward=-0.1271 (worst_lock=0.70) — saved trafix_v6_stage3_best.pt ***
+2026-06-10 21:38:19,722 [INFO]   Ep   60/300 | scenario=OFFPEAK | R=-0.0675 (avg50=-0.0825) | Q=0.013 W=0.105 | π=0.0120 V=0.0736 | H=[J0=1.222 J1=1.254 J2=1.175 J3=1.258 J4=1.298] | LR=2.73e-04 | 9.9s | ep0059 | OFFPEAK | flow=210 veh/hr | duration=444 steps
+2026-06-10 21:39:48,872 [INFO]   Ep   70/300 | scenario=OFFPEAK | R=-0.0722 (avg50=-0.0816) | Q=0.014 W=0.105 | π=0.0104 V=0.1155 | H=[J0=1.230 J1=1.288 J2=1.196 J3=1.227 J4=1.287] | LR=2.64e-04 | 12.5s | ep0069 | OFFPEAK | flow=272 veh/hr | duration=327 steps
+2026-06-10 21:41:10,071 [INFO]   Ep   80/300 | scenario=OFFPEAK | R=-0.0662 (avg50=-0.0794) | Q=0.013 W=0.104 | π=0.0267 V=0.1074 | H=[J0=1.305 J1=1.301 J2=1.154 J3=1.207 J4=1.285] | LR=2.53e-04 | 7.2s | ep0079 | OFFPEAK | flow=257 veh/hr | duration=473 steps
+2026-06-10 21:42:43,205 [INFO]   Ep   90/300 | scenario=OFFPEAK | R=-0.0642 (avg50=-0.0777) | Q=0.012 W=0.109 | π=0.0963 V=0.0642 | H=[J0=1.219 J1=1.320 J2=1.196 J3=1.227 J4=1.313] | LR=2.41e-04 | 8.2s | ep0089 | OFFPEAK | flow=202 veh/hr | duration=446 steps
+2026-06-10 21:44:10,422 [INFO]   Ep  100/300 | scenario=PULSE | R=-0.1042 (avg50=-0.0790) | Q=0.034 W=0.112 | π=0.0010 V=0.1168 | H=[J0=1.304 J1=1.302 J2=1.168 J3=1.282 J4=1.193] | LR=2.28e-04 | 7.7s | ep0099 | PULSE | quiet=0-264s burst=264-492s flow=893 ods=OUTBOUND | duration=342
+2026-06-10 21:44:10,438 [INFO]   → Checkpoint saved: X:\atlas\traf_lasttwo_days\trafix\trafix_v6\checkpoints\stage3_ep100.pt
+2026-06-10 21:45:33,221 [INFO]   --- greedy eval @ep100: reward=-0.1815 queue=0.0945 worst_lock=0.78 peak_queue=0.1100 OK ---
+2026-06-10 21:45:33,221 [INFO]   Episode 100: Encoders unfrozen
+2026-06-10 21:47:04,207 [INFO]   Ep  110/300 | scenario=OFFPEAK | R=-0.0747 (avg50=-0.0796) | Q=0.018 W=0.106 | π=0.0270 V=0.0965 | H=[J0=1.317 J1=1.243 J2=1.117 J3=1.229 J4=1.197] | LR=2.15e-04 | 7.9s | ep0109 | OFFPEAK | flow=356 veh/hr | duration=409 steps
+2026-06-10 21:48:35,190 [INFO]   Ep  120/300 | scenario=OFFPEAK | R=-0.0687 (avg50=-0.0778) | Q=0.015 W=0.113 | π=0.0167 V=0.1326 | H=[J0=1.321 J1=1.258 J2=1.064 J3=1.251 J4=1.165] | LR=2.01e-04 | 9.7s | ep0119 | OFFPEAK | flow=303 veh/hr | duration=349 steps
+2026-06-10 21:50:01,604 [INFO]   Ep  130/300 | scenario=OFFPEAK | R=-0.0732 (avg50=-0.0773) | Q=0.017 W=0.108 | π=0.0223 V=0.1030 | H=[J0=1.252 J1=1.291 J2=1.140 J3=1.225 J4=1.271] | LR=1.86e-04 | 8.7s | ep0129 | OFFPEAK | flow=347 veh/hr | duration=436 steps
+2026-06-10 21:51:27,139 [INFO]   Ep  140/300 | scenario=OFFPEAK | R=-0.0689 (avg50=-0.0774) | Q=0.013 W=0.107 | π=0.0130 V=0.1410 | H=[J0=1.236 J1=1.298 J2=1.191 J3=1.267 J4=1.239] | LR=1.71e-04 | 7.9s | ep0139 | OFFPEAK | flow=248 veh/hr | duration=369 steps
+2026-06-10 21:52:38,693 [INFO]   Ep  150/300 | scenario=OFFPEAK | R=-0.0677 (avg50=-0.0761) | Q=0.014 W=0.106 | π=0.0089 V=0.1206 | H=[J0=1.282 J1=1.322 J2=1.234 J3=1.257 J4=1.244] | LR=1.56e-04 | 6.5s | ep0149 | OFFPEAK | flow=261 veh/hr | duration=353 steps
+2026-06-10 21:53:57,372 [INFO]   --- greedy eval @ep150: reward=-0.1235 queue=0.0521 worst_lock=0.75 peak_queue=0.0641 OK ---
+2026-06-10 21:53:57,392 [INFO]   *** new best greedy reward=-0.1235 (worst_lock=0.75) — saved trafix_v6_stage3_best.pt ***
+2026-06-10 21:55:27,381 [INFO]   Ep  160/300 | scenario=OFFPEAK | R=-0.0705 (avg50=-0.0756) | Q=0.014 W=0.108 | π=0.0707 V=0.1036 | H=[J0=1.299 J1=1.312 J2=1.289 J3=1.229 J4=1.257] | LR=1.41e-04 | 6.3s | ep0159 | OFFPEAK | flow=238 veh/hr | duration=403 steps
+2026-06-10 21:56:51,777 [INFO]   Ep  170/300 | scenario=PULSE | R=-0.1055 (avg50=-0.0787) | Q=0.037 W=0.106 | π=0.0221 V=0.1252 | H=[J0=1.209 J1=1.262 J2=1.241 J3=1.265 J4=1.376] | LR=1.25e-04 | 4.6s | ep0169 | PULSE | quiet=0-173s burst=173-436s flow=790 ods=OUTBOUND | duration=355
+2026-06-10 21:58:31,589 [INFO]   Ep  180/300 | scenario=OFFPEAK | R=-0.0779 (avg50=-0.0792) | Q=0.021 W=0.106 | π=0.0349 V=0.1132 | H=[J0=1.272 J1=1.255 J2=1.228 J3=1.211 J4=1.250] | LR=1.11e-04 | 10.1s | ep0179 | OFFPEAK | flow=492 veh/hr | duration=419 steps
+2026-06-10 22:00:07,200 [INFO]   Ep  190/300 | scenario=OFFPEAK | R=-0.0664 (avg50=-0.0782) | Q=0.013 W=0.104 | π=0.0061 V=0.0691 | H=[J0=1.225 J1=1.312 J2=1.249 J3=1.278 J4=1.261] | LR=9.65e-05 | 8.7s | ep0189 | OFFPEAK | flow=213 veh/hr | duration=457 steps
+2026-06-10 22:01:30,822 [INFO]   Ep  200/300 | scenario=OFFPEAK | R=-0.0745 (avg50=-0.0780) | Q=0.019 W=0.106 | π=0.0097 V=0.0856 | H=[J0=1.282 J1=1.306 J2=1.261 J3=1.269 J4=1.242] | LR=8.29e-05 | 10.1s | ep0199 | OFFPEAK | flow=415 veh/hr | duration=459 steps
+2026-06-10 22:01:30,840 [INFO]   → Checkpoint saved: X:\atlas\traf_lasttwo_days\trafix\trafix_v6\checkpoints\stage3_ep200.pt
+2026-06-10 22:02:51,922 [INFO]   --- greedy eval @ep200: reward=-0.1744 queue=0.0733 worst_lock=0.75 peak_queue=0.0871 OK ---
+2026-06-10 22:04:35,562 [INFO]   Ep  210/300 | scenario=OFFPEAK | R=-0.0721 (avg50=-0.0834) | Q=0.017 W=0.105 | π=0.0052 V=0.1008 | H=[J0=1.240 J1=1.268 J2=1.251 J3=1.275 J4=1.238] | LR=7.01e-05 | 10.1s | ep0209 | OFFPEAK | flow=334 veh/hr | duration=391 steps
+2026-06-10 22:06:13,212 [INFO]   Ep  220/300 | scenario=PULSE | R=-0.1194 (avg50=-0.0892) | Q=0.046 W=0.106 | π=0.0073 V=0.1766 | H=[J0=1.212 J1=1.214 J2=1.286 J3=1.209 J4=1.271] | LR=5.83e-05 | 6.5s | ep0219 | PULSE | quiet=0-279s burst=279-487s flow=900 ods=INBOUND | duration=435
+2026-06-10 22:07:58,821 [INFO]   Ep  230/300 | scenario=EVENING_PEAK | R=-0.1311 (avg50=-0.0982) | Q=0.047 W=0.106 | π=0.0053 V=0.1716 | H=[J0=1.280 J1=1.294 J2=1.286 J3=1.275 J4=1.227] | LR=4.75e-05 | 12.5s | ep0229 | EVENING_PEAK | main=828 | side=100 | duration=473
+2026-06-10 22:09:40,772 [INFO]   Ep  240/300 | scenario=OFFPEAK | R=-0.0656 (avg50=-0.1043) | Q=0.014 W=0.108 | π=0.0363 V=0.0920 | H=[J0=1.292 J1=1.297 J2=1.301 J3=1.245 J4=1.208] | LR=3.79e-05 | 6.8s | ep0239 | OFFPEAK | flow=247 veh/hr | duration=437 steps
+2026-06-10 22:11:35,705 [INFO]   Ep  250/300 | scenario=OFFPEAK | R=-0.0760 (avg50=-0.1149) | Q=0.019 W=0.105 | π=0.0068 V=0.0744 | H=[J0=1.257 J1=1.275 J2=1.251 J3=1.282 J4=1.227] | LR=2.96e-05 | 10.9s | ep0249 | OFFPEAK | flow=403 veh/hr | duration=473 steps
+2026-06-10 22:12:52,762 [INFO]   --- greedy eval @ep250: reward=-0.1035 queue=0.0396 worst_lock=0.69 peak_queue=0.0487 OK ---
+2026-06-10 22:12:52,784 [INFO]   *** new best greedy reward=-0.1035 (worst_lock=0.69) — saved trafix_v6_stage3_best.pt ***
+2026-06-10 22:14:44,477 [INFO]   Ep  260/300 | scenario=MORNING_PEAK | R=-0.1608 (avg50=-0.1181) | Q=0.079 W=0.103 | π=0.0063 V=0.1956 | H=[J0=1.319 J1=1.267 J2=1.237 J3=1.269 J4=1.176] | LR=2.26e-05 | 12.9s | ep0259 | MORNING_PEAK | main=1095 | side=265 | duration=391
+2026-06-10 22:16:17,913 [INFO]   Ep  270/300 | scenario=PULSE | R=-0.1194 (avg50=-0.1176) | Q=0.055 W=0.097 | π=0.0128 V=0.1836 | H=[J0=1.253 J1=1.341 J2=1.323 J3=1.299 J4=1.198] | LR=1.71e-05 | 3.6s | ep0269 | PULSE | quiet=0-92s burst=92-312s flow=627 ods=ALL | duration=373
+2026-06-10 22:18:00,254 [INFO]   Ep  280/300 | scenario=MORNING_PEAK | R=-0.1497 (avg50=-0.1134) | Q=0.071 W=0.106 | π=0.0199 V=0.2237 | H=[J0=1.320 J1=1.326 J2=1.263 J3=1.290 J4=1.140] | LR=1.32e-05 | 14.6s | ep0279 | MORNING_PEAK | main=1052 | side=283 | duration=478
+2026-06-10 22:19:42,689 [INFO]   Ep  290/300 | scenario=EVENING_PEAK | R=-0.1630 (avg50=-0.1170) | Q=0.082 W=0.103 | π=0.0088 V=0.1757 | H=[J0=1.256 J1=1.297 J2=1.308 J3=1.284 J4=1.290] | LR=1.08e-05 | 13.8s | ep0289 | EVENING_PEAK | main=1136 | side=243 | duration=491
+2026-06-10 22:21:26,704 [INFO]   Ep  300/300 | scenario=MORNING_PEAK | R=-0.1425 (avg50=-0.1111) | Q=0.059 W=0.105 | π=0.0244 V=0.1888 | H=[J0=1.308 J1=1.286 J2=1.318 J3=1.294 J4=1.136] | LR=1.00e-05 | 11.6s | ep0299 | MORNING_PEAK | main=994 | side=188 | duration=394
+2026-06-10 22:21:26,726 [INFO]   → Checkpoint saved: X:\atlas\traf_lasttwo_days\trafix\trafix_v6\checkpoints\stage3_ep300.pt
+2026-06-10 22:22:43,439 [INFO]   --- greedy eval @ep300: reward=-0.1005 queue=0.0401 worst_lock=0.70 peak_queue=0.0450 OK ---
+2026-06-10 22:22:43,454 [INFO]   *** new best greedy reward=-0.1005 (worst_lock=0.70) — saved trafix_v6_stage3_best.pt ***
+2026-06-10 22:22:43,476 [INFO]   Final model saved  → X:\atlas\traf_lasttwo_days\trafix\trafix_v6\checkpoints\trafix_v6_final.pt
+2026-06-10 22:22:43,476 [INFO]   Best greedy saved  → X:\atlas\traf_lasttwo_days\trafix\trafix_v6\checkpoints\trafix_v6_stage3_best.pt
+2026-06-10 22:22:43,476 [INFO]   Best greedy reward : -0.100484
+2026-06-10 22:22:43,476 [INFO]   Validate (Step 4) before promoting:
+2026-06-10 22:22:43,476 [INFO]     .venv/bin/python tests/diagnostics/argmax_phase_distribution.py --checkpoint X:\atlas\traf_lasttwo_days\trafix\trafix_v6\checkpoints\trafix_v6_stage3_best.pt --route tests/scenarios/type1_low.rou.xml
+2026-06-10 22:22:43,476 [INFO]     .venv/bin/python tests/diagnostics/argmax_phase_distribution.py --checkpoint X:\atlas\traf_lasttwo_days\trafix\trafix_v6\checkpoints\trafix_v6_stage3_best.pt --route tests/scenarios/type1_medium.rou.xml
+2026-06-10 22:22:43,476 [INFO]     .venv/bin/python tests/diagnostics/high_traffic_reference.py --checkpoint X:\atlas\traf_lasttwo_days\trafix\trafix_v6\checkpoints\trafix_v6_stage3_best.pt --tag after
+2026-06-10 23:30:32,958 [INFO] ============================================================
+2026-06-10 23:30:32,958 [INFO]   TraFix v6 — Stage 3: Full PPO Training
+2026-06-10 23:30:32,959 [INFO]   NUM_PHASES=6, OBS_DIM=20
+2026-06-10 23:30:32,959 [INFO] ============================================================
+2026-06-10 23:30:32,963 [INFO]   Device: cuda
+2026-06-10 23:30:33,291 [INFO]   Pretrained weights loaded: GRU, GATConv, trunk
+2026-06-10 23:30:33,291 [INFO]   Total params: 101,476
+2026-06-10 23:30:33,292 [INFO]   entropy     : 0.01 -> 0.0005 (cosine anneal)
+2026-06-10 23:30:33,293 [INFO]   selection   : GREEDY argmax rollout (governor ON, overrides OFF)
+2026-06-10 23:30:33,293 [INFO]   Encoders frozen until episode 100
+2026-06-10 23:31:51,571 [INFO]   BASELINE greedy: reward=-0.2333 queue=0.1274 worst_lock=0.83 peak_queue=0.1619
+2026-06-10 23:31:51,571 [INFO]   high-traffic guard: peak_queue must stay < 0.1781 (baseline x 1.10)
+2026-06-10 23:34:00,269 [INFO]   Ep   10/400 | scenario=MORNING_PEAK | R=-0.1643 (avg50=-0.1133) | Q=0.087 W=0.108 | π=0.0081 V=0.4261 | H=[J0=1.239 J1=1.232 J2=1.210 J3=1.206 J4=1.341] | LR=3.00e-04 | 15.9s | ep0009 | MORNING_PEAK | main=1199 | side=124 | duration=331
+2026-06-10 23:35:30,502 [INFO]   Ep   20/400 | scenario=OFFPEAK | R=-0.0879 (avg50=-0.1029) | Q=0.023 W=0.109 | π=0.0284 V=0.2016 | H=[J0=1.215 J1=1.177 J2=1.089 J3=1.165 J4=1.320] | LR=2.98e-04 | 9.0s | ep0019 | OFFPEAK | flow=461 veh/hr | duration=316 steps
+2026-06-10 23:36:49,060 [INFO]   Ep   30/400 | scenario=INCIDENT | R=-0.0593 (avg50=-0.1039) | Q=0.004 W=0.109 | π=0.0156 V=0.0423 | H=[J0=1.285 J1=1.182 J2=1.201 J3=1.023 J4=1.396] | LR=2.96e-04 | 6.8s | ep0029 | INCIDENT | flow=404 | junction=J0 | onset=26s | duration=380
+2026-06-10 23:38:18,206 [INFO]   Ep   40/400 | scenario=PULSE | R=-0.0754 (avg50=-0.0995) | Q=0.011 W=0.103 | π=-0.0014 V=0.0879 | H=[J0=1.316 J1=1.188 J2=1.169 J3=1.153 J4=1.350] | LR=2.93e-04 | 4.9s | ep0039 | PULSE | quiet=0-227s burst=227-468s flow=659 ods=OUTBOUND | duration=467
+2026-06-10 23:40:09,758 [INFO]   Ep   50/400 | scenario=EVENING_PEAK | R=-0.1369 (avg50=-0.1007) | Q=0.052 W=0.102 | π=0.0309 V=0.1579 | H=[J0=1.327 J1=1.286 J2=1.310 J3=1.255 J4=1.303] | LR=2.89e-04 | 13.2s | ep0049 | EVENING_PEAK | main=907 | side=164 | duration=490
+2026-06-10 23:41:30,997 [INFO]   --- greedy eval @ep50: reward=-0.1625 queue=0.0826 worst_lock=0.78 peak_queue=0.1247 OK ---
+2026-06-10 23:41:30,997 [INFO]   [GATE] model collapsed (worst_lock=0.78) — best not updated

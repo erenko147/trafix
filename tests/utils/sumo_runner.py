@@ -335,6 +335,7 @@ def run_simulation(
     outputs_base: Optional[str] = None,
     net_file: Optional[str] = None,
     additional_files: Optional[str] = None,
+    use_overrides: bool = True,
 ) -> str:
     """
     Run one SUMO simulation and return the path to its output directory.
@@ -531,9 +532,10 @@ def run_simulation(
             final_actions = []
             for i, tls_id in enumerate(tls_ids):
                 mp = int(actions_1d[i].item()) % _NUM_PHASES
-                mp = _apply_starvation_overrides(
-                    tls_id, mp, obs[i],
-                    dec_since_through, dec_since_ns, dec_since_ew, dec_since_left)
+                if use_overrides:
+                    mp = _apply_starvation_overrides(
+                        tls_id, mp, obs[i],
+                        dec_since_through, dec_since_ns, dec_since_ew, dec_since_left)
                 final_actions.append(mp)
 
             # Apply actions with yellow transitions

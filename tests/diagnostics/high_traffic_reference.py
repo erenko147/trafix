@@ -39,6 +39,7 @@ def main():
     p.add_argument("--checkpoint", default=_DEFAULT_CKPT)
     p.add_argument("--tag", default="ref", help="label for the run_id / output dir")
     p.add_argument("--sim-duration", type=int, default=3600)
+    p.add_argument("--no-overrides", action="store_true", help="run the raw AI model without safety overrides")
     args = p.parse_args()
 
     run_id = f"hi_ref_{args.tag}"
@@ -56,6 +57,7 @@ def main():
         sim_duration=args.sim_duration,
         checkpoint_path=args.checkpoint,
         outputs_base=out_base,
+        use_overrides=not args.no_overrides,
     )
 
     thr = compute_throughput(out_dir, sim_duration_s=args.sim_duration)

@@ -120,7 +120,7 @@ def stage3(args):
         PYTHON, "trafix_v6/stage3_train_ppo.py",
         "--episodes",       str(args.s3_episodes),
         "--freeze-episodes", str(args.s3_freeze),
-        "--entropy-coef",   str(args.s3_entropy),
+        "--entropy-start",  str(args.s3_entropy),
         "--lr",             str(args.s3_lr),
         "--lr-min",         str(args.s3_lr_min),
     ]
