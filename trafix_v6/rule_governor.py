@@ -9,10 +9,11 @@ Updated for 6-phase model:
   Phase 2: S-left       Phase 5: W-left
 
 Feature vector layout (20-dim, from parse_sumo_observations in trafix_v2.py):
-  [0]  north_left/15   [1]  north_through/30  [2]  north_right/15
-  [3]  south_left/15   [4]  south_through/30  [5]  south_right/15
-  [6]  east_left/15    [7]  east_through/30   [8]  east_right/15
-  [9]  west_left/15    [10] west_through/30   [11] west_right/15
+  [0]  north_left/total   [1]  north_through/total  [2]  north_right/total
+  [3]  south_left/total   [4]  south_through/total  [5]  south_right/total
+  [6]  east_left/total    [7]  east_through/total   [8]  east_right/total
+  [9]  west_left/total    [10] west_through/total   [11] west_right/total
+  (total = sum of all 12 lane counts; each feature is a demand share in [0, 1])
   [12] queue/200       [13-18] phase one-hot (6 bits)   [19] min(duration/120, 3.0)
 """
 
@@ -42,9 +43,7 @@ _IDX_QUEUE     = 12
 _IDX_PHASE     = slice(13, 19)   # 6-bit one-hot block
 _IDX_DURATION  = 19
 
-_NORM_LEFT_RIGHT = 15.0
-_NORM_THROUGH    = 30.0
-_NORM_DURATION   = 120.0
+_NORM_DURATION = 120.0
 
 _NEG_INF = -1e9
 
@@ -151,13 +150,14 @@ class RuleGovernor:
         """
         bonus = torch.zeros(self.num_phases)
 
+        # Features [0:12] are now demand shares (count/total), so use directly.
         demands = [
-            obs_j[_IDX_N_THROUGH] * _NORM_THROUGH + obs_j[_IDX_S_THROUGH] * _NORM_THROUGH,
-            obs_j[_IDX_N_LEFT]    * _NORM_LEFT_RIGHT,
-            obs_j[_IDX_S_LEFT]    * _NORM_LEFT_RIGHT,
-            obs_j[_IDX_E_THROUGH] * _NORM_THROUGH + obs_j[_IDX_W_THROUGH] * _NORM_THROUGH,
-            obs_j[_IDX_E_LEFT]    * _NORM_LEFT_RIGHT,
-            obs_j[_IDX_W_LEFT]    * _NORM_LEFT_RIGHT,
+            obs_j[_IDX_N_THROUGH] + obs_j[_IDX_S_THROUGH],
+            obs_j[_IDX_N_LEFT],
+            obs_j[_IDX_S_LEFT],
+            obs_j[_IDX_E_THROUGH] + obs_j[_IDX_W_THROUGH],
+            obs_j[_IDX_E_LEFT],
+            obs_j[_IDX_W_LEFT],
         ]
 
         total = sum(d.item() for d in demands)

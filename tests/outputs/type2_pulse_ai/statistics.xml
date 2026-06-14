@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2026-05-21T02:47:45.118911+03:00 by Eclipse SUMO sumo 1.26.0
+<!-- generated on 2026-06-14T14:46:13.855365+03:00 by Eclipse SUMO sumo 1.26.0
 <sumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
-        <net-file value="X:\Yeni klasör (2)\trafix\sumo\map.net.xml"/>
-        <route-files value="X:\Yeni klasör (2)\trafix\tests\scenarios\type2_pulse.rou.xml"/>
+        <net-file value="X:\atlas\traf_lasttwo_days\trafix\sumo\map.net.xml"/>
+        <route-files value="X:\atlas\traf_lasttwo_days\trafix\tests\scenarios\type2_pulse.rou.xml"/>
     </input>
 
     <output>
-        <queue-output value="X:\Yeni klasör (2)\trafix\tests\outputs\type2_pulse_ai\queue.xml"/>
-        <summary-output value="X:\Yeni klasör (2)\trafix\tests\outputs\type2_pulse_ai\summary.xml"/>
-        <tripinfo-output value="X:\Yeni klasör (2)\trafix\tests\outputs\type2_pulse_ai\tripinfo.xml"/>
-        <statistic-output value="X:\Yeni klasör (2)\trafix\tests\outputs\type2_pulse_ai\statistics.xml"/>
+        <queue-output value="X:\atlas\traf_lasttwo_days\trafix\tests\outputs\type2_pulse_ai\queue.xml"/>
+        <summary-output value="X:\atlas\traf_lasttwo_days\trafix\tests\outputs\type2_pulse_ai\summary.xml"/>
+        <tripinfo-output value="X:\atlas\traf_lasttwo_days\trafix\tests\outputs\type2_pulse_ai\tripinfo.xml"/>
+        <statistic-output value="X:\atlas\traf_lasttwo_days\trafix\tests\outputs\type2_pulse_ai\statistics.xml"/>
     </output>
 
     <time>
@@ -22,6 +22,8 @@
     </time>
 
     <processing>
+        <time-to-teleport value="-1"/>
+        <time-to-teleport.highways value="-1"/>
         <waiting-time-memory value="1000"/>
     </processing>
 
@@ -35,7 +37,7 @@
     </emissions>
 
     <traci_server>
-        <remote-port value="55300"/>
+        <remote-port value="54862"/>
     </traci_server>
 
     <random_number>
@@ -46,13 +48,13 @@
 -->
 
 <statistics xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/statistic_file.xsd">
-    <performance clockBegin="97000.12" clockEnd="97010.74" clockDuration="10.63" traciDuration="9.98" realTimeFactor="115.73" vehicleUpdatesPerSecond="2562.38" personUpdatesPerSecond="0.00" begin="0.00" end="1230.00" duration="1230.00"/>
+    <performance clockBegin="97067.70" clockEnd="97076.12" clockDuration="8.42" traciDuration="8.02" realTimeFactor="134.07" vehicleUpdatesPerSecond="2822.11" personUpdatesPerSecond="0.00" begin="0.00" end="1129.00" duration="1129.00"/>
     <vehicles loaded="234" inserted="234" running="0" waiting="0"/>
-    <teleports total="1" jam="0" yield="1" wrongLane="0"/>
+    <teleports total="0" jam="0" yield="0" wrongLane="0"/>
     <safety collisions="0" emergencyStops="0" emergencyBraking="0"/>
     <persons loaded="0" running="0" jammed="0"/>
     <personTeleports total="0" abortWait="0" wrongDest="0"/>
-    <vehicleTripStatistics count="234" routeLength="634.50" speed="6.64" duration="116.38" waitingTime="53.27" timeLoss="68.98" departDelay="1.18" departDelayWaiting="-1.00" totalTravelTime="27233.00" totalDepartDelay="275.00"/>
+    <vehicleTripStatistics count="234" routeLength="634.87" speed="7.08" duration="101.56" waitingTime="39.23" timeLoss="54.15" departDelay="1.17" departDelayWaiting="-1.00" totalTravelTime="23765.00" totalDepartDelay="274.00"/>
     <pedestrianStatistics number="0" routeLength="0.00" duration="0.00" timeLoss="0.00"/>
     <rideStatistics number="0"/>
     <transportStatistics number="0"/>

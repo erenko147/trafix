@@ -198,7 +198,7 @@ File: `backend/main.py`, endpoint `POST /telemetry_batch` (`:285`). Full sequenc
    once. For `v6` it imports `TraFixV6` + `RuleGovernor` and sets the weight path to
    `trafix_v6/checkpoints/trafix_v6_final.pt`. `load_model()` (`:130`) instantiates the model,
    loads the checkpoint's `model_state_dict`, calls `.eval()`, and builds the production
-   `RuleGovernor` (min-green 10 s, max-green 90 s, flicker_penalty 3.0, pressure_thresh 0.35).
+   `RuleGovernor` (min-green 10 s, max-green 90 s, flicker_penalty 3.0, pressure_thresh 0.12).
    If weights are missing or mismatched, `ai_agent` stays `None` and the **heuristic fallback**
    takes over.
 2. **Restart detection** (`:290`). If `batch.step < _last_batch_step`, a new SUMO run has
@@ -284,8 +284,13 @@ POST fails or times out; at 3 it switches to deterministic NS↔EW cycling until
 returns. Loosening these constants lets the model's raw behavior show through; tightening them
 lets the heuristics dominate.
 
-> **Defense point.** "What if the AI starves a left turn / the API dies?" → there are explicit,
-> named guards for each case in the runner, independent of the governor inside the backend.
+> **Defense point.** "What if the AI starves a left turn / the API dies?" → Three
+> independent layers: (1) the **reward function** includes a per-movement anti-starvation
+> term (−0.20, share-based, active at any demand level) so the policy is *trained* to
+> avoid starvation; (2) the **RuleGovernor** enforces max-green hard switches in the
+> backend; (3) explicit named guards in the **runner** (STARVE/DIRECTION/LEFT overrides)
+> catch anything that slips through. API-down is handled separately by the fixed-time
+> fallback after 3 consecutive failures.
 
 ---
 
@@ -395,7 +400,7 @@ They never launch SUMO; they import the real modules and assert on them. Seven f
 |------|-------------------|
 | `test_unit_model.py` (22) | `TraFixV6` shapes: GRU `[B,5,128]`, GAT `[5,128]`, 5 logit tensors of `[B,6]`, value `[B,5]`, no NaN, softmax sums to 1, argmax ∈ [0,5], checkpoint exists and loads |
 | `test_unit_rule_governor.py` (12) | min-green locks other phases before 10 s (through) / 8 s (left); max-green frees switch; anti-flicker penalizes A→B→A; pressure boosts the congested through; `apply()` returns 5 × `[1,6]` |
-| `test_unit_observation.py` (15) | `parse_sumo_observations` → `[5,20]` float32; queue ÷200; duration ÷120 capped at 3.0; 6-bit phase one-hot; sorted by junction id; no NaN on zero/huge inputs |
+| `test_unit_observation.py` (15) | `parse_sumo_observations` → `[5,20]` float32; lane features are junction-relative shares (`count / max(total_12, 1)`); queue ÷200; duration ÷120 capped at 3.0; 6-bit phase one-hot; sorted by junction id; no NaN on zero/huge inputs |
 | `test_unit_preemption.py` (13) | state machine starts inactive, activates within 1 step, cancels pending yellow, yellow→allred→green timing, approach edge gets `G` others `r`, metrics recorded |
 | `test_nfr.py` (18) | **NFR-01** inference + governor < 1000 ms (single + p99 over 50 calls); **NFR-02** heuristic fallback validity; **NFR-05** required libs import and model runs on CPU |
 | `test_fr.py` (22) | **FR-01** telemetry fields; **FR-02** valid phase per junction + deterministic in eval; **FR-03** preemption overrides AI in 1 step; **FR-04** DB graceful without a live DB; **FR-06** yellow inserted between distinct greens, 3-step hold |
@@ -528,7 +533,7 @@ TESTS
 | Where are traffic-law constraints applied? | `_v6_governor.apply` (`backend/main.py:332`) — the RuleGovernor masks logits |
 | How is the chosen phase decided? | softmax → argmax (`backend/main.py:365`); confidence = max softmax prob |
 | How is the AI's answer put back into SUMO? | `run_sumo_live.py:454`–`491` — map to even green, enforce min-green, insert 3-step yellow, then `setPhase(target)` |
-| What stops the model from starving a movement? | governor max-green (backend) **plus** STARVE/DIRECTION/LEFT overrides (runner §7) |
+| What stops the model from starving a movement? | Three layers: (1) **reward starvation term** trains the policy to rotate movements (−0.20, share-based, active at any demand); (2) **governor max-green** forces a switch in the backend; (3) **STARVE/DIRECTION/LEFT overrides** in the runner as a final safety net |
 | What happens if the backend is down? | runner fixed-time fallback after 3 failures (`run_sumo_live.py:499`) |
 | How do emergency vehicles override the AI? | `EmergencyPreemptionController.is_active()` gates the AI/fallback per junction; state machine drives the lights |
 | How does the dashboard get its data? | `GET /state` polled every 1 s; returns the raw `state_dict` the runner last POSTed |

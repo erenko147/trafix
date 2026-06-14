@@ -1,0 +1,29 @@
+Route      : tests/scenarios/type1_low.rou.xml
+Checkpoint : /home/ekene/Projects/traf_gov_last/trafix_v6/checkpoints/trafix_v6_final.pt
+Decisions  : 354 per junction
+Governor   : pressure_thresh=0.12 pressure_boost=1.0 flicker_penalty=3.0
+Switch rate: 8.1% of decisions change phase
+
+  junction   NS-thru   N-left   S-left  EW-thru   E-left   W-left
+  J0             0%       1%       6%       3%      90%       0%
+  J1             3%       1%       0%       0%      94%       2%
+  J2             1%       0%       1%      23%      73%       1%
+  J3            45%      38%       2%      12%       1%       2%
+  J4             0%       0%       4%      18%       0%      79%
+
+Starved movements (standing demand, chosen <1% of decisions):
+  J0 phase 5 (W-left): demand present 12% of decisions, chosen 0.28%
+  J1 phase 2 (S-left): demand present 100% of decisions, chosen 0.00%
+  J2 phase 1 (N-left): demand present 68% of decisions, chosen 0.28%
+  J2 phase 5 (W-left): demand present 11% of decisions, chosen 0.56%
+  J4 phase 1 (N-left): demand present 68% of decisions, chosen 0.00%
+  J4 phase 4 (E-left): demand present 71% of decisions, chosen 0.00%
+
+Phase-lock summary (max single-phase share per junction):
+  J0: E-left 90% <-- LOCKED
+  J1: E-left 94% <-- LOCKED
+  J2: E-left 73% <-- LOCKED
+  J3: NS-thru 45%
+  J4: W-left 79% <-- LOCKED
+
+OVERALL: COLLAPSED (a junction locks >70%)

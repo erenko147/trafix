@@ -56,7 +56,18 @@
       "Bash(psql -U ekene -d postgres -c \"SELECT version\\(\\);\")",
       "Bash(.venv/bin/python *)",
       "Bash(find /home/ekene/Projects/traf_gov_last/tests/outputs/type1* -maxdepth 1 -type f)",
-      "Bash(break)"
+      "Bash(break)",
+      "Bash(git checkout *)",
+      "Bash(export SUMO_HOME=/usr/share/sumo)",
+      "Bash(echo \"=== running mandatory tests ===\")",
+      "Bash(grep -n \"return\" tests/metrics/queue_length.py)",
+      "Bash(echo \"=== leftover live refs to removed symbols \\(excluding doc comments\\) ===\")",
+      "Bash(grep -rn \"CoordinatedPPOAgent\\\\|SpatioTemporalGNN\\\\|IntersectionCoordinator\\\\|_USE_GRAPH\\\\|\\\\btrain_step\\\\b\\\\|build_edge_index\" --include=*.py backend/ tests/ trafix_v6/)",
+      "Bash(sed -i 's/pressure_thresh=0.35, pressure_boost=1.0, flicker_penalty=3.0/pressure_thresh=0.12, pressure_boost=1.0, flicker_penalty=3.0/' tests/diagnostics/argmax_phase_distribution.py)",
+      "Bash(sed -i 's/p.add_argument\\(\"--pressure-thresh\", type=float, default=0.35,/p.add_argument\\(\"--pressure-thresh\", type=float, default=0.12,/' tests/diagnostics/argmax_phase_distribution.py)",
+      "Bash(echo \"=== git status ===\")",
+      "Bash(git status *)",
+      "Bash(echo \"=== quick import + mandatory sanity \\(already verified, reconfirm\\) ===\")"
     ]
   }
 }

@@ -1,30 +1,25 @@
 """
-TraFix v2 — Coordinated Multi-Intersection PPO Agent
-=====================================================
-GCN (spatial) + Multi-Head Attention (coordination) — GRU removed.
+TraFix — shared observation, reward and advantage code
+======================================================
+Single source of truth (used by ALL model versions and every v6 training script)
+for the 20-dim SUMO observation parser, the per-junction reward function, and GAE.
 
-v6 updates:
-  • NUM_NODE_FEATURES: 10 → 20 (12 per-lane counts + queue + 6-phase one-hot + duration)
-  • parse_sumo_observations: 12 lane fields, normalised per-lane
-  • compute_reward: pressure/queue/throughput/fairness over 12 lanes
+  • NUM_NODE_FEATURES = 20 (12 per-lane shares + queue + 6-phase one-hot + duration)
+  • parse_sumo_observations: 12 lane fields as junction-relative shares
+      (count / total_12_lane_sum) — scale-invariant, fixes low-demand signal (P5)
+  • compute_reward: pressure/queue/throughput/fairness/anti-starvation over 12 lanes
   • _compute_green_wave: through phases are 0 (NS) and 3 (EW) in model space
+
+The legacy v2 model (GCN + Multi-Head-Attention `CoordinatedPPOAgent`) and its
+`train_step` lived here but had no trained weights and were removed; only the
+production v6 model (`trafix_v6/trafix_v6.py`) runs. This module is kept because
+v6 reuses the observation/reward/GAE code below.
 """
 
 import math
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.distributions import Categorical
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
-
-try:
-    from torch_geometric.nn import GCNConv
-except ImportError:
-    raise ImportError(
-        "torch_geometric not found. Install with:\n"
-        "  pip install torch-geometric"
-    )
 
 
 # ══════════════════════════════════════════════════
@@ -44,16 +39,8 @@ _NS_KEYS = ["north_left", "north_through", "north_right",
 _EW_KEYS = ["east_left",  "east_through",  "east_right",
             "west_left",  "west_through",  "west_right"]
 
-# Per-lane normalisers: left/right lanes = 15 (single lane), through = 30
-_NORM = {
-    "north_left":    15.0, "north_through": 30.0, "north_right":  15.0,
-    "south_left":    15.0, "south_through": 30.0, "south_right":  15.0,
-    "east_left":     15.0, "east_through":  30.0, "east_right":   15.0,
-    "west_left":     15.0, "west_through":  30.0, "west_right":   15.0,
-}
-
 # Output feature count:
-#   [0-11]  12 normalised per-lane counts
+#   [0-11]  12 lane relative shares  (each lane_count / total_12_lane_sum)
 #   [12]    total queue / 200
 #   [13-18] 6-bit phase one-hot
 #   [19]    phase duration / 120
@@ -78,9 +65,14 @@ def parse_sumo_observations(
     for o in sorted(obs_list, key=lambda x: x["intersection_id"]):
         row = []
 
-        # Indices 0-11: per-lane counts normalised
+        # Indices 0-11: per-lane share of total junction demand.
+        # Dividing by the sum of all 12 lanes makes the features scale-invariant:
+        # 1 car out of 5 and 4 cars out of 20 both read as 0.20, giving the model
+        # a meaningful gradient at low demand where absolute counts are near zero.
+        total_lane = sum(o.get(key, 0) for key in _LANE_KEYS)
+        denom = max(total_lane, 1)
         for key in _LANE_KEYS:
-            row.append(o.get(key, 0) / _NORM[key])
+            row.append(o.get(key, 0) / denom)
 
         # Index 12: total queue / 200
         row.append(o.get("queue_length", 0.0) / 200.0)
@@ -101,129 +93,12 @@ def parse_sumo_observations(
 
 
 # ══════════════════════════════════════════════════
-#  Spatio GNN  (GCN — GRU removed)
-# ══════════════════════════════════════════════════
-
-class SpatioTemporalGNN(nn.Module):
-    """2-layer GCN with residual + LayerNorm."""
-
-    def __init__(self, num_node_features: int, hidden_dim: int):
-        super().__init__()
-        self.gcn1 = GCNConv(num_node_features, hidden_dim)
-        self.gcn2 = GCNConv(hidden_dim, hidden_dim)
-        self.layer_norm = nn.LayerNorm(hidden_dim)
-
-    def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
-        h = F.relu(self.gcn1(x, edge_index))
-        h = h + F.relu(self.gcn2(h, edge_index))
-        return self.layer_norm(h)
-
-
-# ══════════════════════════════════════════════════
-#  Cross-Intersection Coordination Layer
-# ══════════════════════════════════════════════════
-
-class IntersectionCoordinator(nn.Module):
-    """Multi-Head Attention for cross-intersection coordination."""
-
-    def __init__(self, hidden_dim: int, num_heads: int = 4, dropout: float = 0.1):
-        super().__init__()
-        self.attn = nn.MultiheadAttention(
-            embed_dim=hidden_dim, num_heads=num_heads,
-            dropout=dropout, batch_first=True,
-        )
-        self.norm1 = nn.LayerNorm(hidden_dim)
-        self.ffn = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim * 2), nn.GELU(),
-            nn.Dropout(dropout), nn.Linear(hidden_dim * 2, hidden_dim),
-            nn.Dropout(dropout),
-        )
-        self.norm2 = nn.LayerNorm(hidden_dim)
-
-    def forward(self, node_features: torch.Tensor) -> torch.Tensor:
-        x = node_features.unsqueeze(0)
-        attn_out, _ = self.attn(x, x, x)
-        x = self.norm1(x + attn_out)
-        x = self.norm2(x + self.ffn(x))
-        return x.squeeze(0)
-
-
-# ══════════════════════════════════════════════════
-#  Coordinated PPO Agent
-# ══════════════════════════════════════════════════
-
-class CoordinatedPPOAgent(nn.Module):
-    """Flow: SUMO obs → GCN → Attention → Actor/Critic"""
-
-    def __init__(
-        self,
-        num_node_features: int = NUM_NODE_FEATURES,
-        hidden_dim: int = 128,
-        num_actions: int = 6,
-        num_heads: int = 4,
-        entropy_coef: float = 0.01,
-        value_coef: float = 0.25,
-        clip_eps: float = 0.2,
-        max_grad_norm: float = 0.5,
-    ):
-        super().__init__()
-        self.hidden_dim = hidden_dim
-        self.num_actions = num_actions
-        self.entropy_coef = entropy_coef
-        self.value_coef = value_coef
-        self.clip_eps = clip_eps
-        self.max_grad_norm = max_grad_norm
-
-        self.st_gnn = SpatioTemporalGNN(num_node_features, hidden_dim)
-        self.coordinator = IntersectionCoordinator(hidden_dim, num_heads)
-
-        self.actor = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2), nn.ReLU(),
-            nn.Linear(hidden_dim // 2, num_actions),
-        )
-        self.critic = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim // 2), nn.ReLU(),
-            nn.Linear(hidden_dim // 2, 1),
-        )
-
-    def forward(self, x, edge_index) -> Tuple[torch.Tensor, torch.Tensor]:
-        features = self.st_gnn(x, edge_index)
-        coordinated = self.coordinator(features)
-        action_probs = F.softmax(self.actor(coordinated), dim=-1)
-        state_value = self.critic(coordinated.mean(dim=0))
-        return action_probs, state_value
-
-    @torch.no_grad()
-    def select_actions(self, x, edge_index) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        probs, value = self.forward(x, edge_index)
-        dists = Categorical(probs)
-        actions = dists.sample()
-        log_probs = dists.log_prob(actions)
-        return actions, log_probs, value
-
-    def compute_ppo_loss(self, x, edge_index, old_actions, old_log_probs,
-                         advantages, returns) -> Dict[str, torch.Tensor]:
-        probs, value = self.forward(x, edge_index)
-        dists = Categorical(probs)
-        new_log_probs = dists.log_prob(old_actions)
-        entropy = dists.entropy().mean()
-        ratio = torch.exp(new_log_probs - old_log_probs)
-        surr1 = ratio * advantages
-        surr2 = torch.clamp(ratio, 1 - self.clip_eps, 1 + self.clip_eps) * advantages
-        policy_loss = -torch.min(surr1, surr2).mean()
-        value_loss = F.mse_loss(value.squeeze(), returns.mean())
-        total_loss = policy_loss + self.value_coef * value_loss - self.entropy_coef * entropy
-        return {
-            "total": total_loss, "policy": policy_loss.detach(),
-            "value": value_loss.detach(), "entropy": entropy.detach(),
-        }
-
-
-# ══════════════════════════════════════════════════
 #  Reward Function — Per-Node (N,) Tensor
 # ══════════════════════════════════════════════════
 
-_GREEN_WAVE_EDGES: List[Tuple[int, int]] = [(0, 1), (1, 2), (1, 3), (3, 4)]
+# Real map topology edges (from sumo/map.net.xml):
+# J0—J1, J0—J2, J1—J3, J2—J3, J2—J4
+_GREEN_WAVE_EDGES: List[Tuple[int, int]] = [(0, 1), (0, 2), (1, 3), (2, 3), (2, 4)]
 _PLATOON_THRESHOLD: int = 5
 
 
@@ -232,11 +107,13 @@ class RewardWeights:
     pressure:      float = -0.30
     queue:         float = -0.25
     throughput:    float =  0.25
-    fairness:      float =  0.00
+    fairness:      float =  0.00     # CV-of-lanes term; kept disabled (noisy) —
+                                     # anti-starvation is handled by `starvation`
     phase_penalty: float = -0.08
     wait_penalty:  float = -0.05
     green_wave:    float =  0.20
-    starvation:    float = -0.15
+    starvation:    float = -0.20     # per-movement anti-starvation (see below)
+    clear_bonus:   float =  0.06     # low-demand shaping: reward clearing any car
 
 
 def _intersection_total(o: Dict) -> int:
@@ -339,23 +216,50 @@ def compute_reward(
         if o.get("phase_duration", 0.0) > 60.0:
             wait = (o["phase_duration"] - 60.0) / 60.0
 
-        # 7. Directional starvation: penalise holding one through-direction while
-        #    the other has vehicles waiting. Grows with time past min-green (30s)
-        #    and with the fraction of total demand in the unserved direction.
-        #    Zero when total demand is zero, so quiet periods are not penalised.
-        starvation = 0.0
-        phase = int(o.get("current_phase", 0))
+        # 7. Per-movement anti-starvation (the root-cause fix for argmax collapse).
+        #    Penalise the junction whenever movements that HAVE waiting vehicles are
+        #    going unserved while the current phase holds. The penalty is the share
+        #    of total demand sitting in the *unserved* movement groups, scaled by how
+        #    long the current phase has been held (a proxy for unserved time).
+        #
+        #    Key properties (vs the old NS/EW-only, >30s-gated term):
+        #      • ACTIVE EVEN AT LOW DEMAND — it is share-based, so it is
+        #        scale-invariant and gives signal with only 1-3 cars/lane, exactly
+        #        where pressure/queue/throughput go flat and argmax turns arbitrary.
+        #      • Per-movement (all 6 phase groups), not just NS-vs-EW, so it teaches
+        #        "serve every movement that has demand," which is what the live
+        #        runner's STARVE/DIRECTION/LEFT overrides do externally.
+        #      • ZERO for any group with no demand: if the current phase serves the
+        #        only movement that has cars, unserved_share = 0 ⇒ no penalty. It
+        #        never rewards/penalises serving empty approaches, so it does not
+        #        fight throughput on quiet directions.
+        phase = int(o.get("current_phase", 0)) % 6
         dur   = o.get("phase_duration", 0.0)
-        if dur > 30.0:
-            ns_q = sum(o.get(k, 0) for k in _NS_KEYS)
-            ew_q = sum(o.get(k, 0) for k in _EW_KEYS)
-            total_dir = ns_q + ew_q
-            if total_dir > 0:
-                excess = min((dur - 30.0) / 60.0, 2.0)
-                if phase in (0, 1, 2):        # NS side active — EW is unserved
-                    starvation = (ew_q / total_dir) * excess
-                else:                          # EW side active — NS is unserved
-                    starvation = (ns_q / total_dir) * excess
+        group_demand = [
+            o.get("north_through", 0) + o.get("south_through", 0),  # phase 0 NS-thru
+            o.get("north_left", 0),                                 # phase 1 N-left
+            o.get("south_left", 0),                                 # phase 2 S-left
+            o.get("east_through", 0) + o.get("west_through", 0),    # phase 3 EW-thru
+            o.get("east_left", 0),                                  # phase 4 E-left
+            o.get("west_left", 0),                                  # phase 5 W-left
+        ]
+        total_dem = sum(group_demand)
+        starvation = 0.0
+        if total_dem > 0:
+            excess = min(dur / 45.0, 2.0)
+            unserved_share = (total_dem - group_demand[phase]) / total_dem
+            starvation = unserved_share * excess
+
+        # 8. Low-demand clearing shaping (Step 3): a small POSITIVE reward for
+        #    actually removing vehicles from this junction, in ABSOLUTE terms (the
+        #    `throughput` term above is relative to prev_total and goes noisy/flat
+        #    with only a handful of cars). Capped and one-sided (only clearing is
+        #    rewarded) so it stays small relative to starvation/throughput.
+        clear = 0.0
+        if prev is not None:
+            cleared = _intersection_total(prev[i]) - _intersection_total(o)
+            if cleared > 0:
+                clear = min(cleared, 5.0) / 5.0
 
         r = (
             weights.pressure      * pressure
@@ -365,6 +269,7 @@ def compute_reward(
             + weights.phase_penalty * phase_change
             + weights.wait_penalty  * wait
             + weights.starvation    * starvation
+            + weights.clear_bonus   * clear
         )
         rewards.append(r)
 
@@ -418,41 +323,3 @@ def compute_gae(
         returns = (returns - returns.mean()) / (returns.std() + 1e-8)
 
     return advantages, returns
-
-
-# ══════════════════════════════════════════════════
-#  Training Step (Single Epoch)
-# ══════════════════════════════════════════════════
-
-def train_step(
-    agent: CoordinatedPPOAgent,
-    optimizer: torch.optim.Optimizer,
-    rollout: Dict,
-    ppo_epochs: int = 4,
-) -> Dict[str, float]:
-    advantages, returns = compute_gae(
-        rollout["rewards"], rollout["values"], rollout["next_value"],
-    )
-
-    total_metrics = {"total": 0.0, "policy": 0.0, "value": 0.0, "entropy": 0.0}
-    T = len(rollout["rewards"])
-
-    for _ in range(ppo_epochs):
-        for t in range(T):
-            losses = agent.compute_ppo_loss(
-                x=rollout["observations"][t],
-                edge_index=rollout["edge_index"],
-                old_actions=rollout["actions"][t],
-                old_log_probs=rollout["log_probs"][t],
-                advantages=advantages[t],
-                returns=returns[t],
-            )
-            optimizer.zero_grad()
-            losses["total"].backward()
-            nn.utils.clip_grad_norm_(agent.parameters(), agent.max_grad_norm)
-            optimizer.step()
-            for k in total_metrics:
-                total_metrics[k] += losses[k].item()
-
-    n = ppo_epochs * T
-    return {k: v / max(n, 1) for k, v in total_metrics.items()}

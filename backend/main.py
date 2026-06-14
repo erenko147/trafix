@@ -6,7 +6,9 @@ Receives telemetry, queries the TraFix v6 AI model, and returns phase decisions.
 Supported model versions (set via TRAFIX_MODEL_VERSION env var):
   v6  — TraFix v6: GRU temporal encoder + GATConv graph encoder, 6 phases, 3-lane (default)
   v5  — TraFix v5: GRU + GAT, 4 phases (legacy, kept for comparison)
-  v2  — TraFix v2: GCN + GRU + Attention, 4 phases (legacy observation parser)
+
+The legacy v2 model (GCN + Multi-Head-Attention) had no trained weights and has
+been removed; only v6 (default) and v5 are selectable.
 """
 
 from fastapi import FastAPI, BackgroundTasks
@@ -23,7 +25,6 @@ import backend.database as db
 
 _MODEL_VERSION = os.environ.get("TRAFIX_MODEL_VERSION", "v6").strip().lower()
 
-_USE_GRAPH = False
 _USE_V5    = False
 _USE_V6    = False
 
@@ -35,7 +36,6 @@ if _MODEL_VERSION == "v5":
     from backend.ai.trafix_v2 import parse_sumo_observations
     _WEIGHT_FILENAME = "trafix_v5/checkpoints/trafix_v5_final.pt"
     _USE_V5 = True
-    CoordinatedPPOAgent = None
 
 elif _MODEL_VERSION == "v6":
     import sys as _sys, os as _os
@@ -45,12 +45,15 @@ elif _MODEL_VERSION == "v6":
     from backend.ai.trafix_v2 import parse_sumo_observations
     _WEIGHT_FILENAME = "trafix_v6/checkpoints/trafix_v6_final.pt"
     _USE_V6 = True
-    CoordinatedPPOAgent = None
 
-else:  # v2 default
-    from backend.ai.trafix_v2 import CoordinatedPPOAgent, parse_sumo_observations
-    _WEIGHT_FILENAME = "coordinated_agent_weights.pth"
-    _USE_GRAPH = True
+else:
+    # The legacy v2 model was removed (no trained weights). Only v6/v5 remain.
+    from backend.ai.trafix_v2 import parse_sumo_observations  # noqa: F401
+    raise ValueError(
+        f"Unsupported TRAFIX_MODEL_VERSION={_MODEL_VERSION!r}. "
+        f"Only 'v6' (default) and 'v5' are supported; the legacy 'v2' model "
+        f"was removed."
+    )
 
 logger = logging.getLogger("trafix")
 
@@ -104,10 +107,11 @@ NUM_ACTIONS  = 6    # 6 phases for v6
 NUM_NODES    = 5
 NUM_HEADS    = 4
 
-# Chain edge_index for 5 junctions
+# Real topology edge_index for 5 junctions (from sumo/map.net.xml)
+# Edges: J0—J1, J0—J2, J1—J3, J2—J3, J2—J4
 edge_index = torch.tensor([
-    [0, 1, 1, 2, 1, 3, 2, 4, 3, 4],
-    [1, 0, 2, 1, 3, 1, 4, 2, 4, 3],
+    [0, 1, 0, 2, 1, 3, 2, 3, 2, 4],
+    [1, 0, 2, 0, 3, 1, 3, 2, 4, 2],
 ], dtype=torch.long)
 
 # ── Model state ───────────────────────────────────────────────────────────────
@@ -148,7 +152,13 @@ def load_model():
                 try:
                     ckpt = torch.load(abs_path, map_location="cpu", weights_only=True)
                     state = ckpt.get("model_state_dict", ckpt)
-                    agent.load_state_dict(state)
+                    # Drop saved edge_index if shape mismatches (old chain [2,8]
+                    # vs new real topology [2,10]) — model uses its own buffer.
+                    if "edge_index" in state and state["edge_index"].shape != agent.edge_index.shape:
+                        print(f"[INFO] Dropping saved edge_index {list(state['edge_index'].shape)} "
+                              f"— using model topology {list(agent.edge_index.shape)}")
+                        del state["edge_index"]
+                    agent.load_state_dict(state, strict=False)
                     agent.eval()
                     ai_agent = agent
                     _v6_governor = RuleGovernor(
@@ -159,7 +169,13 @@ def load_model():
                         flicker_window=2,
                         flicker_penalty=3.0,
                         pressure_boost=1.0,
-                        pressure_thresh=0.35,
+                        pressure_thresh=0.12,   # Step 5: lowered 0.35->0.12 so the
+                        # pressure boost nudges toward the busiest movement at
+                        # balanced low flow (tie-break). Kept in sync with the
+                        # training governor (finetune_argmax / stage3) and the
+                        # test runner. A/B on the old model: marginal help, no
+                        # over-switching; the real anti-collapse fix is the
+                        # retrained policy (Steps 1-3).
                     )
                     print(f"[OK] TraFixV6 loaded: {abs_path}")
                     print(f"[OK] RuleGovernor active (6 phases, min_green_through=10s)")
@@ -203,35 +219,9 @@ def load_model():
         print("[WARN] TraFixV5 weights not found. Heuristic fallback active.")
         return False
 
-    # ── v2/v3 ─────────────────────────────────────────────────────────────────
-    agent = CoordinatedPPOAgent(
-        num_node_features=NUM_FEATURES,
-        hidden_dim=HIDDEN_DIM,
-        num_actions=NUM_ACTIONS,
-        num_heads=NUM_HEADS,
-    )
-    weight_paths = [
-        os.path.join(base_dir, "ai", _WEIGHT_FILENAME),
-        os.path.join(base_dir, "..", _WEIGHT_FILENAME),
-        _WEIGHT_FILENAME,
-    ]
-    for path in weight_paths:
-        abs_path = os.path.abspath(path)
-        if os.path.exists(abs_path):
-            try:
-                sd = torch.load(abs_path, map_location="cpu", weights_only=True)
-                if isinstance(sd, dict) and "model_state_dict" in sd:
-                    sd = sd["model_state_dict"]
-                agent.load_state_dict(sd)
-                agent.eval()
-                ai_agent = agent
-                print(f"[OK] AI model loaded: {abs_path}")
-                return True
-            except RuntimeError as e:
-                print(f"[WARN] Weight mismatch: {abs_path} — {e}")
-                continue
-
-    print("[WARN] AI model weights not found. Heuristic fallback active.")
+    # No other model version is supported (v2 removed). Unreachable in practice
+    # because an unknown version raises at import; keep a safe fallback.
+    print("[WARN] No supported model selected. Heuristic fallback active.")
     return False
 
 
@@ -351,12 +341,6 @@ async def receive_telemetry_batch(batch: TelemetryBatch, background_tasks: Backg
                 action_probs = torch.stack(
                     [torch.softmax(l, dim=-1).squeeze(0) for l in logits_list], dim=0
                 )
-
-            # ── v2/v3 ─────────────────────────────────────────────────────────
-            elif _USE_GRAPH:
-                action_probs, _ = ai_agent(node_features, edge_index)
-            else:
-                action_probs, _ = ai_agent(node_features)
 
             chosen_phases = []
             for data in batch.intersections:

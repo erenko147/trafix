@@ -390,7 +390,7 @@ def finetune(args):
         flicker_window=2,
         flicker_penalty=3.0,
         pressure_boost=1.0,
-        pressure_thresh=0.35,
+        pressure_thresh=0.12,   # Step 5: in sync with production governor
     )
 
     best_morning_queue = math.inf

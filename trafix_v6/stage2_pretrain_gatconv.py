@@ -84,9 +84,10 @@ NUM_PHASES = 6
 T_WINDOW = 30
 QUEUE_FEAT_IDX = 12           # total queue / 200.0 (index 12 in 20-dim obs)
 
-# Chain 0-1-2-3-4 bidirectional neighbor lists
-CHAIN_NEIGHBORS: List[List[int]] = [[1], [0, 2], [1, 3], [2, 4], [3]]
-MAX_NEIGHBORS = max(len(nb) for nb in CHAIN_NEIGHBORS)
+# Real map topology neighbor lists (from sumo/map.net.xml)
+# Layout:  J0—J1, J0—J2, J1—J3, J2—J3, J2—J4
+TOPOLOGY_NEIGHBORS: List[List[int]] = [[1, 2], [0, 3], [0, 3, 4], [1, 2], [2]]
+MAX_NEIGHBORS = max(len(nb) for nb in TOPOLOGY_NEIGHBORS)
 
 CHECKPOINTS_DIR = _SCRIPT_DIR / "checkpoints"
 STAGE1_CHECKPOINT = CHECKPOINTS_DIR / "stage1_gru.pt"
@@ -153,7 +154,7 @@ def train(args):
     # Temporary neighbor queue prediction heads (Sigmoid-bounded [0,1])
     pred_heads = nn.ModuleList([
         nn.Sequential(
-            nn.Linear(model.trunk_out, len(CHAIN_NEIGHBORS[j])),
+            nn.Linear(model.trunk_out, len(TOPOLOGY_NEIGHBORS[j])),
             nn.Sigmoid(),
         )
         for j in range(NUM_JUNCTIONS)
@@ -222,7 +223,7 @@ def train(args):
                 for j in range(NUM_JUNCTIONS):
                     pred = pred_heads[j](t[j])  # [len(neighbors_j)]
                     target = torch.tensor(
-                        [x_next[nb, QUEUE_FEAT_IDX].item() for nb in CHAIN_NEIGHBORS[j]],
+                        [x_next[nb, QUEUE_FEAT_IDX].item() for nb in TOPOLOGY_NEIGHBORS[j]],
                         dtype=torch.float32, device=device,
                     )
                     loss = loss + _nmse(pred, target)

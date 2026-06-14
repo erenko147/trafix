@@ -7,7 +7,7 @@ full PPO with differential learning rates.
 v6 changes vs v5:
   NUM_PHASES = 6
   OBS_DIM = 20
-  Governor: num_phases=6, pressure_thresh=0.35, freeze_episodes=100
+  Governor: num_phases=6, pressure_thresh=0.12 (Step 5), freeze_episodes=100
   entropy_coef = 0.01 (was 0.005 — prevent premature collapse over 6 phases)
   episodes = 2000
 
@@ -64,7 +64,7 @@ sys.path.insert(0, str(_SCRIPT_DIR))
 sys.path.insert(0, str(_PROJECT_ROOT))
 
 from trafix_v6.trafix_v6 import TraFixV6, NUM_JUNCTIONS
-from scenario_generator import ScenarioGenerator, ScenarioEnvironment
+from scenario_generator import ScenarioGenerator, ScenarioEnvironment, ScenarioType
 from rule_governor import RuleGovernor, sample_governed, evaluate_governed
 
 try:
@@ -102,8 +102,131 @@ STAGE1_CHECKPOINT = CHECKPOINTS_DIR / "stage1_gru.pt"
 STAGE2_GATCONV_CHECKPOINT = CHECKPOINTS_DIR / "stage2_gatconv.pt"
 STAGE2_TRUNK_CHECKPOINT = CHECKPOINTS_DIR / "stage2_trunk.pt"
 FINAL_CHECKPOINT = CHECKPOINTS_DIR / "trafix_v6_final.pt"
+STAGE3_BEST_CHECKPOINT = CHECKPOINTS_DIR / "trafix_v6_stage3_best.pt"
 DEFAULT_SUMO_CFG = str(_PROJECT_ROOT / "sumo" / "training.sumocfg")
 DEFAULT_NET_FILE = str(_PROJECT_ROOT / "sumo" / "map.net.xml")
+
+# Fixed greedy-eval set (identical to finetune_argmax.py for consistency).
+_EVAL_SET: List[Tuple[ScenarioType, int]] = [
+    (ScenarioType.OFFPEAK,      10), (ScenarioType.OFFPEAK,      11),
+    (ScenarioType.OFFPEAK,      12),
+    (ScenarioType.PULSE,        20),
+    (ScenarioType.MORNING_PEAK, 30), (ScenarioType.MORNING_PEAK, 31),
+    (ScenarioType.EVENING_PEAK, 40),
+]
+
+# 33% low, 33% mid, 34% high mix requested by user
+_TRAIN_MIX: List[Tuple[ScenarioType, float]] = [
+    (ScenarioType.OFFPEAK,      0.33),
+    (ScenarioType.PULSE,        0.165),
+    (ScenarioType.INCIDENT,     0.165),
+    (ScenarioType.MORNING_PEAK, 0.17),
+    (ScenarioType.EVENING_PEAK, 0.17),
+]
+
+def _sample_scenario_type() -> ScenarioType:
+    r = random.random()
+    cum = 0.0
+    for st, w in _TRAIN_MIX:
+        cum += w
+        if r <= cum:
+            return st
+    return _TRAIN_MIX[-1][0]
+
+
+# ══════════════════════════════════════════════════
+#  Entropy annealing + Greedy eval (Step 2)
+# ══════════════════════════════════════════════════
+
+def _entropy_coef(episode: int, total: int, start: float, end: float) -> float:
+    """Cosine anneal entropy_coef start → end over the full run."""
+    if total <= 1:
+        return end
+    progress = min(episode / (total - 1), 1.0)
+    return end + 0.5 * (start - end) * (1.0 + math.cos(math.pi * progress))
+
+
+@torch.no_grad()
+def greedy_eval(model, env, generator, governor, device,
+                eval_set=_EVAL_SET) -> Dict[str, float]:
+    """
+    GREEDY (argmax) checkpoint selection rollout.
+
+    Convention (must match argmax_phase_distribution.py):
+      • phases = ARGMAX of governor.apply(logits, obs_last)  ← governor ON
+      • NO starvation overrides                               ← raw policy
+      • standard yellow transitions via ScenarioEnvironment.step
+
+    Returns: mean_reward, mean_queue, worst_lock, peak_queue.
+    peak_queue is used as the high-traffic no-regression guard.
+    """
+    model.eval()
+    rewards, queues, peak_queues = [], [], []
+    phase_counts = [[0] * NUM_PHASES for _ in range(NUM_JUNCTIONS)]
+
+    for scen_type, ep_idx in eval_set:
+        route_file = generator.generate(scen_type, ep_idx)
+        env.set_route_file(route_file)
+        try:
+            env.start(episode=ep_idx)
+        except Exception:
+            env.close()
+            continue
+
+        obs_list = env.get_observations()
+        x = parse_sumo_observations(obs_list, device=device)
+        window = deque([x.detach()] * T_WINDOW, maxlen=T_WINDOW)
+        governor.reset()
+
+        prev_obs, prev_actions, done = None, None, False
+        ep_q = []
+        while not done:
+            window_tensor = torch.stack(list(window)).unsqueeze(0).to(device)
+            logits_list, _ = model.forward(window_tensor)
+            obs_last = window_tensor[0, -1]
+            masked = governor.apply(logits_list, obs_last)
+            actions_1d = torch.stack(
+                [torch.argmax(l, dim=-1).reshape(()) for l in masked]
+            )
+            governor.update_state(actions_1d)
+
+            for j in range(NUM_JUNCTIONS):
+                phase_counts[j][int(actions_1d[j].item()) % NUM_PHASES] += 1
+
+            next_obs_list, done = env.step(actions_1d)
+            x_next = parse_sumo_observations(next_obs_list, device=device)
+
+            reward = compute_reward(
+                current_obs=next_obs_list, previous_obs=prev_obs,
+                previous_actions=prev_actions, current_actions=actions_1d,
+            )
+            rewards.append(reward.mean().item())
+            ep_q.append(float(x_next[:, 12].mean()))
+
+            prev_obs, prev_actions = next_obs_list, actions_1d
+            window.append(x_next.detach())
+
+        env.close()
+        if ep_q:
+            q = sum(ep_q) / len(ep_q)
+            queues.append(q)
+            if scen_type in (ScenarioType.MORNING_PEAK, ScenarioType.EVENING_PEAK):
+                peak_queues.append(q)
+
+    model.train()
+
+    worst_lock = 0.0
+    for j in range(NUM_JUNCTIONS):
+        tot = sum(phase_counts[j])
+        if tot > 0:
+            worst_lock = max(worst_lock, max(phase_counts[j]) / tot)
+
+    return {
+        "mean_reward": sum(rewards) / max(len(rewards), 1),
+        "mean_queue":  sum(queues)  / max(len(queues),  1),
+        "worst_lock":  worst_lock,
+        "peak_queue":  sum(peak_queues) / max(len(peak_queues), 1),
+    }
 
 
 # ══════════════════════════════════════════════════
@@ -324,6 +447,8 @@ def train(args):
         logging.info("  Pretrained weights loaded: GRU, GATConv, trunk")
 
     logging.info(f"  Total params: {sum(p.numel() for p in model.parameters()):,}")
+    logging.info(f"  entropy     : {args.entropy_start} -> {args.entropy_end} (cosine anneal)")
+    logging.info(f"  selection   : GREEDY argmax rollout (governor ON, overrides OFF)")
 
     # Freeze pretrained encoders during warm start
     if args.freeze_episodes > 0 and start_episode < args.freeze_episodes:
@@ -349,6 +474,11 @@ def train(args):
         output_dir=str(_SCRIPT_DIR / "scenarios"),
         seed=None,
     )
+    eval_generator = ScenarioGenerator(
+        net_file=args.net_file,
+        output_dir=str(_SCRIPT_DIR / "scenarios_eval"),
+        seed=77,
+    )
 
     # Rule governor for 6 phases (Section 15 spec)
     governor = RuleGovernor(
@@ -359,10 +489,20 @@ def train(args):
         flicker_window=2,
         flicker_penalty=3.0,
         pressure_boost=1.0,
-        pressure_thresh=0.35,
+        pressure_thresh=0.12,   # Step 5: in sync with production governor
     )
 
     reward_history = deque(maxlen=50)
+    best_greedy_reward = -math.inf
+
+    # Baseline greedy eval so we know the starting point and can set the peak guard.
+    base = greedy_eval(model, env, eval_generator, governor, device)
+    logging.info(f"  BASELINE greedy: reward={base['mean_reward']:+.4f} "
+                 f"queue={base['mean_queue']:.4f} worst_lock={base['worst_lock']:.2f} "
+                 f"peak_queue={base['peak_queue']:.4f}")
+    peak_ceiling = base["peak_queue"] * (1.0 + args.peak_slack)
+    logging.info(f"  high-traffic guard: peak_queue must stay < {peak_ceiling:.4f} "
+                 f"(baseline x {1.0 + args.peak_slack:.2f})")
 
     for episode in range(start_episode, args.episodes):
         # Unfreeze after warm-up
@@ -373,7 +513,9 @@ def train(args):
                 p.requires_grad_(True)
             logging.info(f"  Episode {episode}: Encoders unfrozen")
 
-        # Cosine LR decay
+        # Entropy anneal + cosine LR decay
+        ent_coef = _entropy_coef(episode, args.episodes,
+                                 args.entropy_start, args.entropy_end)
         progress = episode / max(args.episodes - 1, 1)
         lr_scale = (args.lr_min / args.lr
                     + 0.5 * (1.0 - args.lr_min / args.lr)
@@ -382,7 +524,8 @@ def train(args):
             pg["lr"] = base_lr * lr_scale
         current_lr = optimizer.param_groups[-1]["lr"]
 
-        scenario_type, route_file = generator.sample(episode)
+        scenario_type = _sample_scenario_type()
+        route_file = generator.generate(scenario_type, episode)
         env.set_route_file(route_file)
 
         episode_start = time.time()
@@ -462,7 +605,7 @@ def train(args):
                         next_value=next_val.squeeze(0),
                         clip_eps=args.clip_eps, gamma=args.gamma,
                         gae_lambda=args.gae_lambda,
-                        entropy_coef=args.entropy_coef,
+                        entropy_coef=ent_coef,
                         value_loss_coef=args.value_loss_coef,
                         ppo_epochs=args.ppo_epochs,
                         minibatch_size=args.minibatch_size,
@@ -493,7 +636,7 @@ def train(args):
                     next_value=next_val,
                     clip_eps=args.clip_eps, gamma=args.gamma,
                     gae_lambda=args.gae_lambda,
-                    entropy_coef=args.entropy_coef,
+                    entropy_coef=ent_coef,
                     value_loss_coef=args.value_loss_coef,
                     ppo_epochs=args.ppo_epochs,
                     minibatch_size=args.minibatch_size,
@@ -541,9 +684,45 @@ def train(args):
             save_checkpoint(model, optimizer, episode, ckpt_path, best_reward)
             logging.info(f"  → Checkpoint saved: {ckpt_path}")
 
+        if (episode + 1) % args.eval_interval == 0:
+            g = greedy_eval(model, env, eval_generator, governor, device)
+            peak_ok = g["peak_queue"] <= peak_ceiling
+            logging.info(
+                f"  --- greedy eval @ep{episode + 1}: reward={g['mean_reward']:+.4f} "
+                f"queue={g['mean_queue']:.4f} worst_lock={g['worst_lock']:.2f} "
+                f"peak_queue={g['peak_queue']:.4f} {'OK' if peak_ok else 'PEAK-REGRESSED'} ---"
+            )
+            if g["mean_reward"] > best_greedy_reward and peak_ok and g["worst_lock"] <= 0.70:
+                best_greedy_reward = g["mean_reward"]
+                torch.save({
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": optimizer.state_dict(),
+                    "episode": episode,
+                    "greedy_reward": g["mean_reward"],
+                    "greedy_queue": g["mean_queue"],
+                    "greedy_worst_lock": g["worst_lock"],
+                    "greedy_peak_queue": g["peak_queue"],
+                    "selection": "greedy_argmax_governor_no_overrides",
+                }, str(STAGE3_BEST_CHECKPOINT))
+                logging.info(f"  *** new best greedy reward={best_greedy_reward:+.4f} "
+                             f"(worst_lock={g['worst_lock']:.2f}) — saved {STAGE3_BEST_CHECKPOINT.name} ***")
+            elif not peak_ok:
+                logging.info("  [GATE] peak_queue regressed — best not updated")
+            elif g["worst_lock"] > 0.70:
+                logging.info(f"  [GATE] model collapsed (worst_lock={g['worst_lock']:.2f}) — best not updated")
+
+
     save_checkpoint(model, optimizer, args.episodes - 1, FINAL_CHECKPOINT, best_reward)
-    logging.info(f"  Final model saved → {FINAL_CHECKPOINT}")
-    logging.info(f"  Best episode reward: {best_reward:.6f}")
+    logging.info(f"  Final model saved  → {FINAL_CHECKPOINT}")
+    logging.info(f"  Best greedy saved  → {STAGE3_BEST_CHECKPOINT}")
+    logging.info(f"  Best greedy reward : {best_greedy_reward:.6f}")
+    logging.info("  Validate (Step 4) before promoting:")
+    logging.info(f"    .venv/bin/python tests/diagnostics/argmax_phase_distribution.py "
+                 f"--checkpoint {STAGE3_BEST_CHECKPOINT} --route tests/scenarios/type1_low.rou.xml")
+    logging.info(f"    .venv/bin/python tests/diagnostics/argmax_phase_distribution.py "
+                 f"--checkpoint {STAGE3_BEST_CHECKPOINT} --route tests/scenarios/type1_medium.rou.xml")
+    logging.info(f"    .venv/bin/python tests/diagnostics/high_traffic_reference.py "
+                 f"--checkpoint {STAGE3_BEST_CHECKPOINT} --tag after")
     print("Stage 3 complete. Final model saved.")
 
 
@@ -564,7 +743,14 @@ def parse_args():
     parser.add_argument("--gae-lambda", type=float, default=0.95)
     parser.add_argument("--clip-eps", type=float, default=0.2)
     parser.add_argument("--target-kl", type=float, default=0.015)
-    parser.add_argument("--entropy-coef", type=float, default=0.01)
+    parser.add_argument("--entropy-start", type=float, default=0.01,
+                        help="entropy_coef at episode 0 (keeps exploration alive)")
+    parser.add_argument("--entropy-end", type=float, default=0.0005,
+                        help="entropy_coef at final episode (sharpens to argmax mode)")
+    parser.add_argument("--eval-interval", type=int, default=50,
+                        help="run greedy eval and attempt best-checkpoint save every N episodes")
+    parser.add_argument("--peak-slack", type=float, default=0.10,
+                        help="allowed high-traffic queue regression fraction before gating best")
     parser.add_argument("--value-loss-coef", type=float, default=0.25)
     parser.add_argument("--ppo-epochs", type=int, default=4)
     parser.add_argument("--minibatch-size", type=int, default=64)

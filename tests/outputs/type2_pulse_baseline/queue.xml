@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2026-05-21T02:47:37.579157+03:00 by Eclipse SUMO sumo 1.26.0
+<!-- generated on 2026-06-14T14:46:03.440619+03:00 by Eclipse SUMO sumo 1.26.0
 <sumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
-        <net-file value="X:\Yeni klasör (2)\trafix\sumo\map.net.xml"/>
-        <route-files value="X:\Yeni klasör (2)\trafix\tests\scenarios\type2_pulse.rou.xml"/>
+        <net-file value="X:\atlas\traf_lasttwo_days\trafix\sumo\map.net.xml"/>
+        <route-files value="X:\atlas\traf_lasttwo_days\trafix\tests\scenarios\type2_pulse.rou.xml"/>
     </input>
 
     <output>
-        <queue-output value="X:\Yeni klasör (2)\trafix\tests\outputs\type2_pulse_baseline\queue.xml"/>
-        <summary-output value="X:\Yeni klasör (2)\trafix\tests\outputs\type2_pulse_baseline\summary.xml"/>
-        <tripinfo-output value="X:\Yeni klasör (2)\trafix\tests\outputs\type2_pulse_baseline\tripinfo.xml"/>
-        <statistic-output value="X:\Yeni klasör (2)\trafix\tests\outputs\type2_pulse_baseline\statistics.xml"/>
+        <queue-output value="X:\atlas\traf_lasttwo_days\trafix\tests\outputs\type2_pulse_baseline\queue.xml"/>
+        <summary-output value="X:\atlas\traf_lasttwo_days\trafix\tests\outputs\type2_pulse_baseline\summary.xml"/>
+        <tripinfo-output value="X:\atlas\traf_lasttwo_days\trafix\tests\outputs\type2_pulse_baseline\tripinfo.xml"/>
+        <statistic-output value="X:\atlas\traf_lasttwo_days\trafix\tests\outputs\type2_pulse_baseline\statistics.xml"/>
     </output>
 
     <time>
@@ -22,6 +22,8 @@
     </time>
 
     <processing>
+        <time-to-teleport value="-1"/>
+        <time-to-teleport.highways value="-1"/>
         <waiting-time-memory value="1000"/>
     </processing>
 
@@ -35,7 +37,7 @@
     </emissions>
 
     <traci_server>
-        <remote-port value="55295"/>
+        <remote-port value="54852"/>
     </traci_server>
 
     <random_number>

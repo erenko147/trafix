@@ -64,7 +64,15 @@
         "-E5": 0.6084507042253521,
         "-E6": 0.32422535211267606
       },
-      "mean_halting_total": 1.268450704225352
+      "mean_halting_total": 1.268450704225352,
+      "per_approach_mean_slow": {
+        "-E0": 0.056901408450704224,
+        "-E1": 0.28845070422535213,
+        "-E5": 0.6354929577464788,
+        "-E6": 0.3335211267605634
+      },
+      "mean_slow_total": 1.3143661971830987,
+      "slow_speed_threshold_ms": 1.39
     },
     "J1": {
       "per_approach_mean_halting": {
@@ -73,7 +81,15 @@
         "-E8": 0.3543661971830986,
         "E0": 0.15267605633802817
       },
-      "mean_halting_total": 0.7402816901408451
+      "mean_halting_total": 0.7402816901408451,
+      "per_approach_mean_slow": {
+        "-E3": 0.13915492957746478,
+        "-E7": 0.10450704225352113,
+        "-E8": 0.36507042253521127,
+        "E0": 0.1563380281690141
+      },
+      "mean_slow_total": 0.7650704225352113,
+      "slow_speed_threshold_ms": 1.39
     },
     "J2": {
       "per_approach_mean_halting": {
@@ -82,7 +98,15 @@
         "-E9": 0.8923943661971832,
         "E1": 0.4977464788732394
       },
-      "mean_halting_total": 1.391267605633803
+      "mean_halting_total": 1.391267605633803,
+      "per_approach_mean_slow": {
+        "-E2": 0.0033802816901408453,
+        "-E4": 0.0,
+        "-E9": 0.9402816901408451,
+        "E1": 0.5197183098591549
+      },
+      "mean_slow_total": 1.463380281690141,
+      "slow_speed_threshold_ms": 1.39
     },
     "J3": {
       "per_approach_mean_halting": {
@@ -91,7 +115,15 @@
         "E2": 0.432112676056338,
         "E3": 0.48732394366197185
       },
-      "mean_halting_total": 0.9194366197183099
+      "mean_halting_total": 0.9194366197183099,
+      "per_approach_mean_slow": {
+        "-E10": 0.0,
+        "-E11": 0.0,
+        "E2": 0.44140845070422535,
+        "E3": 0.4983098591549296
+      },
+      "mean_slow_total": 0.9397183098591549,
+      "slow_speed_threshold_ms": 1.39
     },
     "J4": {
       "per_approach_mean_halting": {
@@ -100,7 +132,15 @@
         "-E14": 0.0,
         "E4": 0.6926760563380282
       },
-      "mean_halting_total": 0.6926760563380282
+      "mean_halting_total": 0.6926760563380282,
+      "per_approach_mean_slow": {
+        "-E12": 0.0,
+        "-E13": 0.0,
+        "-E14": 0.0,
+        "E4": 0.712112676056338
+      },
+      "mean_slow_total": 0.712112676056338,
+      "slow_speed_threshold_ms": 1.39
     }
   },
   "network_fairness_variance": 136.54230797659196
