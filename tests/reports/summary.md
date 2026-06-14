@@ -73,6 +73,102 @@
 | vehicles_still_running | 3 | 0 | ✓ +100.0% |
 | waiting_time_s | 92.87 | 42.06 | ✓ +54.7% |
 
+## type2 | evening_peak
+
+| Metric | Baseline | AI (v6) | Δ% |
+|--------|----------|---------|-----|
+| CO_total_mg | 7.904e+05 | 7.939e+05 | ✗ -0.4% |
+| HC_total_mg | 5258 | 5285 | ✗ -0.5% |
+| NOx_total_mg | 1.067e+05 | 6.963e+04 | ✓ +34.8% |
+| PMx_total_mg | 1.262e+04 | 1.275e+04 | ✗ -1.0% |
+| cars_not_completed | 27 | 21 | ✓ +22.2% |
+| co2_mg_per_vehicle | 3.288e+05 | 2.209e+05 | ✓ +32.8% |
+| co2_total_mg | 2.9e+08 | 1.962e+08 | ✓ +32.4% |
+| completion_rate_pct | 97.03 | 97.69 | ✓ +0.7% |
+| fairness_variance | 1738 | 56.64 | ✓ +96.7% |
+| fuel_per_vehicle_L | 0.1437 | 0.09651 | ✓ +32.8% |
+| network_speed_ms | 3.696 | 6.662 | ✓ +80.2% |
+| queue_length_vehicles | 5.401 | 1.994 | ✓ +63.1% |
+| stops_per_vehicle | 2.061 | 1.643 | ✓ +20.3% |
+| teleports | 0 | 0 | ✓ +0.0% |
+| throughput_veh_hr | 882 | 888 | ✓ +0.7% |
+| time_loss_s | 121 | 52.53 | ✓ +56.6% |
+| travel_time_s | 169 | 100.9 | ✓ +40.3% |
+| vehicles_still_running | 27 | 21 | ✓ +22.2% |
+| waiting_time_s | 102.7 | 37.46 | ✓ +63.5% |
+
+## type2 | incident
+
+| Metric | Baseline | AI (v6) | Δ% |
+|--------|----------|---------|-----|
+| CO_total_mg | 1.445e+05 | 1.501e+05 | ✗ -3.8% |
+| HC_total_mg | 961.7 | 999.1 | ✗ -3.9% |
+| NOx_total_mg | 1.946e+04 | 1.124e+04 | ✓ +42.2% |
+| PMx_total_mg | 2300 | 2413 | ✗ -4.9% |
+| cars_not_completed | 9 | 0 | ✓ +100.0% |
+| co2_mg_per_vehicle | 3.47e+05 | 1.997e+05 | ✓ +42.5% |
+| co2_total_mg | 5.275e+07 | 3.215e+07 | ✓ +39.0% |
+| completion_rate_pct | 94.41 | 100 | ✓ +5.9% |
+| fairness_variance | 136.5 | 0.6517 | ✓ +99.5% |
+| fuel_per_vehicle_L | 0.1516 | 0.08725 | ✓ +42.5% |
+| network_speed_ms | 3.789 | 7.906 | ✓ +108.7% |
+| queue_length_vehicles | 1.039 | 0.1988 | ✓ +80.9% |
+| stops_per_vehicle | 2.205 | 1.391 | ✓ +36.9% |
+| teleports | 0 | 0 | ✓ +0.0% |
+| throughput_veh_hr | 152 | 161 | ✓ +5.9% |
+| time_loss_s | 130.1 | 35.57 | ✓ +72.7% |
+| travel_time_s | 180 | 86.42 | ✓ +52.0% |
+| vehicles_still_running | 9 | 0 | ✓ +100.0% |
+| waiting_time_s | 112.5 | 20.91 | ✓ +81.4% |
+
+## type2 | morning_peak
+
+| Metric | Baseline | AI (v6) | Δ% |
+|--------|----------|---------|-----|
+| CO_total_mg | 8.001e+05 | 7.957e+05 | ✓ +0.6% |
+| HC_total_mg | 5321 | 5298 | ✓ +0.4% |
+| NOx_total_mg | 1.155e+05 | 6.972e+04 | ✓ +39.6% |
+| PMx_total_mg | 1.259e+04 | 1.293e+04 | ✗ -2.8% |
+| cars_not_completed | 81 | 62 | ✓ +23.5% |
+| co2_mg_per_vehicle | 3.56e+05 | 2.192e+05 | ✓ +38.4% |
+| co2_total_mg | 3.126e+08 | 1.966e+08 | ✓ +37.1% |
+| completion_rate_pct | 91.55 | 93.53 | ✓ +2.2% |
+| fairness_variance | 9551 | 24.33 | ✓ +99.7% |
+| fuel_per_vehicle_L | 0.1555 | 0.09578 | ✓ +38.4% |
+| network_speed_ms | 3.316 | 6.753 | ✓ +103.7% |
+| queue_length_vehicles | 6.301 | 2.029 | ✓ +67.8% |
+| stops_per_vehicle | 2.196 | 1.655 | ✓ +24.6% |
+| teleports | 0 | 0 | ✓ +0.0% |
+| throughput_veh_hr | 878 | 897 | ✓ +2.2% |
+| time_loss_s | 132.4 | 50.88 | ✓ +61.6% |
+| travel_time_s | 179.1 | 98.4 | ✓ +45.1% |
+| vehicles_still_running | 81 | 62 | ✓ +23.5% |
+| waiting_time_s | 113.3 | 35.84 | ✓ +68.4% |
+
+## type2 | pulse
+
+| Metric | Baseline | AI (v6) | Δ% |
+|--------|----------|---------|-----|
+| CO_total_mg | 2.066e+05 | 2.047e+05 | ✓ +0.9% |
+| HC_total_mg | 1375 | 1362 | ✓ +0.9% |
+| NOx_total_mg | 2.714e+04 | 1.827e+04 | ✓ +32.7% |
+| PMx_total_mg | 3274 | 3272 | ✓ +0.1% |
+| cars_not_completed | 0 | 0 | ✓ +0.0% |
+| co2_mg_per_vehicle | 3.152e+05 | 2.194e+05 | ✓ +30.4% |
+| co2_total_mg | 7.376e+07 | 5.135e+07 | ✓ +30.4% |
+| completion_rate_pct | 100 | 100 | ✓ -0.0% |
+| fairness_variance | 1463 | 49.04 | ✓ +96.6% |
+| fuel_per_vehicle_L | 0.1377 | 0.09587 | ✓ +30.4% |
+| network_speed_ms | 3.654 | 6.904 | ✓ +88.9% |
+| queue_length_vehicles | 3.767 | 1.568 | ✓ +58.4% |
+| stops_per_vehicle | 2.054 | 1.612 | ✓ +21.5% |
+| teleports | 0 | 0 | ✓ +0.0% |
+| throughput_veh_hr | 234 | 234 | ✓ -0.0% |
+| time_loss_s | 115.7 | 54.15 | ✓ +53.2% |
+| travel_time_s | 163.1 | 101.6 | ✓ +37.7% |
+| vehicles_still_running | 0 | 0 | ✓ +0.0% |
+| waiting_time_s | 98.28 | 39.23 | ✓ +60.1% |
+
 ## Verdict
 
 **Metrics where AI improved over baseline:**
@@ -102,5 +198,12 @@
 - HC_total_mg (type1/high)
 - PMx_total_mg (type1/high)
 - PMx_total_mg (type1/medium)
+- CO_total_mg (type2/evening_peak)
+- HC_total_mg (type2/evening_peak)
+- PMx_total_mg (type2/evening_peak)
+- CO_total_mg (type2/incident)
+- HC_total_mg (type2/incident)
+- PMx_total_mg (type2/incident)
+- PMx_total_mg (type2/morning_peak)
 
-**Overall:** AI improved 46 metric-scenarios, regressed 4.  Net score: +42.  Recommend deploying AI controller.
+**Overall:** AI improved 107 metric-scenarios, regressed 11.  Net score: +96.  Recommend deploying AI controller.

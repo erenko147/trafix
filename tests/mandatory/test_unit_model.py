@@ -7,7 +7,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))
 
 import unittest
 import torch
-from trafix_v6.trafix_v6 import TraFixV6, _TemporalEncoder, _GraphEncoder, _make_chain_edge_index
+from trafix_v6.trafix_v6 import TraFixV6, _TemporalEncoder, _GraphEncoder, _make_topology_edge_index
 
 J = 5   # junctions
 T = 30  # time window
@@ -47,7 +47,7 @@ class TestGraphEncoder(unittest.TestCase):
     def setUp(self):
         self.enc = _GraphEncoder(in_channels=128, heads=4, head_dim=32)
         self.enc.eval()
-        self.edge_index = _make_chain_edge_index(J)
+        self.edge_index = _make_topology_edge_index()
 
     def test_output_shape(self):
         x = torch.zeros(J, 128)

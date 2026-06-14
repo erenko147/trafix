@@ -1,0 +1,69 @@
+{
+  "sim_end_step": 3600,
+  "count": 9,
+  "vehicles": [
+    {
+      "id": "f_E6_E10_4.7",
+      "depart": 3327.0,
+      "time_in_network_s": 273.0,
+      "waiting_time_s": 216.0,
+      "time_loss_s": 231.56339273727514
+    },
+    {
+      "id": "f_E8_E13_12.7",
+      "depart": 3328.0,
+      "time_in_network_s": 272.0,
+      "waiting_time_s": 188.0,
+      "time_loss_s": 216.03912207616233
+    },
+    {
+      "id": "f_E9_E10_14.6",
+      "depart": 3452.0,
+      "time_in_network_s": 148.0,
+      "waiting_time_s": 108.0,
+      "time_loss_s": 120.16774076757217
+    },
+    {
+      "id": "f_E9_E12_18.6",
+      "depart": 3453.0,
+      "time_in_network_s": 147.0,
+      "waiting_time_s": 127.0,
+      "time_loss_s": 137.46249732271943
+    },
+    {
+      "id": "f_E9_E14_20.6",
+      "depart": 3454.0,
+      "time_in_network_s": 146.0,
+      "waiting_time_s": 124.0,
+      "time_loss_s": 134.53972923068173
+    },
+    {
+      "id": "f_E9_E5_53.6",
+      "depart": 3453.0,
+      "time_in_network_s": 147.0,
+      "waiting_time_s": 113.0,
+      "time_loss_s": 126.20471371993196
+    },
+    {
+      "id": "f_E9_E6_55.6",
+      "depart": 3454.0,
+      "time_in_network_s": 146.0,
+      "waiting_time_s": 111.0,
+      "time_loss_s": 123.69686697954737
+    },
+    {
+      "id": "f_E9_E7_57.6",
+      "depart": 3455.0,
+      "time_in_network_s": 145.0,
+      "waiting_time_s": 86.0,
+      "time_loss_s": 101.91999144689024
+    },
+    {
+      "id": "f_E9_E8_59.6",
+      "depart": 3457.0,
+      "time_in_network_s": 143.0,
+      "waiting_time_s": 82.0,
+      "time_loss_s": 100.3203336568858
+    }
+  ]
+}
