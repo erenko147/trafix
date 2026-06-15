@@ -67,7 +67,8 @@
       "Bash(sed -i 's/p.add_argument\\(\"--pressure-thresh\", type=float, default=0.35,/p.add_argument\\(\"--pressure-thresh\", type=float, default=0.12,/' tests/diagnostics/argmax_phase_distribution.py)",
       "Bash(echo \"=== git status ===\")",
       "Bash(git status *)",
-      "Bash(echo \"=== quick import + mandatory sanity \\(already verified, reconfirm\\) ===\")"
+      "Bash(echo \"=== quick import + mandatory sanity \\(already verified, reconfirm\\) ===\")",
+      "Bash(sort -t, -k1,2 -k4)"
     ]
   }
 }
